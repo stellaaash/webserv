@@ -3,6 +3,7 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <unistd.h>
 
 #include <cstdio>
 #include <cstdlib>
@@ -49,12 +50,26 @@ int main() {
     // Listen on port 80 using the newly-bound socket
     if (listen(s, 10) != 0) {
         perror("[!] - listen failed");
+        close(s);
         exit(1);
     }
 
     // Accept an incoming connection
-    accept(s, results->ai_addr, &results->ai_addrlen);
+    int new_s = accept(s, results->ai_addr, &results->ai_addrlen);
+    if (new_s < 0) {
+        perror("[!] - accept failed");
+        exit(1);
+    }
 
+    char    buf[10];
+    ssize_t size_received;
+    memset(buf, 0, sizeof(buf));
+    while ((size_received = recv(new_s, buf, sizeof(buf), 0)) > 0) {
+        write(2, buf, sizeof(buf));
+        memset(buf, 0, sizeof(buf));
+    }
+    std::clog << "\n[!] - recv exited with " << size_received << std::endl;
+    if (size_received < 0) perror("[!] - recv failed");
     freeaddrinfo(results);
     return 0;
 }
