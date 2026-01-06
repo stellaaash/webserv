@@ -1,6 +1,6 @@
 NAME		=	webserv
 CXX			=	c++
-CXXFLAGS	=	-Wall -Wextra -Wpedantic -Werror -std=c++98 -g
+CXXFLAGS	=	-Wall -Wextra -Wpedantic -Weffc++ -Wconversion -Wsign-conversion -Werror -std=c++98 -g
 RM			=	rm
 RMFLAGS		=	-f
 
