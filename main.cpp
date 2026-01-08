@@ -5,6 +5,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include <cerrno>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -70,7 +71,9 @@ int main() {
     char    buf[10];
     ssize_t size_received;
     memset(buf, 0, sizeof(buf));
-    while ((size_received = recv(new_s, buf, sizeof(buf), 0)) > 0) {
+    while ((size_received = recv(new_s, buf, sizeof(buf), MSG_DONTWAIT)) > 0 ||
+           errno == EWOULDBLOCK || errno == EAGAIN) {
+        std::clog << "[!] - yay" << std::endl;
         write(2, buf, sizeof(buf));
         memset(buf, 0, sizeof(buf));
     }
