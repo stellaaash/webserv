@@ -17,7 +17,7 @@ typedef std::string  File_Path;
 
 typedef struct Location_Config {
     std::set<HTTP_Code>              limit_except;
-    std::map<HTTP_Code, std::string> redirect;
+    std::map<HTTP_Code, std::string> redirect;  // Redirect to a URL using a specific HTTP code
     File_Path                        root;
     bool                             autoindex;
     File_Path                        index;
