@@ -6,7 +6,6 @@
 #define CONFIG_HPP
 
 #include <arpa/inet.h>
-#include <features.h>
 
 #include <map>
 #include <set>
