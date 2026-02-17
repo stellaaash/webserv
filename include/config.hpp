@@ -15,7 +15,7 @@
 typedef unsigned int HTTP_Code;
 typedef std::string  File_Path;
 
-typedef struct Location_Config {
+typedef struct Config_Location {
     std::set<HTTP_Code>              limit_except;
     std::map<HTTP_Code, std::string> redirect;  // Redirect to a URL using a specific HTTP code
     File_Path                        root;
@@ -23,22 +23,22 @@ typedef struct Location_Config {
     File_Path                        index;
     File_Path                        upload_store;
     std::map<std::string, File_Path> cgi;  // Bind an extension to an interpreter
-} Location_Config;
+} Config_Location;
 
-typedef struct Server_Config {
+typedef struct Config_Server {
     struct sockaddr_in               listen;
     std::map<HTTP_Code, std::string> error_page;  // Error code to URI
     unsigned int                     client_max_body_size;
-    std::vector<Location_Config>     location;
-} Server_Config;
+    std::vector<Config_Location>     location;
+} Config_Server;
 
 // TODO We might get rid of that context if we don't do directive inheritance
-typedef struct HTTP_Config {
-    Server_Config server;
-} HTTP_Config;
+typedef struct Config_HTTP {
+    Config_Server server;
+} Config_HTTP;
 
 typedef struct Config {
-    HTTP_Config http;
+    Config_HTTP http;
     File_Path   error_log;
 } Config;
 
