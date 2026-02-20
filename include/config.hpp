@@ -32,14 +32,9 @@ typedef struct Config_Server {
     std::vector<Config_Location>     location;
 } Config_Server;
 
-// TODO We might get rid of that context if we don't do directive inheritance
-typedef struct Config_HTTP {
-    Config_Server server;
-} Config_HTTP;
-
 typedef struct Config {
-    Config_HTTP http;
-    File_Path   error_log;
+    Config_Server server;
+    File_Path     error_log;
 } Config;
 
 #endif
