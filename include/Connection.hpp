@@ -7,19 +7,21 @@
 
 class Connection {
 public:
-    Connection(const Config_Server& config);
+    Connection(const Config_Server& config, int socket);
     ~Connection();
 
     const Response& response() const;
     const Request&  request() const;
+
+    // TODO Send and receive functions
 
 private:
     Request              _request;
     Response             _response;
     const Config_Server& _config;
 
-    // TODO Socket
-    // TODO Read buffer? How?
+    int _socket;
+    // TODO Read and write buffers? How?
 };
 
 #endif
