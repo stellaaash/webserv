@@ -29,6 +29,7 @@ Config mock_config() {
     server.error_page[500] = "/errors/500.html";
     server.error_page[413] = "/errors/413.html";
 
+    server.timeout = 1000;
     server.client_max_body_size = 1024 * 1024;  // 1Mb
 
     server.location.push_back(loc);
