@@ -6,11 +6,14 @@ RMFLAGS		=	-f
 
 SRCDIR		=	src
 CFILES		=	$(SRCDIR)/main.cpp \
+				$(SRCDIR)/ConnectionManager/Connection.cpp \
+				$(SRCDIR)/ConnectionManager/Request.cpp \
+				$(SRCDIR)/ConnectionManager/Response.cpp
 
 OBJS		=	$(CFILES:.cpp=.o)
 
 INCLDIR		=	include
-IFILES		=	
+IFILES		=
 
 VALGRIND	=	valgrind
 VALFLAGS	=	--leak-check=full --show-leak-kinds=all
