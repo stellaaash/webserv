@@ -1,5 +1,6 @@
 #include "Response.hpp"
 
+#include <cassert>
 #include <cstdlib>
 #include <string>
 
@@ -18,6 +19,7 @@ const std::string& Response::response_string() const {
 }
 
 void Response::set_code(HTTP_Code code) {
+    assert(code >= 100 && code <= 599 && "Correct HTTP Code");
     _code = code;
 }
 
@@ -30,6 +32,8 @@ void Response::set_response_string(const std::string& response_string) {
  * directly.
  */
 std::string Response::serialize() const {
+    assert(_response_string.empty() == false && "Response ready");
+
     std::string serialized;
 
     // TODO append the http code first

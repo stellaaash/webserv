@@ -1,11 +1,15 @@
 #include "Request.hpp"
 
+#include <cassert>
+
 #include "config.hpp"
 
 Request::Request() : _config(NULL), _method(UNDEFINED), _status(EMPTY) {}
 
 Request::Request(const Config_Location* config, HTTP_Method method)
-    : _config(config), _method(method), _status(EMPTY) {}
+    : _config(config), _method(method), _status(EMPTY) {
+    assert(config && "Config_Location pointer");
+}
 
 Request::~Request() {}
 
@@ -22,5 +26,6 @@ void Request::set_method(HTTP_Method method) {
 }
 
 void Request::set_status(Status_Parsing status) {
+    assert(status > _status && "Walking back status");  // Status should only progress, not go back
     _status = status;
 }
