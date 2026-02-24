@@ -7,13 +7,15 @@
 
 class Connection {
 public:
-    Connection(const Config_Server*, int socket);
+    Connection(const Config_Server* const, int socket);
     ~Connection();
 
     const Request&  request() const;
     const Response& response() const;
 
     // TODO Send and receive functions
+
+    void set_config(const Config_Server* const);
 
 private:
     const Config_Server* _config;

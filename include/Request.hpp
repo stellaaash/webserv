@@ -14,12 +14,13 @@ enum Status_Parsing { EMPTY, REQUEST_LINE, HEADERS, BODY, PARSED };
 class Request : virtual public HTTP_Message {
 public:
     Request();
-    Request(const Config_Location*, HTTP_Method);
+    Request(const Config_Location* const, HTTP_Method);
     ~Request();
 
     HTTP_Method    method() const;
     Status_Parsing status() const;
 
+    void set_config(const Config_Location* const);
     void set_method(HTTP_Method);
     void set_status(Status_Parsing);
 

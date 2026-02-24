@@ -6,7 +6,8 @@
 #include "Response.hpp"
 #include "config.hpp"
 
-Connection::Connection(const Config_Server* config, int socket) : _config(config), _socket(socket) {
+Connection::Connection(const Config_Server* const config, int socket)
+    : _config(config), _socket(socket) {
     assert(config && "Config_Server pointer");
     assert(socket > 2 && "Valid Socket Number");
 }
@@ -19,4 +20,10 @@ const Request& Connection::request() const {
 
 const Response& Connection::response() const {
     return _response;
+}
+
+void Connection::set_config(const Config_Server* const config) {
+    assert(config && "Config_Server pointer");
+
+    _config = config;
 }

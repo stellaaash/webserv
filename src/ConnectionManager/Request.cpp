@@ -6,7 +6,7 @@
 
 Request::Request() : _config(NULL), _method(UNDEFINED), _status(EMPTY) {}
 
-Request::Request(const Config_Location* config, HTTP_Method method)
+Request::Request(const Config_Location* const config, HTTP_Method method)
     : _config(config), _method(method), _status(EMPTY) {
     assert(config && "Config_Location pointer");
 }
@@ -19,6 +19,12 @@ HTTP_Method Request::method() const {
 
 Status_Parsing Request::status() const {
     return _status;
+}
+
+void Request::set_config(const Config_Location* const config) {
+    assert(config && "Config_Server pointer");
+
+    _config = config;
 }
 
 void Request::set_method(HTTP_Method method) {
