@@ -23,6 +23,8 @@ private:
 
     int _socket;
     // TODO Read and write buffers? How?
+    // Don't forget the index telling us where the unprocessed data starts
+    // That way we don't have to flush the string every time we read from it
 };
 
 #endif
