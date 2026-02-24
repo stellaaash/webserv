@@ -2,7 +2,9 @@
 
 #include "config.hpp"
 
-Request::Request(const Config_Location& config, HTTP_Method method)
+Request::Request() : _config(NULL), _method(UNDEFINED), _status(EMPTY) {}
+
+Request::Request(const Config_Location* config, HTTP_Method method)
     : _config(config), _method(method), _status(EMPTY) {}
 
 Request::~Request() {}

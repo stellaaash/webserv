@@ -4,21 +4,17 @@
 #include "HTTP_Message.hpp"
 #include "config.hpp"
 
-enum HTTP_Method { GET, POST, DELETE };
-enum Status_Parsing {
-    EMPTY,
-    REQUEST_LINE,
-    HEADERS,
-    BODY,
-    PARSED
-};  // TODO Might move it to a parsing-related header if needed elsewhere
+enum HTTP_Method { UNDEFINED, GET, POST, DELETE };
+// TODO Move Status_Parsing to a parsing.hpp header once parsing is done
+enum Status_Parsing { EMPTY, REQUEST_LINE, HEADERS, BODY, PARSED };
 
 /**
  * @brief Represents a request issued by an active connection.
  */
 class Request : virtual public HTTP_Message {
 public:
-    Request(const Config_Location&, HTTP_Method);
+    Request();
+    Request(const Config_Location*, HTTP_Method);
     ~Request();
 
     HTTP_Method    method() const;
@@ -28,7 +24,7 @@ public:
     void set_status(Status_Parsing);
 
 private:
-    const Config_Location& _config;
+    const Config_Location* _config;
 
     HTTP_Method    _method;
     Status_Parsing _status;
