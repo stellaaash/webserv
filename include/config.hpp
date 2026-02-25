@@ -16,8 +16,10 @@
 typedef unsigned int HTTP_Code;
 typedef std::string  File_Path;
 
+enum HTTP_Method { UNDEFINED, GET, POST, DELETE };
+
 typedef struct Config_Location {
-    std::set<HTTP_Code>              limit_except;
+    std::set<HTTP_Method>            limit_except;
     std::map<HTTP_Code, std::string> redirect;  // Redirect to a URL using a specific HTTP code
     File_Path                        root;
     bool                             autoindex;
@@ -38,5 +40,7 @@ typedef struct Config {
     Config_Server server;
     File_Path     error_log;
 } Config;
+
+Config mock_config();
 
 #endif
