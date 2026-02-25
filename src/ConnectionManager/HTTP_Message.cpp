@@ -1,5 +1,28 @@
 #include "HTTP_Message.hpp"
 
+HTTP_Message::HTTP_Message() : _major_version(0), _minor_version(0), _headers(), _body() {}
+
+HTTP_Message::HTTP_Message(const HTTP_Message& other)
+    : _major_version(other._major_version),
+      _minor_version(other._minor_version),
+      _headers(other._headers),
+      _body(other._body) {}
+
+const HTTP_Message& HTTP_Message::operator=(const HTTP_Message& other) {
+    if (this == &other) {
+        return *this;
+    }
+
+    _major_version = other._major_version;
+    _minor_version = other._minor_version;
+    _headers = other._headers;
+    _body = other._body;
+
+    return *this;
+}
+
+HTTP_Message::~HTTP_Message() {}
+
 const std::string& HTTP_Message::body() const {
     return _body;
 }

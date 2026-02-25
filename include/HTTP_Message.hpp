@@ -9,6 +9,11 @@ public:
     // What the header getter will return, this makes it easier to iterate over duplicate headers
     typedef std::multimap<std::string, std::string>::const_iterator header_iterator;
 
+    HTTP_Message();
+    HTTP_Message(const HTTP_Message&);
+    const HTTP_Message& operator=(const HTTP_Message&);
+    ~HTTP_Message();
+
     int                major_version() const;
     int                minor_version() const;
     header_iterator    header(const std::string&) const;
