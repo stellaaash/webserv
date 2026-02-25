@@ -4,7 +4,6 @@
 #include "HTTP_Message.hpp"
 #include "config.hpp"
 
-enum HTTP_Method { UNDEFINED, GET, POST, DELETE };
 // TODO Move Status_Parsing to a parsing.hpp header once parsing is done
 enum Status_Parsing { EMPTY, REQUEST_LINE, HEADERS, BODY, PARSED };
 

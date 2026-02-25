@@ -12,8 +12,7 @@ Config mock_config() {
     Config_Server   server;
     Config_Location loc;
 
-    loc.limit_except.insert(405);  // Not allowed placeholder
-    loc.limit_except.insert(501);  // Not implemented placeholder
+    loc.limit_except.insert(DELETE);
 
     loc.redirect[301] = "index.html";
     loc.root = "./root";
