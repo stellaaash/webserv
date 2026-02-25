@@ -15,6 +15,7 @@ public:
     header_iterator    header(const std::string&) const;
 
     void set_header(const std::string&, const std::string&);
+    void append_body(const std::string&);
 
 private:
     // int                                     _major_version;

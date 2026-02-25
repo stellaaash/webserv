@@ -16,3 +16,7 @@ HTTP_Message::header_iterator HTTP_Message::header(const std::string& header_nam
 void HTTP_Message::set_header(const std::string& name, const std::string& value) {
     _headers.insert(std::pair<std::string, std::string>(name, value));
 }
+
+void HTTP_Message::append_body(const std::string& data) {
+    _body.append(data);
+}
