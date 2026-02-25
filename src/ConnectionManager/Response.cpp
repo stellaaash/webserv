@@ -4,9 +4,22 @@
 #include <cstdlib>
 #include <string>
 
+#include "HTTP_Message.hpp"
 #include "config.hpp"
 
 Response::Response() : _code(0), _response_string() {}
+
+Response::Response(const Response& other)
+    : HTTP_Message(other), _code(other._code), _response_string(other._response_string) {}
+
+const Response& Response::operator=(const Response& other) {
+    if (this == &other) return *this;
+
+    _code = other._code;
+    _response_string = other._response_string;
+
+    return *this;
+}
 
 Response::~Response() {}
 

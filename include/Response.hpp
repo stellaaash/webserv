@@ -9,6 +9,8 @@
 class Response : public HTTP_Message {
 public:
     Response();
+    Response(const Response&);
+    const Response& operator=(const Response&);
     ~Response();
 
     HTTP_Code          code() const;

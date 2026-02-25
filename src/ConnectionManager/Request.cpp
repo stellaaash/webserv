@@ -2,6 +2,7 @@
 
 #include <cassert>
 
+#include "HTTP_Message.hpp"
 #include "config.hpp"
 
 Request::Request() : _config(NULL), _method(UNDEFINED), _status(EMPTY) {}
@@ -12,7 +13,7 @@ Request::Request(const Config_Location* const config, HTTP_Method method)
 }
 
 Request::Request(const Request& other)
-    : _config(other._config), _method(other._method), _status(other._status) {}
+    : HTTP_Message(other), _config(other._config), _method(other._method), _status(other._status) {}
 
 const Request& Request::operator=(const Request& other) {
     if (this == &other) return *this;
