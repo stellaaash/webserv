@@ -56,7 +56,7 @@ const char* Connection::write_data() const {
  * @brief Send a chunk of data in the write buffer through the connection's socket.
  */
 size_t Connection::send_data() {
-    ssize_t sent_bytes = send(_socket, _write_buffer.c_str() + _write_index, SEND_SIZE, 0);
+    ssize_t sent_bytes = send(_socket, write_data(), SEND_SIZE, 0);
 
     if (sent_bytes < 0) {
         throw;
@@ -76,6 +76,8 @@ size_t Connection::receive_data() {
     }
 
     // We cast it to unsigned because at this point it has to be positive
+    _read_buffer.append(_working_read_buffer, static_cast<size_t>(received_bytes));
+
     return static_cast<size_t>(received_bytes);
 }
 

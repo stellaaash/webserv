@@ -6,7 +6,7 @@
 
 #include "config.hpp"
 
-Response::Response() {}
+Response::Response() : _code(0), _response_string() {}
 
 Response::~Response() {}
 
