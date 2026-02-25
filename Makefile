@@ -16,11 +16,15 @@ RMFLAGS		=	-f
 
 SRCDIR		=	src
 CFILES		=	$(SRCDIR)/main.cpp \
+				$(SRCDIR)/ConnectionManager/HTTP_Message.cpp \
+				$(SRCDIR)/ConnectionManager/Connection.cpp \
+				$(SRCDIR)/ConnectionManager/Request.cpp \
+				$(SRCDIR)/ConnectionManager/Response.cpp
 
 OBJS		=	$(CFILES:.cpp=.o)
 
 INCLDIR		=	include
-IFILES		=	
+IFILES		=
 
 VALGRIND	=	valgrind
 VALFLAGS	=	--leak-check=full --show-leak-kinds=all
@@ -31,11 +35,11 @@ all:			$(NAME)
 
 %.o:			%.cpp
 				@printf "\rCompiling $<..."
-				@$(CXX) $(CXXFLAGS) -c $< -o $@
+				@$(CXX) $(CXXFLAGS) -I$(INCLDIR) -c $< -o $@
 
 $(NAME):		$(OBJS)
 				@printf "\rCompiling $(NAME)..."
-				@$(CXX) $(CXXFLAGS) $(OBJS) -o $(NAME)
+				@$(CXX) $(CXXFLAGS) -I$(INCLDIR) $(OBJS) -o $(NAME)
 				@printf "\r\n\033[32m$(NAME) compiled.\033[0m\n"
 
 # Include all Makefile dependencies generated using -MMD and -MP
