@@ -1,6 +1,16 @@
 NAME		=	webserv
 CXX			=	c++
-CXXFLAGS	=	-Wall -Wextra -Wpedantic -Weffc++ -Wconversion -Wsign-conversion -Werror -std=c++98 -g
+CXXFLAGS	=	-Wall \
+				-Wextra \
+				-Wpedantic \
+				-Weffc++ \
+				-Wconversion \
+				-Wsign-conversion \
+				-Werror \
+				-MMD \
+				-MP \
+				-std=c++98 \
+				-g
 RM			=	rm
 RMFLAGS		=	-f
 
@@ -32,9 +42,13 @@ $(NAME):		$(OBJS)
 				@$(CXX) $(CXXFLAGS) -I$(INCLDIR) $(OBJS) -o $(NAME)
 				@printf "\r\n\033[32m$(NAME) compiled.\033[0m\n"
 
+# Include all Makefile dependencies generated using -MMD and -MP
+-include $(OBJS:.o=.d)
+
 clean:
 				@printf "\rCleaning object files"
 				@$(RM) $(RMFLAGS) $(OBJS)
+				@$(RM) $(RMFLAGS) $(OBJS:.o=.d)
 				@printf "\rObject files cleaned.\n"
 
 fclean:			clean
