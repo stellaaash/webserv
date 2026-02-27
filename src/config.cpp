@@ -12,7 +12,7 @@ Config mock_config() {
     Config_Server   server;
     Config_Location loc;
 
-    loc.limit_except.insert(DELETE);
+    loc.allowed_methods.insert(DELETE);
 
     loc.redirect[301] = "index.html";
     loc.root = "./root";
