@@ -7,6 +7,14 @@
 
 namespace ConfigParser {
 namespace Lexer {
+/**
+ * @brief Determines whether a character has a special meaning.
+ * Characters with special meaning are: ;{}#.
+ */
+bool is_special(char c) {
+    return (c == ';' || c == '{' || c == '}' || c == '#');
+}
+
 std::vector<Token> lexConfig(std::ifstream& file_stream) {
     std::string        word;
     std::vector<Token> tokens;
