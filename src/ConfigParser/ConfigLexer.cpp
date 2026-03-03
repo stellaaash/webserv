@@ -26,16 +26,49 @@ bool is_word(char c) {
 }
 
 std::vector<Token> lexConfig(std::ifstream& file_stream) {
-    std::string        word;
     std::vector<Token> tokens;
+    Token              token;
 
     while (!file_stream.eof()) {
-        file_stream >> word;
-        if (word.find("#") != word.npos) {
-            file_stream.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-            continue;
+        char c = static_cast<char>(file_stream.get());
+
+        // Add all word characters to the current token
+        if (is_word(c)) {
+            token.word.push_back(c);
+        } else if (!token.word.empty()) {
+            // If the character isn't part of a word, then we've reached the end of the last one
+            token.type = WORD;
+            tokens.push_back(token);
+            std::clog << "[!] - Extracted token " << token.word << " of type " << token.type
+                      << std::endl;
+            token.word = "";
         }
-        std::cout << "[!] - Extracted word " << word << std::endl;
+
+        // Special tokens
+        if (c == ';') {
+            token.word = c;
+            token.type = SEMICOLON;
+            tokens.push_back(token);
+            std::clog << "[!] - Extracted token " << token.word << " of type " << token.type
+                      << std::endl;
+            token.word.erase();
+        } else if (c == '{') {
+            token.word = c;
+            token.type = OPENING_BRACE;
+            tokens.push_back(token);
+            std::clog << "[!] - Extracted token " << token.word << " of type " << token.type
+                      << std::endl;
+            token.word.erase();
+        } else if (c == '}') {
+            token.word = c;
+            token.type = CLOSING_BRACE;
+            tokens.push_back(token);
+            std::clog << "[!] - Extracted token " << token.word << " of type " << token.type
+                      << std::endl;
+            token.word.erase();
+        } else if (c == '#') {  // Ignore comments
+            file_stream.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        }
     }
 
     return tokens;
