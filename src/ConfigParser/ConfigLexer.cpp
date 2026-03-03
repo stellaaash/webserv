@@ -1,4 +1,5 @@
 #include <ConfigLexer.hpp>
+#include <cctype>
 #include <fstream>
 #include <ios>
 #include <iostream>
@@ -13,6 +14,15 @@ namespace Lexer {
  */
 bool is_special(char c) {
     return (c == ';' || c == '{' || c == '}' || c == '#');
+}
+
+/**
+ * @brief Determines wether a character is considered "inside a lexer word".
+ * This means that the character should be printable, and not one of the so-called
+ * "special" characters.
+ */
+bool is_word(char c) {
+    return (std::isprint(c) && c != ' ' && !is_special(c));
 }
 
 std::vector<Token> lexConfig(std::ifstream& file_stream) {
