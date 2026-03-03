@@ -1,6 +1,7 @@
 #ifndef CONFIGLEXER_HPP
 #define CONFIGLEXER_HPP
 
+#include <fstream>
 #include <string>
 #include <vector>
 namespace ConfigParser {
@@ -12,7 +13,7 @@ struct Token {
     std::string    word;
 };
 
-std::vector<Token> lexConfig(int file_descriptor);
+std::vector<Token> lexConfig(std::ifstream& file_stream);
 }  // namespace Lexer
 }  // namespace ConfigParser
 
