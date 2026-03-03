@@ -41,33 +41,26 @@ std::vector<Token> lexConfig(std::ifstream& file_stream) {
             tokens.push_back(token);
             std::clog << "[!] - Extracted token " << token.word << " of type " << token.type
                       << std::endl;
-            token.word = "";
+            token.word.erase();
         }
 
-        // Special tokens
-        if (c == ';') {
+        if (is_special(c)) {
+            if (c == '#') {  // Ignore comments
+                file_stream.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                continue;
+            }
             token.word = c;
-            token.type = SEMICOLON;
+            if (c == ';') {
+                token.type = SEMICOLON;
+            } else if (c == '{') {
+                token.type = OPENING_BRACE;
+            } else if (c == '}') {
+                token.type = CLOSING_BRACE;
+            }
             tokens.push_back(token);
             std::clog << "[!] - Extracted token " << token.word << " of type " << token.type
                       << std::endl;
             token.word.erase();
-        } else if (c == '{') {
-            token.word = c;
-            token.type = OPENING_BRACE;
-            tokens.push_back(token);
-            std::clog << "[!] - Extracted token " << token.word << " of type " << token.type
-                      << std::endl;
-            token.word.erase();
-        } else if (c == '}') {
-            token.word = c;
-            token.type = CLOSING_BRACE;
-            tokens.push_back(token);
-            std::clog << "[!] - Extracted token " << token.word << " of type " << token.type
-                      << std::endl;
-            token.word.erase();
-        } else if (c == '#') {  // Ignore comments
-            file_stream.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         }
     }
 
