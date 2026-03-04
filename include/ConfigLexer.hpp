@@ -13,7 +13,7 @@ struct Token {
     std::string    word;
 };
 
-std::vector<Token> lexConfig(std::ifstream& file_stream);
+std::vector<Token> lex_config(std::ifstream& file_stream);
 }  // namespace Lexer
 }  // namespace ConfigParser
 

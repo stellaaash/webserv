@@ -9,6 +9,6 @@ int main() {
 
     std::ifstream config_file("./config/1.conf");
 
-    std::vector<ConfigParser::Lexer::Token> tokens = ConfigParser::Lexer::lexConfig(config_file);
+    std::vector<ConfigParser::Lexer::Token> tokens = ConfigParser::Lexer::lex_config(config_file);
     return 0;
 }

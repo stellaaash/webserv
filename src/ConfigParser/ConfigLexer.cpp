@@ -25,7 +25,7 @@ bool is_word(char c) {
     return (std::isprint(c) && c != ' ' && !is_special(c));
 }
 
-std::vector<Token> lexConfig(std::ifstream& file_stream) {
+std::vector<Token> lex_config(std::ifstream& file_stream) {
     std::vector<Token> tokens;
     Token              token;
 
