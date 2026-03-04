@@ -13,6 +13,8 @@ struct Token {
     std::string    word;
 };
 
+typedef std::vector<Token>::const_iterator token_iterator;
+
 std::vector<Token> lex_config(std::ifstream& file_stream);
 }  // namespace Lexer
 }  // namespace ConfigParser
