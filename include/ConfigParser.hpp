@@ -3,6 +3,7 @@
 
 #include <exception>
 #include <fstream>
+#include <vector>
 
 #include "ConfigLexer.hpp"
 #include "config.hpp"
@@ -21,9 +22,11 @@ private:
     std::string _m_error;
 };
 
+std::vector<Lexer::Token> parse_line(Lexer::token_iterator*);
+
 Config          parse_config(Lexer::token_iterator, Lexer::token_iterator end);
-Config_Server   parse_server(Lexer::token_iterator, Lexer::token_iterator end);
-Config_Location parse_location(Lexer::token_iterator, Lexer::token_iterator end);
+Config_Server   parse_server(Lexer::token_iterator*, Lexer::token_iterator end);
+Config_Location parse_location(Lexer::token_iterator*, Lexer::token_iterator end);
 }  // namespace Parser
 }  // namespace ConfigParser
 
