@@ -118,6 +118,8 @@ Config_Server parse_server(Lexer::token_iterator* t, Lexer::token_iterator end) 
             } else {
                 throw ParserError("Unknown directive in server context");
             }
+        } else if (tokens[0].type == Lexer::CLOSING_BRACE) {
+            break;
         } else {
             throw ParserError("Wrong syntax");
         }
@@ -125,5 +127,50 @@ Config_Server parse_server(Lexer::token_iterator* t, Lexer::token_iterator end) 
 
     return config;
 }
+
+Config_Location parse_location(Lexer::token_iterator* t, Lexer::token_iterator end) {
+    Config_Location config;
+
+    while (*t != end) {
+        std::vector<Lexer::Token> tokens = parse_line(t);
+
+        if (tokens[0].type == Lexer::WORD) {
+            const std::string& directive = tokens[0].word;
+
+            if (directive == "root") {
+                config.root = directive;
+            } else if (directive == "allowed_methods") {
+                for (size_t i = 0; i < tokens.size() - 1; ++i) {
+                    if (tokens[1].word == "GET") {
+                        config.allowed_methods.insert(GET);
+                    } else if (tokens[i].word == "POST") {
+                        config.allowed_methods.insert(POST);
+                    } else if (tokens[i].word == "DELETE") {
+                        config.allowed_methods.insert(DELETE);
+                    } else {
+                        throw ParserError("Unknown HTTP method");
+                    }
+                }
+            } else if (directive == "index") {
+                config.index = directive;
+            } else if (directive == "upload_store") {
+                config.upload_store = directive;
+            } else {
+                throw ParserError("Unknown directive in location context");
+            }
+        } else if (tokens[0].type == Lexer::CLOSING_BRACE) {
+            break;
+        } else {
+            throw ParserError("Wrong syntax");
+        }
+
+        ++(*t);
+    }
+
+    return config;
+}
 }  // namespace Parser
 }  // namespace ConfigParser
+
+// TODO Reorganize directive parsing and config.hpp structures in alphabetical order
+// TODO Default value if directives aren't present
