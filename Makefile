@@ -20,6 +20,7 @@ CFILES		=	$(SRCDIR)/main.cpp \
 				$(SRCDIR)/ConnectionManager/Request.cpp \
 				$(SRCDIR)/ConnectionManager/Response.cpp \
 				$(SRCDIR)/ConfigParser/ConfigLexer.cpp \
+				$(SRCDIR)/ConfigParser/ConfigParser.cpp \
 				$(SRCDIR)/config.cpp
 
 OBJS		=	$(CFILES:.cpp=.o)
