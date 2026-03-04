@@ -61,8 +61,10 @@ fclean:			clean
 
 re:				fclean all
 
+CONFIG		?=	config/1.conf
+
 test:			re
 				@printf "\n==============================================\n"
-				$(VALGRIND) $(VALFLAGS) ./$(NAME) | tee $(LOG)
+				$(VALGRIND) $(VALFLAGS) ./$(NAME) $(CONFIG) | tee $(LOG)
 
 .PHONY:			all clean fclean re debug test
