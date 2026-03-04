@@ -17,6 +17,14 @@ Config parse_file(std::ifstream& file) {
 }
 
 namespace Parser {
+ParserError::ParserError(std::string error) : _m_error(error) {}
+
+ParserError::~ParserError() throw() {}
+
+const char* ParserError::what() const throw() {
+    return _m_error.c_str();
+}
+
 /**
  * @brief Process a vector of tokens to create a Config struct out of them.
  */

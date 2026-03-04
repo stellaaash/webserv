@@ -10,7 +10,16 @@ namespace ConfigParser {
 Config parse_file(std::ifstream&);
 
 namespace Parser {
-class ParserError : public std::exception {};
+class ParserError : public std::exception {
+public:
+    ParserError(std::string error);
+    ~ParserError() throw();
+
+    const char* what() const throw();
+
+private:
+    std::string _m_error;
+};
 
 Config          parse_config(Lexer::token_iterator, Lexer::token_iterator end);
 Config_Server   parse_server(Lexer::token_iterator, Lexer::token_iterator end);
