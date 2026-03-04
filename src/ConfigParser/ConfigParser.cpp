@@ -1,11 +1,16 @@
 #include "ConfigParser.hpp"
 
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+
 #include <cassert>
+#include <cstdlib>
 #include <iostream>
+#include <string>
 #include <vector>
 
 #include "ConfigLexer.hpp"
-#include "Request.hpp"
 #include "config.hpp"
 
 namespace ConfigParser {
@@ -45,6 +50,11 @@ std::vector<Lexer::Token> parse_line(Lexer::token_iterator* t) {
     tokens.push_back(**t);
     ++(*t);
 
+    std::clog << "[!] - Parsed line: ";
+    for (std::vector<Lexer::Token>::const_iterator i = tokens.begin(); i != tokens.end(); ++i)
+        std::clog << (*i).word << " ";
+    std::clog << std::endl;
+
     return tokens;
 }
 
@@ -55,22 +65,15 @@ Config parse_config(Lexer::token_iterator t, Lexer::token_iterator end) {
     Config config;
 
     while (t != end) {
-        std::clog << "[!] - Processing token " << t->word << std::endl;
-
         // TODO Take care of multiple server directives
 
         std::vector<Lexer::Token> tokens = parse_line(&t);
-
-        std::clog << "[!] - Parsed line: ";
-        for (std::vector<Lexer::Token>::const_iterator i = tokens.begin(); i != tokens.end(); ++i)
-            std::clog << (*i).word << " ";
-        std::clog << std::endl;
 
         if (tokens[0].type == Lexer::WORD) {
             const std::string& directive = tokens[0].word;
             if (directive == "server") {
                 // We pass a pointer to the iterator so the progress is replicated here
-                config.server = parse_server(&(++t), end);
+                config.server = parse_server(&t, end);
             } else if (directive == "error_log") {
                 config.error_log = t->word;
             } else {
@@ -88,7 +91,36 @@ Config_Server parse_server(Lexer::token_iterator* t, Lexer::token_iterator end) 
     Config_Server config;
 
     while (*t != end) {
-        ++(*t);
+        std::vector<Lexer::Token> tokens = parse_line(t);
+
+        if (tokens[0].type == Lexer::WORD) {
+            const std::string& directive = tokens[0].word;
+            if (directive == "listen") {
+                // TODO Take care of multiple listen directives
+                // TODO Sanitization (are the addresses and ports actually numbers?)
+                // It could be possible to make a special atoi that throws on anything
+                // other than positive numbers
+
+                config.listen.sin_family = AF_INET;
+                config.listen.sin_port =
+                    htons(static_cast<uint16_t>(std::atoi(tokens[2].word.c_str())));
+                inet_pton(AF_INET, tokens[1].word.c_str(), &config.listen.sin_addr);
+            } else if (directive == "error_page") {
+                File_Path path = tokens[tokens.size() - 1].word;
+                for (size_t i = 0; i < tokens.size() - 2; ++i) {
+                    // TODO Sanitization
+                    HTTP_Code code = static_cast<unsigned int>(std::atoi(tokens[i].word.c_str()));
+
+                    config.error_page.insert(std::pair<HTTP_Code, File_Path>(code, path));
+                }
+            } else if (directive == "location") {
+                config.location.push_back(parse_location((t), end));
+            } else {
+                throw ParserError("Unknown directive in server context");
+            }
+        } else {
+            throw ParserError("Wrong syntax");
+        }
     }
 
     return config;
