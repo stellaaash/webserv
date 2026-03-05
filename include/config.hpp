@@ -31,7 +31,7 @@ typedef struct Config_Location {
 typedef struct Config_Server {
     struct sockaddr_in               listen;
     std::map<HTTP_Code, std::string> error_page;  // Error code to URI
-    unsigned int                     client_max_body_size;
+    size_t                           client_max_body_size;
     size_t                           timeout;
     std::vector<Config_Location>     location;
 } Config_Server;
