@@ -71,11 +71,11 @@ Config parse_config(Lexer::token_iterator t, Lexer::token_iterator end) {
 
         if (tokens[0].type == Lexer::WORD) {
             const std::string& directive = tokens[0].word;
-            if (directive == "server") {
+            if (directive == "error_log") {
+                config.error_log = t->word;
+            } else if (directive == "server") {
                 // We pass a pointer to the iterator so the progress is replicated here
                 config.server = parse_server(&t, end);
-            } else if (directive == "error_log") {
-                config.error_log = t->word;
             } else {
                 throw ParserError("Unknown directive in root");
             }
@@ -95,30 +95,7 @@ Config_Server parse_server(Lexer::token_iterator* t, Lexer::token_iterator end) 
 
         if (tokens[0].type == Lexer::WORD) {
             const std::string& directive = tokens[0].word;
-            if (directive == "listen") {
-                // TODO Take care of multiple listen directives
-                // TODO Sanitization (are the addresses and ports actually numbers?)
-                // It could be possible to make a special atoi that throws on anything
-                // other than positive numbers
-
-                config.listen.sin_family = AF_INET;
-                config.listen.sin_port =
-                    htons(static_cast<uint16_t>(std::atoi(tokens[2].word.c_str())));
-                inet_pton(AF_INET, tokens[1].word.c_str(), &config.listen.sin_addr);
-            } else if (directive == "error_page") {
-                File_Path path = tokens[tokens.size() - 1].word;
-                for (size_t i = 0; i < tokens.size() - 2; ++i) {
-                    // TODO Sanitization
-                    HTTP_Code code = static_cast<unsigned int>(std::atoi(tokens[i].word.c_str()));
-
-                    config.error_page.insert(std::pair<HTTP_Code, File_Path>(code, path));
-                }
-            } else if (directive == "location") {
-                config.location.push_back(parse_location((t), end));
-            } else if (directive == "timeout") {
-                // TODO Sanitization
-                config.timeout = static_cast<size_t>(std::atoi(tokens[1].word.c_str()));
-            } else if (directive == "client_max_body_size") {
+            if (directive == "client_max_body_size") {
                 // TODO Sanitization
                 size_t number = static_cast<size_t>(std::atoi(tokens[1].word.c_str()));
                 char   unit = tokens[1].word[tokens[1].word.size() - 2];
@@ -139,6 +116,29 @@ Config_Server parse_server(Lexer::token_iterator* t, Lexer::token_iterator end) 
                     default:
                         break;
                 }
+            } else if (directive == "error_page") {
+                File_Path path = tokens[tokens.size() - 1].word;
+                for (size_t i = 0; i < tokens.size() - 2; ++i) {
+                    // TODO Sanitization
+                    HTTP_Code code = static_cast<unsigned int>(std::atoi(tokens[i].word.c_str()));
+
+                    config.error_page.insert(std::pair<HTTP_Code, File_Path>(code, path));
+                }
+            } else if (directive == "listen") {
+                // TODO Take care of multiple listen directives
+                // TODO Sanitization (are the addresses and ports actually numbers?)
+                // It could be possible to make a special atoi that throws on anything
+                // other than positive numbers
+
+                config.listen.sin_family = AF_INET;
+                config.listen.sin_port =
+                    htons(static_cast<uint16_t>(std::atoi(tokens[2].word.c_str())));
+                inet_pton(AF_INET, tokens[1].word.c_str(), &config.listen.sin_addr);
+            } else if (directive == "location") {
+                config.location.push_back(parse_location((t), end));
+            } else if (directive == "timeout") {
+                // TODO Sanitization
+                config.timeout = static_cast<size_t>(std::atoi(tokens[1].word.c_str()));
             } else {
                 throw ParserError("Unknown directive in server context");
             }
@@ -161,9 +161,7 @@ Config_Location parse_location(Lexer::token_iterator* t, Lexer::token_iterator e
         if (tokens[0].type == Lexer::WORD) {
             const std::string& directive = tokens[0].word;
 
-            if (directive == "root") {
-                config.root = directive;
-            } else if (directive == "allowed_methods") {
+            if (directive == "allowed_methods") {
                 for (size_t i = 1; i < tokens.size() - 1; ++i) {
                     if (tokens[i].word == "GET") {
                         config.allowed_methods.insert(GET);
@@ -175,14 +173,6 @@ Config_Location parse_location(Lexer::token_iterator* t, Lexer::token_iterator e
                         throw ParserError("Unknown HTTP method");
                     }
                 }
-            } else if (directive == "index") {
-                config.index = directive;
-            } else if (directive == "upload_store") {
-                config.upload_store = directive;
-            } else if (directive == "redirect") {
-                // TODO Sanitization
-                HTTP_Code code = static_cast<HTTP_Code>(std::atoi(tokens[1].word.c_str()));
-                config.redirect.insert(std::pair<HTTP_Code, std::string>(code, tokens[2].word));
             } else if (directive == "autoindex") {
                 if (tokens[1].word == "on") {
                     config.autoindex = true;
@@ -195,6 +185,16 @@ Config_Location parse_location(Lexer::token_iterator* t, Lexer::token_iterator e
                 // TODO Sanitization
                 config.cgi.insert(
                     std::pair<std::string, File_Path>(tokens[1].word, tokens[2].word));
+            } else if (directive == "index") {
+                config.index = directive;
+            } else if (directive == "redirect") {
+                // TODO Sanitization
+                HTTP_Code code = static_cast<HTTP_Code>(std::atoi(tokens[1].word.c_str()));
+                config.redirect.insert(std::pair<HTTP_Code, std::string>(code, tokens[2].word));
+            } else if (directive == "root") {
+                config.root = directive;
+            } else if (directive == "upload_store") {
+                config.upload_store = directive;
             } else {
                 throw ParserError("Unknown directive in location context");
             }
@@ -210,5 +210,4 @@ Config_Location parse_location(Lexer::token_iterator* t, Lexer::token_iterator e
 }  // namespace Parser
 }  // namespace ConfigParser
 
-// TODO Reorganize directive parsing and config.hpp structures in alphabetical order
 // TODO Default value if directives aren't present
