@@ -115,6 +115,30 @@ Config_Server parse_server(Lexer::token_iterator* t, Lexer::token_iterator end) 
                 }
             } else if (directive == "location") {
                 config.location.push_back(parse_location((t), end));
+            } else if (directive == "timeout") {
+                // TODO Sanitization
+                config.timeout = static_cast<size_t>(std::atoi(tokens[1].word.c_str()));
+            } else if (directive == "client_max_body_size") {
+                // TODO Sanitization
+                size_t number = static_cast<size_t>(std::atoi(tokens[1].word.c_str()));
+                char   unit = tokens[1].word[tokens[1].word.size() - 2];
+
+                switch (unit) {
+                    case 'K':
+                    case 'k':
+                        config.client_max_body_size = number * 1024;
+                        break;
+                    case 'M':
+                    case 'm':
+                        config.client_max_body_size = number * 1024 * 1024;
+                        break;
+                    case 'G':
+                    case 'g':
+                        config.client_max_body_size = number * 1024 * 1024 * 1024;
+                        break;
+                    default:
+                        break;
+                }
             } else {
                 throw ParserError("Unknown directive in server context");
             }
