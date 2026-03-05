@@ -179,6 +179,22 @@ Config_Location parse_location(Lexer::token_iterator* t, Lexer::token_iterator e
                 config.index = directive;
             } else if (directive == "upload_store") {
                 config.upload_store = directive;
+            } else if (directive == "redirect") {
+                // TODO Sanitization
+                HTTP_Code code = static_cast<HTTP_Code>(std::atoi(tokens[1].word.c_str()));
+                config.redirect.insert(std::pair<HTTP_Code, std::string>(code, tokens[2].word));
+            } else if (directive == "autoindex") {
+                if (tokens[1].word == "on") {
+                    config.autoindex = true;
+                } else if (tokens[1].word == "off") {
+                    config.autoindex = false;
+                } else {
+                    throw ParserError("Unknown value for autoindex directive");
+                }
+            } else if (directive == "cgi") {
+                // TODO Sanitization
+                config.cgi.insert(
+                    std::pair<std::string, File_Path>(tokens[1].word, tokens[2].word));
             } else {
                 throw ParserError("Unknown directive in location context");
             }
