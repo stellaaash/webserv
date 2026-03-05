@@ -164,8 +164,8 @@ Config_Location parse_location(Lexer::token_iterator* t, Lexer::token_iterator e
             if (directive == "root") {
                 config.root = directive;
             } else if (directive == "allowed_methods") {
-                for (size_t i = 0; i < tokens.size() - 1; ++i) {
-                    if (tokens[1].word == "GET") {
+                for (size_t i = 1; i < tokens.size() - 1; ++i) {
+                    if (tokens[i].word == "GET") {
                         config.allowed_methods.insert(GET);
                     } else if (tokens[i].word == "POST") {
                         config.allowed_methods.insert(POST);
@@ -203,8 +203,6 @@ Config_Location parse_location(Lexer::token_iterator* t, Lexer::token_iterator e
         } else {
             throw ParserError("Wrong syntax");
         }
-
-        ++(*t);
     }
 
     return config;
