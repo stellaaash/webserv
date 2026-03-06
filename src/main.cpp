@@ -1,9 +1,8 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 
-#include <cerrno>
-#include <cmath>
 #include <csignal>
 #include <cstdio>
 #include <fstream>
@@ -26,6 +25,13 @@ int main(int argc, char** argv) {
 
     signal(SIGINT, clean_exit);
 
+    struct stat path_stat;
+    stat(argv[1], &path_stat);
+    if (!S_ISREG(path_stat.st_mode)) {
+        std::clog << "[!] - Failed to open configuration file." << std::endl;
+        return 2;
+    }
+
     std::ifstream config_file(argv[1]);
 
     Config config;
@@ -34,13 +40,13 @@ int main(int argc, char** argv) {
 
     } catch (const ParserError& e) {
         std::cerr << "[!] - Error occurred during parsing: " << e.what() << std::endl;
-        return 2;
+        return 3;
     }
 
     int listen_fd = make_listen_socket(config.server);
     if (listen_fd < 0) {
         std::perror("make_listen_socket");
-        return 1;
+        return 4;
     }
 
     ConnectionManager manager;
