@@ -4,6 +4,8 @@
 #include <sys/types.h>
 
 #include <cassert>
+#include <cerrno>
+#include <iostream>
 
 #include "Request.hpp"
 #include "Response.hpp"
@@ -86,47 +88,63 @@ const Response& Connection::response() const {
     return _response;
 }
 
-/**
- * @brief Returns a pointer to the first unprocessed char in the read buffer.
- */
-const char* Connection::read_data() const {
-    return _read_buffer.c_str() + _read_index;
-}
-
-/**
- * @brief Returns a pointer to the first unprocessed char in the write buffer.
- */
-const char* Connection::write_data() const {
-    return _write_buffer.c_str() + _write_index;
-}
-
-/**
- * @brief Send a chunk of data in the write buffer through the connection's socket.
- */
 size_t Connection::send_data() {
-    ssize_t sent_bytes = send(_socket, write_data(), SEND_SIZE, 0);
+    if (_write_index >= _write_buffer.size()) return 0;
 
-    if (sent_bytes < 0) {
-        throw;
-        // TODO Log error
+    // remaining bytes to send
+    size_t remaining = _write_buffer.size() - _write_index;
+    // max send size or remaining if smaller
+    size_t chunk = remaining > SEND_SIZE ? SEND_SIZE : remaining;
+
+    ssize_t n = send(_socket, _write_buffer.data() + _write_index, chunk, 0);
+    std::cout << "[CONN " << _socket << "] sent " << n << " bytes" << std::endl;
+    if (n <= 0) return 0;
+
+    // update write index with real bytes sent (can be lower than chunk)
+    _write_index += (size_t)n;
+
+    // cleanup
+    if (_write_index >= _write_buffer.size()) {
+        _write_buffer.clear();
+        _write_index = 0;
     }
-
-    // We cast it to unsigned because at this point it has to be positive
-    return static_cast<size_t>(sent_bytes);
+    std::cout << "[CONN " << _socket << "] write complete" << std::endl;
+    return (size_t)n;
 }
 
 size_t Connection::receive_data() {
-    ssize_t received_bytes = recv(_socket, _working_read_buffer, RECV_SIZE, 0);
+    char   buffer[RECV_SIZE];
+    size_t total = 0;
 
-    if (received_bytes < 0) {
-        throw;
-        // TODO Log error
+    while (true) {
+        ssize_t n = recv(_socket, buffer, sizeof(buffer), 0);
+        if (n > 0) {
+            std::cout << "[CONN " << _socket << "] buffer:" << std::endl;
+            std::cout.write(buffer, n);
+            std::cout << std::endl;
+            _read_buffer.append(buffer, static_cast<size_t>(n));
+            total += (size_t)n;
+        } else if (n == 0) {
+            // closing client
+            std::cout << "[CONN " << _socket << "] client closed recv0" << std::endl;
+            return (0);
+        } else {
+            if (errno == EAGAIN || errno == EWOULDBLOCK) break;  // nothing to read
+            return 0;                                            // error
+        }
+        if (total > 0)
+            std::cout << "[CONN " << _socket << "] received " << n << " bytes" << std::endl;
     }
+    if (total > 0) return total;
+    return 1;
+}
 
-    // We cast it to unsigned because at this point it has to be positive
-    _read_buffer.append(_working_read_buffer, static_cast<size_t>(received_bytes));
+void Connection::queue_write(const std::string& data) {
+    _write_buffer += data;
+}
 
-    return static_cast<size_t>(received_bytes);
+bool Connection::has_pending_write() const {
+    return _write_index < _write_buffer.size();
 }
 
 void Connection::set_config(const Config_Server* const config) {
