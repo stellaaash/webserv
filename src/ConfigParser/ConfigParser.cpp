@@ -72,7 +72,7 @@ Config parse_config(Lexer::token_iterator t, Lexer::token_iterator end) {
         if (tokens[0].type == Lexer::WORD) {
             const std::string& directive = tokens[0].word;
             if (directive == "error_log") {
-                config.error_log = t->word;
+                config.error_log = tokens[1].word;
             } else if (directive == "server") {
                 // We pass a pointer to the iterator so the progress is replicated here
                 config.server = parse_server(&t, end);
@@ -98,7 +98,7 @@ Config_Server parse_server(Lexer::token_iterator* t, Lexer::token_iterator end) 
             if (directive == "client_max_body_size") {
                 // TODO Sanitization
                 size_t number = static_cast<size_t>(std::atoi(tokens[1].word.c_str()));
-                char   unit = tokens[1].word[tokens[1].word.size() - 2];
+                char   unit = tokens[1].word[tokens[1].word.size() - 1];
 
                 switch (unit) {
                     case 'K':
@@ -117,8 +117,8 @@ Config_Server parse_server(Lexer::token_iterator* t, Lexer::token_iterator end) 
                         break;
                 }
             } else if (directive == "error_page") {
-                File_Path path = tokens[tokens.size() - 1].word;
-                for (size_t i = 0; i < tokens.size() - 2; ++i) {
+                File_Path path = tokens[tokens.size() - 2].word;
+                for (size_t i = 1; i < tokens.size() - 2; ++i) {
                     // TODO Sanitization
                     HTTP_Code code = static_cast<unsigned int>(std::atoi(tokens[i].word.c_str()));
 
@@ -186,15 +186,15 @@ Config_Location parse_location(Lexer::token_iterator* t, Lexer::token_iterator e
                 config.cgi.insert(
                     std::pair<std::string, File_Path>(tokens[1].word, tokens[2].word));
             } else if (directive == "index") {
-                config.index = directive;
+                config.index = tokens[1].word;
             } else if (directive == "redirect") {
                 // TODO Sanitization
                 HTTP_Code code = static_cast<HTTP_Code>(std::atoi(tokens[1].word.c_str()));
                 config.redirect.insert(std::pair<HTTP_Code, std::string>(code, tokens[2].word));
             } else if (directive == "root") {
-                config.root = directive;
+                config.root = tokens[1].word;
             } else if (directive == "upload_store") {
-                config.upload_store = directive;
+                config.upload_store = tokens[1].word;
             } else {
                 throw ParserError("Unknown directive in location context");
             }
