@@ -56,6 +56,18 @@ Config parse_file(std::ifstream& file) {
     return config;
 }
 
+/*
+ * @brief Checks that a string contains only the characters held within the allowed_set.
+ *
+ * @return false if the string contains erroneous characters, true if it doesn't.
+ */
+static bool check_string(const std::string& number, const std::string& allowed_set) {
+    for (size_t i = 0; i < number.size(); ++i)
+        if (!allowed_set.find_first_of(number[i])) return false;
+
+    return true;
+}
+
 /**
  * @brief Consume all tokens until the first one that is a special character.
  * For reference, special characters are braces and semicolons.

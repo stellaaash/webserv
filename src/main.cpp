@@ -39,7 +39,7 @@ int main(int argc, char** argv) {
         config = parse_file(config_file);
 
     } catch (const ParserError& e) {
-        std::cerr << "[!] - Error occurred during parsing: " << e.what() << std::endl;
+        std::cerr << "[!] - " << e.what() << std::endl;
         return 3;
     }
 
