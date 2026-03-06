@@ -25,6 +25,10 @@ bool is_word(char c) {
     return (std::isprint(c) && c != ' ' && !is_special(c));
 }
 
+/**
+ * @brief Processes a file and transforms it in a series of tokens, which are either
+ * words or special characters (braces and semicolons, comments are ignored).
+ */
 std::vector<Token> lex_config(std::ifstream& file_stream) {
     std::vector<Token> tokens;
     Token              token;

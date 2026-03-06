@@ -17,15 +17,14 @@
 namespace ConfigParser {
 /**
  * @brief Parse a configuration file into a standardized Config struct.
+ * Calls the lexer and then the parser in succession.
  */
 Config parse_file(std::ifstream& file) {
     std::vector<Lexer::Token> tokens = Lexer::lex_config(file);
 
     Config config = Parser::parse_config(tokens.begin(), tokens.end());
 
-    std::string error_name;
-
-    // TODO check for at least a server directive
+    // TODO check for at least a server directive (once multiple servers are possible)
 
     if (config.server.listen.sin_port == 0) {
         throw Parser::ParserError(*tokens.end(), "Missing listen directive in server context");
@@ -59,7 +58,7 @@ const char* ParserError::what() const throw() {
 }
 
 /**
- * @brief Consume all tokens until the first one that isn't a special character.
+ * @brief Consume all tokens until the first one that is a special character.
  * For reference, special characters are braces and semicolons.
  */
 std::vector<Lexer::Token> parse_line(Lexer::token_iterator* t) {
