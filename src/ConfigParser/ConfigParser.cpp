@@ -20,7 +20,25 @@ namespace ConfigParser {
 Config parse_file(std::ifstream& file) {
     std::vector<Lexer::Token> tokens = Lexer::lex_config(file);
 
-    return Parser::parse_config(tokens.begin(), tokens.end());
+    Config config = Parser::parse_config(tokens.begin(), tokens.end());
+
+    std::string error_name;
+
+    // TODO check for a least a server directive
+
+    if (config.server.listen.sin_port == 0) {
+        throw Parser::ParserError("Missing listen directive in server context");
+    } else if (config.server.location.empty()) {
+        throw Parser::ParserError("Missing location directive in server context");
+    } else {
+        for (size_t i = 0; i < config.server.location.size(); ++i) {
+            if (config.server.location[i].root.empty() &&
+                config.server.location[i].redirect.empty()) {
+                throw Parser::ParserError("Missing root directive in location context");
+            }
+        }
+    }
+    return config;
 }
 
 namespace Parser {
