@@ -154,7 +154,7 @@ Config_Server parse_server(token_iterator* t, token_iterator end) {
                 File_Path path = tokens[tokens.size() - 2].word;
                 for (size_t i = 1; i < tokens.size() - 2; ++i) {
                     // TODO Sanitization
-                    HTTP_Code code = static_cast<unsigned int>(std::atoi(tokens[i].word.c_str()));
+                    HTTP_Code code = static_cast<unsigned int>(std::atol(tokens[i].word.c_str()));
 
                     config.error_page.insert(std::pair<HTTP_Code, File_Path>(code, path));
                 }
@@ -166,13 +166,13 @@ Config_Server parse_server(token_iterator* t, token_iterator end) {
 
                 config.listen.sin_family = AF_INET;
                 config.listen.sin_port =
-                    htons(static_cast<uint16_t>(std::atoi(tokens[2].word.c_str())));
+                    htons(static_cast<uint16_t>(std::atol(tokens[2].word.c_str())));
                 inet_pton(AF_INET, tokens[1].word.c_str(), &config.listen.sin_addr);
             } else if (directive == "location") {
                 config.location.push_back(parse_location((t), end));
             } else if (directive == "timeout") {
                 // TODO Sanitization
-                config.timeout = static_cast<size_t>(std::atoi(tokens[1].word.c_str()));
+                config.timeout = static_cast<size_t>(std::atol(tokens[1].word.c_str()));
             } else {
                 throw ParserError(tokens[0], "Unknown directive in server context");
             }
@@ -223,7 +223,7 @@ Config_Location parse_location(token_iterator* t, token_iterator end) {
                 config.index = tokens[1].word;
             } else if (directive == "redirect") {
                 // TODO Sanitization
-                HTTP_Code code = static_cast<HTTP_Code>(std::atoi(tokens[1].word.c_str()));
+                HTTP_Code code = static_cast<HTTP_Code>(std::atol(tokens[1].word.c_str()));
                 config.redirect.insert(std::pair<HTTP_Code, std::string>(code, tokens[2].word));
             } else if (directive == "root") {
                 config.root = tokens[1].word;
