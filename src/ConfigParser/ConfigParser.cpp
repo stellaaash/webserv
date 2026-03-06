@@ -61,9 +61,9 @@ Config parse_file(std::ifstream& file) {
  *
  * @return false if the string contains erroneous characters, true if it doesn't.
  */
-static bool check_string(const std::string& number, const std::string& allowed_set) {
-    for (size_t i = 0; i < number.size(); ++i)
-        if (!allowed_set.find_first_of(number[i])) return false;
+static bool check_string(const std::string& string, const std::string& allowed_set) {
+    for (size_t i = 0; i < string.size(); ++i)
+        if (allowed_set.find_first_of(string[i]) == string.npos) return false;
 
     return true;
 }
