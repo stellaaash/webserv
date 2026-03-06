@@ -100,6 +100,8 @@ Config parse_config(token_iterator t, token_iterator end) {
 
     while (t != end) {
         // TODO Take care of multiple server directives
+        // TODO Check for the right number of tokens per directive
+        // For example always 3 for listen, 2 or more for error_page, always 2 for timeout, etc.
 
         std::vector<Token> tokens = parse_line(&t);
 
@@ -130,8 +132,10 @@ Config_Server parse_server(token_iterator* t, token_iterator end) {
         if (tokens[0].type == WORD) {
             const std::string& directive = tokens[0].word;
             if (directive == "client_max_body_size") {
-                // TODO Sanitization
-                size_t number = static_cast<size_t>(std::atoi(tokens[1].word.c_str()));
+                if (check_string(tokens[1].word, "1234567890kKmMgG") == false)
+                    throw ParserError(tokens[1], "Wrong client_max_body_size syntax");
+
+                size_t number = static_cast<size_t>(std::atol(tokens[1].word.c_str()));
                 char   unit = tokens[1].word[tokens[1].word.size() - 1];
 
                 switch (unit) {
@@ -148,21 +152,24 @@ Config_Server parse_server(token_iterator* t, token_iterator end) {
                         config.client_max_body_size = number * 1024 * 1024 * 1024;
                         break;
                     default:
+                        throw ParserError(tokens[1], "Wrong or missing unit for bytes");
                         break;
                 }
             } else if (directive == "error_page") {
                 File_Path path = tokens[tokens.size() - 2].word;
                 for (size_t i = 1; i < tokens.size() - 2; ++i) {
-                    // TODO Sanitization
+                    if (check_string(tokens[i].word, "1234567890") == false)
+                        throw ParserError(tokens[1], "Wrong error_page HTTP code syntax");
                     HTTP_Code code = static_cast<unsigned int>(std::atol(tokens[i].word.c_str()));
 
                     config.error_page.insert(std::pair<HTTP_Code, File_Path>(code, path));
                 }
             } else if (directive == "listen") {
                 // TODO Take care of multiple listen directives
-                // TODO Sanitization (are the addresses and ports actually numbers?)
-                // It could be possible to make a special atoi that throws on anything
-                // other than positive numbers
+                if (check_string(tokens[1].word, "1234567890.") == false)
+                    throw ParserError(tokens[1], "Wrong IP syntax in listen directive");
+                if (check_string(tokens[2].word, "1234567890") == false)
+                    throw ParserError(tokens[2], "Wrong port syntax in listen directive");
 
                 config.listen.sin_family = AF_INET;
                 config.listen.sin_port =
@@ -171,7 +178,8 @@ Config_Server parse_server(token_iterator* t, token_iterator end) {
             } else if (directive == "location") {
                 config.location.push_back(parse_location((t), end));
             } else if (directive == "timeout") {
-                // TODO Sanitization
+                if (check_string(tokens[1].word, "1234567890") == false)
+                    throw ParserError(tokens[1], "Wrong timeout syntax");
                 config.timeout = static_cast<size_t>(std::atol(tokens[1].word.c_str()));
             } else {
                 throw ParserError(tokens[0], "Unknown directive in server context");
@@ -216,13 +224,13 @@ Config_Location parse_location(token_iterator* t, token_iterator end) {
                     throw ParserError(tokens[1], "Unknown value for autoindex directive");
                 }
             } else if (directive == "cgi") {
-                // TODO Sanitization
                 config.cgi.insert(
                     std::pair<std::string, File_Path>(tokens[1].word, tokens[2].word));
             } else if (directive == "index") {
                 config.index = tokens[1].word;
             } else if (directive == "redirect") {
-                // TODO Sanitization
+                if (check_string(tokens[1].word, "1234567890") == false)
+                    throw ParserError(tokens[1], "Wrong redirection code syntax");
                 HTTP_Code code = static_cast<HTTP_Code>(std::atol(tokens[1].word.c_str()));
                 config.redirect.insert(std::pair<HTTP_Code, std::string>(code, tokens[2].word));
             } else if (directive == "root") {
