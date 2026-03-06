@@ -13,13 +13,14 @@ Config parse_file(std::ifstream&);
 namespace Parser {
 class ParserError : public std::exception {
 public:
-    ParserError(std::string error);
+    ParserError(Lexer::Token&, std::string error);
     ~ParserError() throw();
 
     const char* what() const throw();
 
 private:
-    std::string _m_error;
+    Lexer::Token _token;
+    std::string  _m_error;
 };
 
 std::vector<Lexer::Token> parse_line(Lexer::token_iterator*);

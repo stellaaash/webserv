@@ -7,6 +7,7 @@
 #include <cassert>
 #include <cstdlib>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -24,17 +25,18 @@ Config parse_file(std::ifstream& file) {
 
     std::string error_name;
 
-    // TODO check for a least a server directive
+    // TODO check for at least a server directive
 
     if (config.server.listen.sin_port == 0) {
-        throw Parser::ParserError("Missing listen directive in server context");
+        throw Parser::ParserError(*tokens.end(), "Missing listen directive in server context");
     } else if (config.server.location.empty()) {
-        throw Parser::ParserError("Missing location directive in server context");
+        throw Parser::ParserError(*tokens.end(), "Missing location directive in server context");
     } else {
         for (size_t i = 0; i < config.server.location.size(); ++i) {
             if (config.server.location[i].root.empty() &&
                 config.server.location[i].redirect.empty()) {
-                throw Parser::ParserError("Missing root directive in location context");
+                throw Parser::ParserError(*tokens.end(),
+                                          "Missing root directive in location context");
             }
         }
     }
@@ -42,13 +44,17 @@ Config parse_file(std::ifstream& file) {
 }
 
 namespace Parser {
-ParserError::ParserError(std::string error) : _m_error(error) {}
+ParserError::ParserError(Lexer::Token& token, std::string error) : _token(token) {
+    std::stringstream stream;
+
+    stream << "Parsing error near token " << _token.word << ": " << error;
+
+    _m_error = stream.str();
+}
 
 ParserError::~ParserError() throw() {}
 
 const char* ParserError::what() const throw() {
-    // TODO Would be really cool to store the token and line the error occurred
-    // on in the exception, so that this method can print it out clearly
     return _m_error.c_str();
 }
 
@@ -95,10 +101,10 @@ Config parse_config(Lexer::token_iterator t, Lexer::token_iterator end) {
                 // We pass a pointer to the iterator so the progress is replicated here
                 config.server = parse_server(&t, end);
             } else {
-                throw ParserError("Unknown directive in root");
+                throw ParserError(tokens[0], "Unknown directive in root");
             }
         } else {
-            throw ParserError("Wrong syntax");
+            throw ParserError(tokens[0], "Wrong syntax");
         }
     }
 
@@ -158,12 +164,12 @@ Config_Server parse_server(Lexer::token_iterator* t, Lexer::token_iterator end) 
                 // TODO Sanitization
                 config.timeout = static_cast<size_t>(std::atoi(tokens[1].word.c_str()));
             } else {
-                throw ParserError("Unknown directive in server context");
+                throw ParserError(tokens[0], "Unknown directive in server context");
             }
         } else if (tokens[0].type == Lexer::CLOSING_BRACE) {
             break;
         } else {
-            throw ParserError("Wrong syntax");
+            throw ParserError(tokens[0], "Wrong syntax");
         }
     }
 
@@ -188,7 +194,7 @@ Config_Location parse_location(Lexer::token_iterator* t, Lexer::token_iterator e
                     } else if (tokens[i].word == "DELETE") {
                         config.allowed_methods.insert(DELETE);
                     } else {
-                        throw ParserError("Unknown HTTP method");
+                        throw ParserError(tokens[i], "Unknown HTTP method");
                     }
                 }
             } else if (directive == "autoindex") {
@@ -197,7 +203,7 @@ Config_Location parse_location(Lexer::token_iterator* t, Lexer::token_iterator e
                 } else if (tokens[1].word == "off") {
                     config.autoindex = false;
                 } else {
-                    throw ParserError("Unknown value for autoindex directive");
+                    throw ParserError(tokens[1], "Unknown value for autoindex directive");
                 }
             } else if (directive == "cgi") {
                 // TODO Sanitization
@@ -214,12 +220,12 @@ Config_Location parse_location(Lexer::token_iterator* t, Lexer::token_iterator e
             } else if (directive == "upload_store") {
                 config.upload_store = tokens[1].word;
             } else {
-                throw ParserError("Unknown directive in location context");
+                throw ParserError(tokens[0], "Unknown directive in location context");
             }
         } else if (tokens[0].type == Lexer::CLOSING_BRACE) {
             break;
         } else {
-            throw ParserError("Wrong syntax");
+            throw ParserError(tokens[0], "Wrong syntax");
         }
     }
 
@@ -227,5 +233,3 @@ Config_Location parse_location(Lexer::token_iterator* t, Lexer::token_iterator e
 }
 }  // namespace Parser
 }  // namespace ConfigParser
-
-// TODO Default value if directives aren't present
