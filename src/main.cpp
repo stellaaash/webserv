@@ -37,7 +37,6 @@ int main(int argc, char** argv) {
     Config config;
     try {
         config = parse_file(config_file);
-
     } catch (const ParserError& e) {
         std::cerr << "[!] - " << e.what() << std::endl;
         return 3;
