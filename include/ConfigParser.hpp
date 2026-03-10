@@ -9,7 +9,7 @@
 
 class ParserError : public std::exception {
 public:
-    ParserError(Token&, std::string error);
+    ParserError(const Token&, std::string error);
     ~ParserError() throw();
 
     const char* what() const throw();

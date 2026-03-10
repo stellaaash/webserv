@@ -14,7 +14,7 @@
 #include "ConfigLexer.hpp"
 #include "config.hpp"
 
-ParserError::ParserError(Token& token, std::string error) : _token(token) {
+ParserError::ParserError(const Token& token, std::string error) : _token(token) {
     std::stringstream stream;
 
     stream << "Parsing error near token " << _token.word << ": " << error;
@@ -35,9 +35,9 @@ const char* ParserError::what() const throw() {
  * Calls the lexer and then the parser in succession.
  */
 Config parse_file(std::ifstream& file) {
-    std::vector<Token> tokens = lex_config(file);
+    const std::vector<Token> tokens = lex_config(file);
 
-    Config config = parse_config(tokens.begin(), tokens.end());
+    const Config config = parse_config(tokens.begin(), tokens.end());
 
     // TODO check for at least a server directive (once multiple servers are possible)
 
