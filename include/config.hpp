@@ -43,7 +43,7 @@ typedef struct Config_Server {
 typedef struct Config {
     Config();
 
-    File_Path     error_log;
+    File_Path     error_log;  // An empty error_log path means everything is logged to stderr
     Config_Server server;
 } Config;
 
