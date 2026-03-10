@@ -107,7 +107,7 @@ Config parse_file(std::ifstream& file) {
 
     // TODO check for at least a server directive (once multiple servers are possible)
 
-    if (config.server.listen.sin_port == 0) {
+    if (config.server.listen.empty()) {
         throw ParserError(*tokens.end(), "Missing listen directive in server context");
     } else if (config.server.location.empty()) {
         throw ParserError(*tokens.end(), "Missing location directive in server context");
@@ -253,10 +253,12 @@ Config_Server parse_server(token_iterator* t, token_iterator end) {
                 if (check_string(tokens[2].word, "1234567890") == false)
                     throw ParserError(tokens[2], "Wrong port syntax in listen directive");
 
-                config.listen.sin_family = AF_INET;
-                config.listen.sin_port =
-                    htons(static_cast<uint16_t>(std::atol(tokens[2].word.c_str())));
-                inet_pton(AF_INET, tokens[1].word.c_str(), &config.listen.sin_addr);
+                struct sockaddr_in listen;
+                listen.sin_family = AF_INET;
+                listen.sin_port = htons(static_cast<uint16_t>(std::atol(tokens[2].word.c_str())));
+                inet_pton(AF_INET, tokens[1].word.c_str(), &listen.sin_addr);
+
+                config.listen.push_back(listen);
             } else if (directive == "location") {
                 if (tokens.size() != 3)
                     throw ParserError(tokens[0], "Wrong number of tokens in location directive");
