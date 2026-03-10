@@ -14,36 +14,33 @@
 #include "ConfigLexer.hpp"
 #include "config.hpp"
 
-namespace ConfigParser {
 /**
  * @brief Parse a configuration file into a standardized Config struct.
  * Calls the lexer and then the parser in succession.
  */
 Config parse_file(std::ifstream& file) {
-    std::vector<Lexer::Token> tokens = Lexer::lex_config(file);
+    std::vector<Token> tokens = lex_config(file);
 
-    Config config = Parser::parse_config(tokens.begin(), tokens.end());
+    Config config = parse_config(tokens.begin(), tokens.end());
 
     // TODO check for at least a server directive (once multiple servers are possible)
 
     if (config.server.listen.sin_port == 0) {
-        throw Parser::ParserError(*tokens.end(), "Missing listen directive in server context");
+        throw ParserError(*tokens.end(), "Missing listen directive in server context");
     } else if (config.server.location.empty()) {
-        throw Parser::ParserError(*tokens.end(), "Missing location directive in server context");
+        throw ParserError(*tokens.end(), "Missing location directive in server context");
     } else {
         for (size_t i = 0; i < config.server.location.size(); ++i) {
             if (config.server.location[i].root.empty() &&
                 config.server.location[i].redirect.empty()) {
-                throw Parser::ParserError(*tokens.end(),
-                                          "Missing root directive in location context");
+                throw ParserError(*tokens.end(), "Missing root directive in location context");
             }
         }
     }
     return config;
 }
 
-namespace Parser {
-ParserError::ParserError(Lexer::Token& token, std::string error) : _token(token) {
+ParserError::ParserError(Token& token, std::string error) : _token(token) {
     std::stringstream stream;
 
     stream << "Parsing error near token " << _token.word << ": " << error;
@@ -61,10 +58,10 @@ const char* ParserError::what() const throw() {
  * @brief Consume all tokens until the first one that is a special character.
  * For reference, special characters are braces and semicolons.
  */
-std::vector<Lexer::Token> parse_line(Lexer::token_iterator* t) {
-    std::vector<Lexer::Token> tokens;
+std::vector<Token> parse_line(token_iterator* t) {
+    std::vector<Token> tokens;
 
-    while ((*t)->type == Lexer::WORD) {
+    while ((*t)->type == WORD) {
         tokens.push_back(**t);
         ++(*t);
     }
@@ -74,7 +71,7 @@ std::vector<Lexer::Token> parse_line(Lexer::token_iterator* t) {
     ++(*t);
 
     std::clog << "[!] - Parsed line: ";
-    for (std::vector<Lexer::Token>::const_iterator i = tokens.begin(); i != tokens.end(); ++i)
+    for (std::vector<Token>::const_iterator i = tokens.begin(); i != tokens.end(); ++i)
         std::clog << (*i).word << " ";
     std::clog << std::endl;
 
@@ -84,15 +81,15 @@ std::vector<Lexer::Token> parse_line(Lexer::token_iterator* t) {
 /**
  * @brief Process a vector of tokens to create a Config struct out of them.
  */
-Config parse_config(Lexer::token_iterator t, Lexer::token_iterator end) {
+Config parse_config(token_iterator t, token_iterator end) {
     Config config;
 
     while (t != end) {
         // TODO Take care of multiple server directives
 
-        std::vector<Lexer::Token> tokens = parse_line(&t);
+        std::vector<Token> tokens = parse_line(&t);
 
-        if (tokens[0].type == Lexer::WORD) {
+        if (tokens[0].type == WORD) {
             const std::string& directive = tokens[0].word;
             if (directive == "error_log") {
                 config.error_log = tokens[1].word;
@@ -110,13 +107,13 @@ Config parse_config(Lexer::token_iterator t, Lexer::token_iterator end) {
     return config;
 }
 
-Config_Server parse_server(Lexer::token_iterator* t, Lexer::token_iterator end) {
+Config_Server parse_server(token_iterator* t, token_iterator end) {
     Config_Server config;
 
     while (*t != end) {
-        std::vector<Lexer::Token> tokens = parse_line(t);
+        std::vector<Token> tokens = parse_line(t);
 
-        if (tokens[0].type == Lexer::WORD) {
+        if (tokens[0].type == WORD) {
             const std::string& directive = tokens[0].word;
             if (directive == "client_max_body_size") {
                 // TODO Sanitization
@@ -165,7 +162,7 @@ Config_Server parse_server(Lexer::token_iterator* t, Lexer::token_iterator end) 
             } else {
                 throw ParserError(tokens[0], "Unknown directive in server context");
             }
-        } else if (tokens[0].type == Lexer::CLOSING_BRACE) {
+        } else if (tokens[0].type == CLOSING_BRACE) {
             break;
         } else {
             throw ParserError(tokens[0], "Wrong syntax");
@@ -175,13 +172,13 @@ Config_Server parse_server(Lexer::token_iterator* t, Lexer::token_iterator end) 
     return config;
 }
 
-Config_Location parse_location(Lexer::token_iterator* t, Lexer::token_iterator end) {
+Config_Location parse_location(token_iterator* t, token_iterator end) {
     Config_Location config;
 
     while (*t != end) {
-        std::vector<Lexer::Token> tokens = parse_line(t);
+        std::vector<Token> tokens = parse_line(t);
 
-        if (tokens[0].type == Lexer::WORD) {
+        if (tokens[0].type == WORD) {
             const std::string& directive = tokens[0].word;
 
             if (directive == "allowed_methods") {
@@ -221,7 +218,7 @@ Config_Location parse_location(Lexer::token_iterator* t, Lexer::token_iterator e
             } else {
                 throw ParserError(tokens[0], "Unknown directive in location context");
             }
-        } else if (tokens[0].type == Lexer::CLOSING_BRACE) {
+        } else if (tokens[0].type == CLOSING_BRACE) {
             break;
         } else {
             throw ParserError(tokens[0], "Wrong syntax");
@@ -230,5 +227,3 @@ Config_Location parse_location(Lexer::token_iterator* t, Lexer::token_iterator e
 
     return config;
 }
-}  // namespace Parser
-}  // namespace ConfigParser

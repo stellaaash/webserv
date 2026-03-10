@@ -4,8 +4,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
-namespace ConfigParser {
-namespace Lexer {
+
 enum TokenType { WORD, OPENING_BRACE, CLOSING_BRACE, SEMICOLON };
 
 struct Token {
@@ -16,7 +15,5 @@ struct Token {
 typedef std::vector<Token>::const_iterator token_iterator;
 
 std::vector<Token> lex_config(std::ifstream& file_stream);
-}  // namespace Lexer
-}  // namespace ConfigParser
 
 #endif

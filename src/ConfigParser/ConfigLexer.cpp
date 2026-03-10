@@ -6,8 +6,6 @@
 #include <limits>
 #include <vector>
 
-namespace ConfigParser {
-namespace Lexer {
 /**
  * @brief Determines whether a character has a special meaning.
  * Characters with special meaning are: ;{}#.
@@ -70,5 +68,3 @@ std::vector<Token> lex_config(std::ifstream& file_stream) {
 
     return tokens;
 }
-}  // namespace Lexer
-}  // namespace ConfigParser

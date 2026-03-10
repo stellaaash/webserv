@@ -10,9 +10,9 @@ int main(int argc, char** argv) {
     std::ifstream config_file(argv[1]);
 
     try {
-        Config config = ConfigParser::parse_file(config_file);
+        Config config = parse_file(config_file);
 
-    } catch (const ConfigParser::Parser::ParserError& e) {
+    } catch (const ParserError& e) {
         std::cerr << "[!] - Error occurred during parsing: " << e.what() << std::endl;
         return 2;
     }
