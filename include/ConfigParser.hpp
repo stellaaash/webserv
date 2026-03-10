@@ -3,11 +3,9 @@
 
 #include <exception>
 #include <fstream>
-#include <vector>
 
 #include "ConfigLexer.hpp"
 #include "config.hpp"
-Config parse_file(std::ifstream&);
 
 class ParserError : public std::exception {
 public:
@@ -21,7 +19,7 @@ private:
     std::string _m_error;
 };
 
-std::vector<Token> parse_line(token_iterator*);
+Config parse_file(std::ifstream&);
 
 Config          parse_config(token_iterator, token_iterator end);
 Config_Server   parse_server(token_iterator*, token_iterator end);

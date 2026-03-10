@@ -14,6 +14,22 @@
 #include "ConfigLexer.hpp"
 #include "config.hpp"
 
+ParserError::ParserError(Token& token, std::string error) : _token(token) {
+    std::stringstream stream;
+
+    stream << "Parsing error near token " << _token.word << ": " << error;
+
+    _m_error = stream.str();
+}
+
+ParserError::~ParserError() throw() {}
+
+const char* ParserError::what() const throw() {
+    return _m_error.c_str();
+}
+
+// =============================================================================
+
 /**
  * @brief Parse a configuration file into a standardized Config struct.
  * Calls the lexer and then the parser in succession.
@@ -40,25 +56,11 @@ Config parse_file(std::ifstream& file) {
     return config;
 }
 
-ParserError::ParserError(Token& token, std::string error) : _token(token) {
-    std::stringstream stream;
-
-    stream << "Parsing error near token " << _token.word << ": " << error;
-
-    _m_error = stream.str();
-}
-
-ParserError::~ParserError() throw() {}
-
-const char* ParserError::what() const throw() {
-    return _m_error.c_str();
-}
-
 /**
  * @brief Consume all tokens until the first one that is a special character.
  * For reference, special characters are braces and semicolons.
  */
-std::vector<Token> parse_line(token_iterator* t) {
+static std::vector<Token> parse_line(token_iterator* t) {
     std::vector<Token> tokens;
 
     while ((*t)->type == WORD) {
