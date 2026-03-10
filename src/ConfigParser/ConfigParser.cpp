@@ -80,17 +80,18 @@ static void check_config(const Config& config) {
         if (i->first <= 100 || i->first >= 599) throw ParserError("Invalid error_page directive");
     }
 
-    for (std::vector<Config_Location>::const_iterator i = config.server.location.begin();
-         i < config.server.location.end(); ++i) {
-        for (std::map<std::string, File_Path>::const_iterator j = i->cgi.begin(); j != i->cgi.end();
-             ++j) {
+    for (std::map<std::string, Config_Location>::const_iterator i = config.server.location.begin();
+         i != config.server.location.end(); ++i) {
+        for (std::map<std::string, File_Path>::const_iterator j = i->second.cgi.begin();
+             j != i->second.cgi.end(); ++j) {
             if (check_path(j->second, false) != 0) throw ParserError("Invalid cgi directive");
         }
-        if (i->index.empty() == false && check_path(i->index, false) != 0)
+        if (i->second.index.empty() == false && check_path(i->second.index, false) != 0)
             throw ParserError("Invalid index directive");
-        if (i->root.empty() == false && check_path(i->root, true) != 0)
+        if (i->second.root.empty() == false && check_path(i->second.root, true) != 0)
             throw ParserError("Invalid root directive");
-        if (i->upload_store.empty() == false && check_path(i->upload_store, true) != 0)
+        if (i->second.upload_store.empty() == false &&
+            check_path(i->second.upload_store, true) != 0)
             throw ParserError("Invalid upload_store directive");
     }
 }
@@ -111,9 +112,10 @@ Config parse_file(std::ifstream& file) {
     } else if (config.server.location.empty()) {
         throw ParserError(*tokens.end(), "Missing location directive in server context");
     } else {
-        for (size_t i = 0; i < config.server.location.size(); ++i) {
-            if (config.server.location[i].root.empty() &&
-                config.server.location[i].redirect.empty()) {
+        for (std::map<std::string, Config_Location>::const_iterator i =
+                 config.server.location.begin();
+             i != config.server.location.end(); ++i) {
+            if (i->second.root.empty() && i->second.redirect.empty()) {
                 throw ParserError(*tokens.end(), "Missing root directive in location context");
             }
         }
@@ -258,7 +260,8 @@ Config_Server parse_server(token_iterator* t, token_iterator end) {
             } else if (directive == "location") {
                 if (tokens.size() != 3)
                     throw ParserError(tokens[0], "Wrong number of tokens in location directive");
-                config.location.push_back(parse_location((t), end));
+                config.location.insert(std::pair<std::string, Config_Location>(
+                    tokens[1].word, parse_location((t), end)));
             } else if (directive == "timeout") {
                 if (tokens.size() != 3)
                     throw ParserError(tokens[0], "Wrong number of tokens in timeout directive");

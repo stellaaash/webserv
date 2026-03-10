@@ -11,7 +11,6 @@
 #include <map>
 #include <set>
 #include <string>
-#include <vector>
 
 typedef unsigned int HTTP_Code;
 typedef std::string  File_Path;
@@ -33,11 +32,11 @@ typedef struct Config_Location {
 typedef struct Config_Server {
     Config_Server();
 
-    size_t                           client_max_body_size;
-    std::map<HTTP_Code, std::string> error_page;  // Error code to URI
-    struct sockaddr_in               listen;
-    std::vector<Config_Location>     location;
-    size_t                           timeout;
+    size_t                                 client_max_body_size;
+    std::map<HTTP_Code, std::string>       error_page;  // Error code to URI
+    struct sockaddr_in                     listen;
+    std::map<std::string, Config_Location> location;
+    size_t                                 timeout;
 } Config_Server;
 
 typedef struct Config {

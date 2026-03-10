@@ -50,7 +50,7 @@ Config mock_config() {
     server.timeout = 1000;
     server.client_max_body_size = 1024 * 1024;  // 1Mb
 
-    server.location.push_back(loc);
+    server.location.insert(std::pair<std::string, Config_Location>("/", loc));
     conf.server = server;
     conf.error_log = "./logs/error.log";
 
