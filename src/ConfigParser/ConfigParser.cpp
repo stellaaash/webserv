@@ -3,10 +3,15 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #include <cassert>
 #include <cstdlib>
+#include <cstring>
+#include <fstream>
 #include <iostream>
+#include <map>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -42,8 +47,57 @@ const char* ParserError::what() const throw() {
 // =============================================================================
 
 /**
+ * @brief Checks a path for existence of a file and access rights.
+ * The directory flag specifies whether the function should check for the existence
+ * of a directory, instead of a file.
+ */
+static int check_path(const std::string& path, bool directory) {
+    assert(path.empty() == false && "String contains an actual path");
+
+    struct stat path_stat;
+    memset(&path_stat, 0, sizeof(path_stat));
+
+    if (stat(path.c_str(), &path_stat) != 0) return 1;
+
+    if (directory && path_stat.st_mode & S_IFDIR) {
+        return 0;
+    } else if (path_stat.st_mode & S_IFREG && access(path.c_str(), R_OK) == 0) {
+        return 0;
+    }
+
+    return 1;
+}
+
+static void check_config(const Config& config) {
+    if (config.error_log.empty() == false) {
+        std::ofstream error_log(config.error_log.c_str());
+        if (!error_log) throw ParserError("Invalid error_log directive");
+    }
+
+    for (std::map<HTTP_Code, std::string>::const_iterator i = config.server.error_page.begin();
+         i != config.server.error_page.end(); ++i) {
+        // TODO Add checks for the second part; I need to understand this directive better
+        if (i->first <= 100 || i->first >= 599) throw ParserError("Invalid error_page directive");
+    }
+
+    for (std::vector<Config_Location>::const_iterator i = config.server.location.begin();
+         i < config.server.location.end(); ++i) {
+        for (std::map<std::string, File_Path>::const_iterator j = i->cgi.begin(); j != i->cgi.end();
+             ++j) {
+            if (check_path(j->second, false) != 0) throw ParserError("Invalid cgi directive");
+        }
+        if (i->index.empty() == false && check_path(i->index, false) != 0)
+            throw ParserError("Invalid index directive");
+        if (i->root.empty() == false && check_path(i->root, true) != 0)
+            throw ParserError("Invalid root directive");
+        if (i->upload_store.empty() == false && check_path(i->upload_store, true) != 0)
+            throw ParserError("Invalid upload_store directive");
+    }
+}
+
+/**
  * @brief Parse a configuration file into a standardized Config struct.
- * Calls the lexer and then the parser in succession.
+ * Calls the lexer and then the parser in succession, and checks for semantic correctness.
  */
 Config parse_file(std::ifstream& file) {
     const std::vector<Token> tokens = lex_config(file);
@@ -64,6 +118,9 @@ Config parse_file(std::ifstream& file) {
             }
         }
     }
+
+    check_config(config);
+
     return config;
 }
 
@@ -149,6 +206,10 @@ Config_Server parse_server(token_iterator* t, token_iterator end) {
                                       "Wrong number of tokens in client_max_body_size directive");
                 if (check_string(tokens[1].word, "1234567890kKmMgG") == false)
                     throw ParserError(tokens[1], "Wrong client_max_body_size syntax");
+                if (tokens[1].word.length() > 5)
+                    throw ParserError(tokens[1],
+                                      "Wrong client_max_body_size value - Hint: set to 0 to "
+                                      "disable, or use units like M or G to set higher values");
 
                 size_t number = static_cast<size_t>(std::atol(tokens[1].word.c_str()));
                 char   unit = tokens[1].word[tokens[1].word.size() - 1];
@@ -259,7 +320,8 @@ Config_Location parse_location(token_iterator* t, token_iterator end) {
             } else if (directive == "index") {
                 if (tokens.size() < 3)
                     throw ParserError(tokens[0], "Wrong number of tokens in index directive");
-                config.index = tokens[1].word;
+                // TODO What happens when there's a / vs when there's none?
+                config.index = config.root + "/" + tokens[1].word;
             } else if (directive == "redirect") {
                 if (tokens.size() != 4)
                     throw ParserError(tokens[0], "Wrong number of tokens in redirect directive");
