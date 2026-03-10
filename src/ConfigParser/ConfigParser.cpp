@@ -100,16 +100,17 @@ Config parse_config(token_iterator t, token_iterator end) {
 
     while (t != end) {
         // TODO Take care of multiple server directives
-        // TODO Check for the right number of tokens per directive
-        // For example always 3 for listen, 2 or more for error_page, always 2 for timeout, etc.
-
         std::vector<Token> tokens = parse_line(&t);
 
         if (tokens[0].type == WORD) {
             const std::string& directive = tokens[0].word;
             if (directive == "error_log") {
+                if (tokens.size() != 3)
+                    throw ParserError(tokens[0], "Wrong number of tokens in error_log directive");
                 config.error_log = tokens[1].word;
             } else if (directive == "server") {
+                if (tokens.size() != 2)
+                    throw ParserError(tokens[0], "Wrong number of tokens in server directive");
                 // We pass a pointer to the iterator so the progress is replicated here
                 config.server = parse_server(&t, end);
             } else {
@@ -132,6 +133,9 @@ Config_Server parse_server(token_iterator* t, token_iterator end) {
         if (tokens[0].type == WORD) {
             const std::string& directive = tokens[0].word;
             if (directive == "client_max_body_size") {
+                if (tokens.size() != 3)
+                    throw ParserError(tokens[0],
+                                      "Wrong number of tokens in client_max_body_size directive");
                 if (check_string(tokens[1].word, "1234567890kKmMgG") == false)
                     throw ParserError(tokens[1], "Wrong client_max_body_size syntax");
 
@@ -156,6 +160,8 @@ Config_Server parse_server(token_iterator* t, token_iterator end) {
                         break;
                 }
             } else if (directive == "error_page") {
+                if (tokens.size() < 4)
+                    throw ParserError(tokens[0], "Wrong number of tokens in error_page directive");
                 File_Path path = tokens[tokens.size() - 2].word;
                 for (size_t i = 1; i < tokens.size() - 2; ++i) {
                     if (check_string(tokens[i].word, "1234567890") == false)
@@ -165,6 +171,8 @@ Config_Server parse_server(token_iterator* t, token_iterator end) {
                     config.error_page.insert(std::pair<HTTP_Code, File_Path>(code, path));
                 }
             } else if (directive == "listen") {
+                if (tokens.size() != 4)
+                    throw ParserError(tokens[0], "Wrong number of tokens in listen directive");
                 // TODO Take care of multiple listen directives
                 if (check_string(tokens[1].word, "1234567890.") == false)
                     throw ParserError(tokens[1], "Wrong IP syntax in listen directive");
@@ -176,8 +184,12 @@ Config_Server parse_server(token_iterator* t, token_iterator end) {
                     htons(static_cast<uint16_t>(std::atol(tokens[2].word.c_str())));
                 inet_pton(AF_INET, tokens[1].word.c_str(), &config.listen.sin_addr);
             } else if (directive == "location") {
+                if (tokens.size() != 3)
+                    throw ParserError(tokens[0], "Wrong number of tokens in location directive");
                 config.location.push_back(parse_location((t), end));
             } else if (directive == "timeout") {
+                if (tokens.size() != 3)
+                    throw ParserError(tokens[0], "Wrong number of tokens in timeout directive");
                 if (check_string(tokens[1].word, "1234567890") == false)
                     throw ParserError(tokens[1], "Wrong timeout syntax");
                 config.timeout = static_cast<size_t>(std::atol(tokens[1].word.c_str()));
@@ -204,6 +216,9 @@ Config_Location parse_location(token_iterator* t, token_iterator end) {
             const std::string& directive = tokens[0].word;
 
             if (directive == "allowed_methods") {
+                if (tokens.size() < 3)
+                    throw ParserError(tokens[0],
+                                      "Wrong number of tokens in allowed_methods directive");
                 for (size_t i = 1; i < tokens.size() - 1; ++i) {
                     if (tokens[i].word == "GET") {
                         config.allowed_methods.insert(GET);
@@ -216,6 +231,8 @@ Config_Location parse_location(token_iterator* t, token_iterator end) {
                     }
                 }
             } else if (directive == "autoindex") {
+                if (tokens.size() != 3)
+                    throw ParserError(tokens[0], "Wrong number of tokens in autoindex directive");
                 if (tokens[1].word == "on") {
                     config.autoindex = true;
                 } else if (tokens[1].word == "off") {
@@ -224,18 +241,29 @@ Config_Location parse_location(token_iterator* t, token_iterator end) {
                     throw ParserError(tokens[1], "Unknown value for autoindex directive");
                 }
             } else if (directive == "cgi") {
+                if (tokens.size() != 4)
+                    throw ParserError(tokens[0], "Wrong number of tokens in cgi directive");
                 config.cgi.insert(
                     std::pair<std::string, File_Path>(tokens[1].word, tokens[2].word));
             } else if (directive == "index") {
+                if (tokens.size() < 3)
+                    throw ParserError(tokens[0], "Wrong number of tokens in index directive");
                 config.index = tokens[1].word;
             } else if (directive == "redirect") {
+                if (tokens.size() != 4)
+                    throw ParserError(tokens[0], "Wrong number of tokens in redirect directive");
                 if (check_string(tokens[1].word, "1234567890") == false)
                     throw ParserError(tokens[1], "Wrong redirection code syntax");
                 HTTP_Code code = static_cast<HTTP_Code>(std::atol(tokens[1].word.c_str()));
                 config.redirect.insert(std::pair<HTTP_Code, std::string>(code, tokens[2].word));
             } else if (directive == "root") {
+                if (tokens.size() != 3)
+                    throw ParserError(tokens[0], "Wrong number of tokens in root directive");
                 config.root = tokens[1].word;
             } else if (directive == "upload_store") {
+                if (tokens.size() != 3)
+                    throw ParserError(tokens[0],
+                                      "Wrong number of tokens in upload_store directive");
                 config.upload_store = tokens[1].word;
             } else {
                 throw ParserError(tokens[0], "Unknown directive in location context");
