@@ -14,7 +14,18 @@
 #include "ConfigLexer.hpp"
 #include "config.hpp"
 
-ParserError::ParserError(const Token& token, std::string error) : _token(token) {
+// We construct the error string in the constructors to be able to return a pointer to it later
+// Having the stringstream be part of the what() member function wouldn't work because of
+// having to return a pointer to an object local to the function
+ParserError::ParserError(const std::string& error) : _token() {
+    std::stringstream stream;
+
+    stream << "Parsing error: " << error;
+
+    _m_error = stream.str();
+}
+
+ParserError::ParserError(const Token& token, const std::string& error) : _token(token) {
     std::stringstream stream;
 
     stream << "Parsing error near token " << _token.word << ": " << error;
