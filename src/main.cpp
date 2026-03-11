@@ -5,6 +5,7 @@
 
 #include <csignal>
 #include <cstdio>
+#include <cstring>
 #include <fstream>
 #include <iostream>
 
@@ -26,6 +27,7 @@ int main(int argc, char** argv) {
     signal(SIGINT, clean_exit);
 
     struct stat path_stat;
+    memset(&path_stat, 0, sizeof(path_stat));
     stat(argv[1], &path_stat);
     if (!S_ISREG(path_stat.st_mode)) {
         std::clog << "[!] - Failed to open configuration file." << std::endl;
