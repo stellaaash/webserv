@@ -2,6 +2,20 @@
 
 #include <cstring>
 
+// If nothing is provided in the location (except for the root), no default values are present.
+// This would mean that you can't technically interact with the location, since no allowed
+// methods have been defined. We won't set GET as default, since maybe that's not what the user
+// wants, who knows.
+Config_Location::Config_Location()
+    : allowed_methods(), autoindex(false), cgi(), index(), redirect(), root(), upload_store() {}
+
+Config_Server::Config_Server()
+    : client_max_body_size(0), error_page(), listen(), location(), timeout(0) {
+    std::memset(&listen, 0, sizeof(listen));
+}
+
+Config::Config() : error_log(), server() {}
+
 /**
  * @brief Create an example configuration for testing.
  *
@@ -25,7 +39,6 @@ Config mock_config() {
     loc.cgi[".rb"] = "/bin/ruby";
     loc.cgi[".py"] = "/bin/python3";
 
-    std::memset(&server.listen, 0, sizeof(server.listen));
     server.listen.sin_family = AF_INET;
     server.listen.sin_port = htons(8080);
     server.listen.sin_addr.s_addr = htonl(INADDR_LOOPBACK);

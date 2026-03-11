@@ -2,3 +2,4 @@
 *.d
 webserv
 valgrind.log
+.zed/debug.json

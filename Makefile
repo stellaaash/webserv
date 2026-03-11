@@ -19,6 +19,8 @@ CFILES		=	$(SRCDIR)/main.cpp \
 				$(SRCDIR)/ConnectionManager/Connection.cpp \
 				$(SRCDIR)/ConnectionManager/Request.cpp \
 				$(SRCDIR)/ConnectionManager/Response.cpp \
+				$(SRCDIR)/ConfigParser/ConfigLexer.cpp \
+				$(SRCDIR)/ConfigParser/ConfigParser.cpp \
 				$(SRCDIR)/config.cpp
 
 OBJS		=	$(CFILES:.cpp=.o)
@@ -59,8 +61,10 @@ fclean:			clean
 
 re:				fclean all
 
+CONFIG		?=	config/1.conf
+
 test:			re
 				@printf "\n==============================================\n"
-				$(VALGRIND) $(VALFLAGS) ./$(NAME) | tee $(LOG)
+				$(VALGRIND) $(VALFLAGS) ./$(NAME) $(CONFIG) | tee $(LOG)
 
 .PHONY:			all clean fclean re debug test
