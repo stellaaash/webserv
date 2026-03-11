@@ -76,8 +76,10 @@ static void check_config(const Config& config) {
 
     for (std::map<HTTP_Code, std::string>::const_iterator i = config.server.error_page.begin();
          i != config.server.error_page.end(); ++i) {
-        // TODO Add checks for the second part; I need to understand this directive better
-        if (i->first <= 100 || i->first >= 599) throw ParserError("Invalid error_page directive");
+        if (i->first <= 400 || i->first >= 599)
+            throw ParserError("Invalid error_page directive (wrong HTTP code)");
+        if (config.server.location.find(i->second) == config.server.location.end())
+            throw ParserError("Invalid error_page directive (matching location missing)");
     }
 
     for (std::map<std::string, Config_Location>::const_iterator i = config.server.location.begin();
@@ -88,6 +90,11 @@ static void check_config(const Config& config) {
         }
         if (i->second.index.empty() == false && check_path(i->second.index, false) != 0)
             throw ParserError("Invalid index directive");
+        for (std::map<HTTP_Code, std::string>::const_iterator j = i->second.redirect.begin();
+             j != i->second.redirect.end(); ++j) {
+            // Redirection have to use a 3XX code
+            if (j->first < 300 || j->first > 399) throw ParserError("Invalid redirect directive");
+        }
         if (i->second.root.empty() == false && check_path(i->second.root, true) != 0)
             throw ParserError("Invalid root directive");
         if (i->second.upload_store.empty() == false &&
