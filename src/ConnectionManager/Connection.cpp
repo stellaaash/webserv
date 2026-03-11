@@ -101,7 +101,7 @@ size_t Connection::send_data() {
     if (n <= 0) return 0;
 
     // update write index with real bytes sent (can be lower than chunk)
-    _write_index += (size_t)n;
+    _write_index += static_cast<size_t>(n);
 
     // cleanup
     if (_write_index >= _write_buffer.size()) {
