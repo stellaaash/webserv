@@ -59,7 +59,7 @@ static int check_path(const std::string& path, bool directory) {
 
     if (stat(path.c_str(), &path_stat) != 0) return 1;
 
-    if (directory && path_stat.st_mode & S_IFDIR) {
+    if (directory && path_stat.st_mode & S_IFDIR && access(path.c_str(), W_OK) == 0) {
         return 0;
     } else if (path_stat.st_mode & S_IFREG && access(path.c_str(), R_OK) == 0) {
         return 0;
