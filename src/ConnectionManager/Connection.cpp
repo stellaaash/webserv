@@ -16,17 +16,12 @@ Connection::Connection(const Config_Server* const config, int socket)
       _request(),
       _response(),
       _socket(socket),
-      _working_read_buffer(NULL),
       _read_buffer(),
       _read_index(0),
-      _working_write_buffer(NULL),
       _write_buffer(),
       _write_index(0) {
     assert(config && "Config_Server pointer");
     assert(socket > 2 && "Valid Socket Number");
-
-    _working_read_buffer = new char[RECV_SIZE];
-    _working_write_buffer = new char[SEND_SIZE];
 }
 
 Connection::Connection(const Connection& other)
@@ -34,22 +29,10 @@ Connection::Connection(const Connection& other)
       _request(other._request),
       _response(other._response),
       _socket(other._socket),
-      _working_read_buffer(NULL),
       _read_buffer(),
       _read_index(other._read_index),
-      _working_write_buffer(NULL),
       _write_buffer(),
-      _write_index(other._write_index) {
-    _working_read_buffer = new char[RECV_SIZE];
-    _working_write_buffer = new char[SEND_SIZE];
-
-    for (size_t i = 0; i < RECV_SIZE; ++i) {
-        _working_read_buffer[i] = other._working_read_buffer[i];
-    }
-    for (size_t i = 0; i < SEND_SIZE; ++i) {
-        _working_write_buffer[i] = other._working_write_buffer[i];
-    }
-}
+      _write_index(other._write_index) {}
 
 const Connection& Connection::operator=(const Connection& other) {
     if (this == &other) {
@@ -65,20 +48,10 @@ const Connection& Connection::operator=(const Connection& other) {
     _write_buffer = other._write_buffer;
     _write_index = other._write_index;
 
-    for (size_t i = 0; i < RECV_SIZE; ++i) {
-        _working_read_buffer[i] = other._working_read_buffer[i];
-    }
-    for (size_t i = 0; i < SEND_SIZE; ++i) {
-        _working_write_buffer[i] = other._working_write_buffer[i];
-    }
-
     return *this;
 }
 
-Connection::~Connection() {
-    delete[] _working_read_buffer;
-    delete[] _working_write_buffer;
-}
+Connection::~Connection() {}
 
 const Request& Connection::request() const {
     return _request;

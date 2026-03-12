@@ -35,10 +35,8 @@ private:
 
     int _socket;
 
-    char*       _working_read_buffer;
     std::string _read_buffer;
     size_t      _read_index;
-    char*       _working_write_buffer;  // TODO Potentially useless
     std::string _write_buffer;
     size_t      _write_index;
 };
