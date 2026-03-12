@@ -48,7 +48,7 @@ bool ConnHandler::handle_event(ConnectionManager& manager, uint32_t events) {
     if (events & EPOLLIN) {
         std::cout << "[CONN " << _fd << "] EPOLLIN" << std::endl;
         ssize_t n = _conn.receive_data();
-        if (n == 0) return false;
+        if (n < 0) return false;
 
         // Parse request from _conn.read_buffer() and fill _conn.request()
 

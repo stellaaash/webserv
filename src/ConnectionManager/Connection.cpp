@@ -5,6 +5,7 @@
 
 #include <cassert>
 #include <cerrno>
+#include <cstring>
 #include <iostream>
 
 #include "Request.hpp"
@@ -71,7 +72,12 @@ ssize_t Connection::send_data() {
 
     ssize_t n = send(_socket, _write_buffer.data() + _write_index, chunk, 0);
     std::cout << "[CONN " << _socket << "] sent " << n << " bytes" << std::endl;
-    if (n <= 0) return 0;
+    if (n == 0)
+        return 0;
+    else if (n < 0) {
+        std::cerr << "[Connection::send_data] send: " << strerror(errno) << std::endl;
+        return -1;
+    }
 
     // update write index with real bytes sent (can be lower than chunk)
     _write_index += static_cast<size_t>(n);
@@ -100,16 +106,18 @@ ssize_t Connection::receive_data() {
         } else if (n == 0) {
             // closing client
             std::cout << "[CONN " << _socket << "] client closed recv0" << std::endl;
-            return (0);
+            return 0;
         } else {
             if (errno == EAGAIN || errno == EWOULDBLOCK) break;  // nothing to read
-            return 0;                                            // error
+
+            std::cerr << "[Connection::receive_data] recv: " << strerror(errno) << std::endl;
+            return -1;
         }
         if (total > 0)
             std::cout << "[CONN " << _socket << "] received " << n << " bytes" << std::endl;
     }
     if (total > 0) return total;
-    return 1;
+    return -1;
 }
 
 void Connection::queue_write(const std::string& data) {

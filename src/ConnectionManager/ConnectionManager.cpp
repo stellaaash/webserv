@@ -2,14 +2,14 @@
 
 #include <unistd.h>
 
+#include <cerrno>
 #include <cstdio>
 #include <cstring>
 #include <iostream>
 
 ConnectionManager::ConnectionManager() : _epfd(epoll_create(1)) {
-    if (_epfd < 0) {
-        // error
-    }
+    if (_epfd < 0)
+        std::cerr << "[ConnectionManager] epoll_create: " << strerror(errno) << std::endl;
 }
 
 ConnectionManager::~ConnectionManager() {
@@ -17,7 +17,8 @@ ConnectionManager::~ConnectionManager() {
         int       fd = it->first;
         IHandler* h = it->second;
 
-        epoll_ctl(_epfd, EPOLL_CTL_DEL, fd, NULL);
+        if (epoll_ctl(_epfd, EPOLL_CTL_DEL, fd, NULL) != 0)
+            std::cerr << "[~ConnectionManager] epoll_ctl: " << strerror(errno) << std::endl;
         close(fd);
         delete h;
     }
@@ -26,19 +27,24 @@ ConnectionManager::~ConnectionManager() {
     if (_epfd >= 0) close(_epfd);
 }
 
-void ConnectionManager::add(IHandler* h) {
+int ConnectionManager::add(IHandler* h) {
     epoll_event ev;
-    std::memset(&ev, 0, sizeof(ev));
+    memset(&ev, 0, sizeof(ev));
     ev.events = h->interests();
     ev.data.ptr = h;
 
     // Add fd to epoll
-    epoll_ctl(_epfd, EPOLL_CTL_ADD, h->fd(), &ev);
+    if (epoll_ctl(_epfd, EPOLL_CTL_ADD, h->fd(), &ev) != 0) {
+        std::cerr << "[ConnectionManager::add] epoll_ctl: " << strerror(errno) << std::endl;
+        return 1;
+    };
     _handlers[h->fd()] = h;
+
+    return 0;
 }
 
-void ConnectionManager::mod(IHandler* h) {
-    if (_handlers.find(h->fd()) == _handlers.end()) return;
+int ConnectionManager::mod(IHandler* h) {
+    if (_handlers.find(h->fd()) == _handlers.end()) return 1;
 
     epoll_event ev;
     std::memset(&ev, 0, sizeof(ev));
@@ -46,7 +52,11 @@ void ConnectionManager::mod(IHandler* h) {
     ev.data.ptr = h;
 
     // Switch epolls' behavior on wanted fd (EPOLLIN/OUT)
-    epoll_ctl(_epfd, EPOLL_CTL_MOD, h->fd(), &ev);
+    if (epoll_ctl(_epfd, EPOLL_CTL_MOD, h->fd(), &ev) != 0) {
+        std::cerr << "[ConnectionManager::mod] epoll_ctl: " << strerror(errno) << std::endl;
+        return 1;
+    }
+    return 0;
 }
 
 void ConnectionManager::del(IHandler* h) {
@@ -55,9 +65,10 @@ void ConnectionManager::del(IHandler* h) {
     if (it == _handlers.end()) return;
 
     // Remove fd from epoll
-    epoll_ctl(_epfd, EPOLL_CTL_DEL, fd, NULL);
+    if (epoll_ctl(_epfd, EPOLL_CTL_DEL, fd, NULL) != 0)
+        std::cerr << "[ConnectionManager::del] epoll_ctl: " << strerror(errno) << std::endl;
     _handlers.erase(it);
-    std::cout << "[MANAGER] Closing fd=" << fd << std::endl;
+    std::cout << "[ConnectionManager] Closing fd=" << fd << std::endl;
     close(fd);
     delete h;
 }
@@ -66,10 +77,14 @@ void ConnectionManager::run() {
     epoll_event events[64];  // reasonable max event size ?
 
     while (true) {
-        int fds =
-            epoll_wait(_epfd, events, 64, -1);  // returns the amount of fds ready for io operations
+        // returns the amount of fds ready for io operations
+        int fds = epoll_wait(_epfd, events, 64, -1);
+        if (fds < 0) {
+            std::cerr << "[ConnectionManager::run] epoll_wait: " << strerror(errno) << std::endl;
+            continue;
+        }
+
         std::cout << "[EPOLL] woke up with " << fds << " events" << std::endl;
-        if (fds < 0) continue;
 
         for (int i = 0; i < fds; ++i) {
             IHandler* h = (IHandler*)events[i].data.ptr;

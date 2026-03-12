@@ -12,8 +12,8 @@ public:
     ConnectionManager();
     ~ConnectionManager();
 
-    void add(IHandler* h);
-    void mod(IHandler* h);
+    int  add(IHandler* h);
+    int  mod(IHandler* h);
     void del(IHandler* h);
 
     void run();
