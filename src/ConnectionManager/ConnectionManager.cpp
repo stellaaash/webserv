@@ -7,6 +7,8 @@
 #include <cstring>
 #include <iostream>
 
+#include "signalstate.hpp"
+
 ConnectionManager::ConnectionManager() : _epfd(epoll_create(1)) {
     if (_epfd < 0)
         std::cerr << "[ConnectionManager] epoll_create: " << strerror(errno) << std::endl;
@@ -76,7 +78,7 @@ void ConnectionManager::del(IHandler* h) {
 void ConnectionManager::run() {
     epoll_event events[64];  // reasonable max event size ?
 
-    while (true) {
+    while (!g_stop) {
         // returns the amount of fds ready for io operations
         int fds = epoll_wait(_epfd, events, 64, -1);
         if (fds < 0) {

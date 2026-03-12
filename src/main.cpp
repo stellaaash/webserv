@@ -15,9 +15,10 @@
 #include "config.hpp"
 #include "socket_utils.hpp"
 
+volatile sig_atomic_t g_stop = 0;
+
 void clean_exit(int) {
-    // TODO Clean heap-allocated stuff
-    exit(0);
+    g_stop = 1;
 }
 
 int main(int argc, char** argv) {
