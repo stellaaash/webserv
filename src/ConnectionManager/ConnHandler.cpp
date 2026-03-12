@@ -43,7 +43,10 @@ uint32_t ConnHandler::interests() const {
 bool ConnHandler::handle_event(ConnectionManager& manager, uint32_t events) {
     (void)manager;
 
-    if (events & (EPOLLERR | EPOLLHUP)) return false;
+    if (events & (EPOLLERR | EPOLLHUP)) {
+        std::cerr << "[CONN " << _fd << "] Error: Wrong epoll event";
+        return false;
+    }
 
     if (events & EPOLLIN) {
         std::cout << "[CONN " << _fd << "] EPOLLIN" << std::endl;

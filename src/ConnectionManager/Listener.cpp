@@ -21,6 +21,11 @@ uint32_t Listener::interests() const {
 }
 
 bool Listener::handle_event(ConnectionManager& manager, uint32_t events) {
+    if (events & (EPOLLERR | EPOLLHUP)) {
+        std::cerr << "[LISTENER " << _fd << "] Error: Wrong epoll event";
+        return false;
+    }
+
     if (!(events & EPOLLIN))  // If not a read event, leave
         return true;
 
