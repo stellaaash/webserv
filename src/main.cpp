@@ -1,5 +1,6 @@
 #include <cerrno>
 #include <cmath>
+#include <csignal>
 #include <cstdio>
 #include <iostream>
 
@@ -8,7 +9,14 @@
 #include "config.hpp"
 #include "socket_utils.hpp"
 
+void clean_exit(int) {
+    // TODO Clean heap-allocated stuff
+    exit(0);
+}
+
 int main() {
+    signal(SIGINT, clean_exit);
+
     Config cfg = mock_config();
 
     int listen_fd = make_listen_socket(cfg.server);
