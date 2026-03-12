@@ -61,7 +61,7 @@ const Response& Connection::response() const {
     return _response;
 }
 
-size_t Connection::send_data() {
+ssize_t Connection::send_data() {
     if (_write_index >= _write_buffer.size()) return 0;
 
     // remaining bytes to send
@@ -82,12 +82,12 @@ size_t Connection::send_data() {
         _write_index = 0;
     }
     std::cout << "[CONN " << _socket << "] write complete" << std::endl;
-    return (size_t)n;
+    return n;
 }
 
-size_t Connection::receive_data() {
-    char   buffer[RECV_SIZE];
-    size_t total = 0;
+ssize_t Connection::receive_data() {
+    char    buffer[RECV_SIZE];
+    ssize_t total = 0;
 
     while (true) {
         ssize_t n = recv(_socket, buffer, sizeof(buffer), 0);
@@ -96,7 +96,7 @@ size_t Connection::receive_data() {
             std::cout.write(buffer, n);
             std::cout << std::endl;
             _read_buffer.append(buffer, static_cast<size_t>(n));
-            total += (size_t)n;
+            total += n;
         } else if (n == 0) {
             // closing client
             std::cout << "[CONN " << _socket << "] client closed recv0" << std::endl;

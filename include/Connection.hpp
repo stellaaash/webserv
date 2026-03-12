@@ -20,8 +20,8 @@ public:
     const Request&  request() const;
     const Response& response() const;
 
-    size_t send_data();
-    size_t receive_data();
+    ssize_t send_data();
+    ssize_t receive_data();
 
     void set_config(const Config_Server* const);
     void queue_write(const std::string& data);
