@@ -18,7 +18,7 @@ int make_listen_socket(const Config_Server& srv) {
     int yes = 1;
     setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
 
-    if (bind(fd, (const struct sockaddr*)&srv.listen, sizeof(srv.listen)) < 0) {
+    if (bind(fd, (const struct sockaddr*)&srv.listen[0], sizeof(srv.listen)) < 0) {
         close(fd);
         return -1;
     }
