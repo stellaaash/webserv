@@ -130,15 +130,15 @@ Config parse_file(std::ifstream& file) {
     // TODO check for at least a server directive (once multiple servers are possible)
 
     if (config.server.listen.empty()) {
-        throw ParserError(*tokens.end(), "Missing listen directive in server context");
+        throw ParserError("Missing listen directive in server context");
     } else if (config.server.location.empty()) {
-        throw ParserError(*tokens.end(), "Missing location directive in server context");
+        throw ParserError("Missing location directive in server context");
     } else {
         for (std::map<std::string, Config_Location>::const_iterator i =
                  config.server.location.begin();
              i != config.server.location.end(); ++i) {
             if (i->second.root.empty() && i->second.redirect.empty()) {
-                throw ParserError(*tokens.end(), "Missing root directive in location context");
+                throw ParserError("Missing root directive in location context");
             }
         }
     }
