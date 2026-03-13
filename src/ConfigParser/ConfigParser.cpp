@@ -78,8 +78,6 @@ static void check_config(const Config& config) {
          i != config.server.error_page.end(); ++i) {
         if (i->first <= 400 || i->first >= 599)
             throw ParserError("Invalid error_page directive (wrong HTTP code)");
-        if (config.server.location.find(i->second) == config.server.location.end())
-            throw ParserError("Invalid error_page directive (matching location missing)");
     }
 
     for (std::map<std::string, Config_Location>::const_iterator i = config.server.location.begin();
