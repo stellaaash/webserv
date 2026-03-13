@@ -4,6 +4,9 @@
 #include <sys/types.h>
 
 #include <cassert>
+#include <cerrno>
+#include <cstring>
+#include <iostream>
 
 #include "Request.hpp"
 #include "Response.hpp"
@@ -14,17 +17,12 @@ Connection::Connection(const Config_Server* const config, int socket)
       _request(),
       _response(),
       _socket(socket),
-      _working_read_buffer(NULL),
       _read_buffer(),
       _read_index(0),
-      _working_write_buffer(NULL),
       _write_buffer(),
       _write_index(0) {
     assert(config && "Config_Server pointer");
     assert(socket > 2 && "Valid Socket Number");
-
-    _working_read_buffer = new char[RECV_SIZE];
-    _working_write_buffer = new char[SEND_SIZE];
 }
 
 Connection::Connection(const Connection& other)
@@ -32,22 +30,10 @@ Connection::Connection(const Connection& other)
       _request(other._request),
       _response(other._response),
       _socket(other._socket),
-      _working_read_buffer(NULL),
       _read_buffer(),
       _read_index(other._read_index),
-      _working_write_buffer(NULL),
       _write_buffer(),
-      _write_index(other._write_index) {
-    _working_read_buffer = new char[RECV_SIZE];
-    _working_write_buffer = new char[SEND_SIZE];
-
-    for (size_t i = 0; i < RECV_SIZE; ++i) {
-        _working_read_buffer[i] = other._working_read_buffer[i];
-    }
-    for (size_t i = 0; i < SEND_SIZE; ++i) {
-        _working_write_buffer[i] = other._working_write_buffer[i];
-    }
-}
+      _write_index(other._write_index) {}
 
 const Connection& Connection::operator=(const Connection& other) {
     if (this == &other) {
@@ -63,20 +49,10 @@ const Connection& Connection::operator=(const Connection& other) {
     _write_buffer = other._write_buffer;
     _write_index = other._write_index;
 
-    for (size_t i = 0; i < RECV_SIZE; ++i) {
-        _working_read_buffer[i] = other._working_read_buffer[i];
-    }
-    for (size_t i = 0; i < SEND_SIZE; ++i) {
-        _working_write_buffer[i] = other._working_write_buffer[i];
-    }
-
     return *this;
 }
 
-Connection::~Connection() {
-    delete[] _working_read_buffer;
-    delete[] _working_write_buffer;
-}
+Connection::~Connection() {}
 
 const Request& Connection::request() const {
     return _request;
@@ -86,47 +62,70 @@ const Response& Connection::response() const {
     return _response;
 }
 
-/**
- * @brief Returns a pointer to the first unprocessed char in the read buffer.
- */
-const char* Connection::read_data() const {
-    return _read_buffer.c_str() + _read_index;
-}
+ssize_t Connection::send_data() {
+    if (_write_index >= _write_buffer.size()) return 0;
 
-/**
- * @brief Returns a pointer to the first unprocessed char in the write buffer.
- */
-const char* Connection::write_data() const {
-    return _write_buffer.c_str() + _write_index;
-}
+    // remaining bytes to send
+    size_t remaining = _write_buffer.size() - _write_index;
+    // max send size or remaining if smaller
+    size_t chunk = remaining > SEND_SIZE ? SEND_SIZE : remaining;
 
-/**
- * @brief Send a chunk of data in the write buffer through the connection's socket.
- */
-size_t Connection::send_data() {
-    ssize_t sent_bytes = send(_socket, write_data(), SEND_SIZE, 0);
-
-    if (sent_bytes < 0) {
-        throw;
-        // TODO Log error
+    ssize_t n = send(_socket, _write_buffer.data() + _write_index, chunk, 0);
+    std::cout << "[CONN " << _socket << "] sent " << n << " bytes" << std::endl;
+    if (n == 0)
+        return 0;
+    else if (n < 0) {
+        std::cerr << "[Connection::send_data] send: " << strerror(errno) << std::endl;
+        return -1;
     }
 
-    // We cast it to unsigned because at this point it has to be positive
-    return static_cast<size_t>(sent_bytes);
+    // update write index with real bytes sent (can be lower than chunk)
+    _write_index += static_cast<size_t>(n);
+
+    // cleanup
+    if (_write_index >= _write_buffer.size()) {
+        _write_buffer.clear();
+        _write_index = 0;
+    }
+    std::cout << "[CONN " << _socket << "] write complete" << std::endl;
+    return n;
 }
 
-size_t Connection::receive_data() {
-    ssize_t received_bytes = recv(_socket, _working_read_buffer, RECV_SIZE, 0);
+ssize_t Connection::receive_data() {
+    char    buffer[RECV_SIZE];
+    ssize_t total = 0;
 
-    if (received_bytes < 0) {
-        throw;
-        // TODO Log error
+    while (true) {
+        ssize_t n = recv(_socket, buffer, sizeof(buffer), 0);
+        if (n > 0) {
+            std::cout << "[CONN " << _socket << "] buffer:" << std::endl;
+            std::cout.write(buffer, n);
+            std::cout << std::endl;
+            _read_buffer.append(buffer, static_cast<size_t>(n));
+            total += n;
+        } else if (n == 0) {
+            // closing client
+            std::cout << "[CONN " << _socket << "] client closed recv0" << std::endl;
+            return 0;
+        } else {
+            if (errno == EAGAIN || errno == EWOULDBLOCK) break;  // nothing to read
+
+            std::cerr << "[Connection::receive_data] recv: " << strerror(errno) << std::endl;
+            return -1;
+        }
+        if (total > 0)
+            std::cout << "[CONN " << _socket << "] received " << n << " bytes" << std::endl;
     }
+    if (total > 0) return total;
+    return -1;
+}
 
-    // We cast it to unsigned because at this point it has to be positive
-    _read_buffer.append(_working_read_buffer, static_cast<size_t>(received_bytes));
+void Connection::queue_write(const std::string& data) {
+    _write_buffer += data;
+}
 
-    return static_cast<size_t>(received_bytes);
+bool Connection::has_pending_write() const {
+    return _write_index < _write_buffer.size();
 }
 
 void Connection::set_config(const Config_Server* const config) {

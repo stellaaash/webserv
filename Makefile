@@ -15,12 +15,16 @@ RMFLAGS		=	-f
 
 SRCDIR		=	src
 CFILES		=	$(SRCDIR)/main.cpp \
+				$(SRCDIR)/ConfigParser/ConfigLexer.cpp \
+				$(SRCDIR)/ConfigParser/ConfigParser.cpp \
 				$(SRCDIR)/ConnectionManager/HTTP_Message.cpp \
 				$(SRCDIR)/ConnectionManager/Connection.cpp \
 				$(SRCDIR)/ConnectionManager/Request.cpp \
 				$(SRCDIR)/ConnectionManager/Response.cpp \
-				$(SRCDIR)/ConfigParser/ConfigLexer.cpp \
-				$(SRCDIR)/ConfigParser/ConfigParser.cpp \
+				$(SRCDIR)/ConnectionManager/ConnectionManager.cpp \
+				$(SRCDIR)/ConnectionManager/ConnHandler.cpp \
+				$(SRCDIR)/ConnectionManager/Listener.cpp \
+				$(SRCDIR)/socket_utils.cpp \
 				$(SRCDIR)/config.cpp
 
 OBJS		=	$(CFILES:.cpp=.o)

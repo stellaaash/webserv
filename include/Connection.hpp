@@ -19,13 +19,13 @@ public:
 
     const Request&  request() const;
     const Response& response() const;
-    const char*     read_data() const;
-    const char*     write_data() const;
 
-    size_t send_data();
-    size_t receive_data();
+    ssize_t send_data();
+    ssize_t receive_data();
 
     void set_config(const Config_Server* const);
+    void queue_write(const std::string& data);
+    bool has_pending_write() const;
 
 private:
     const Config_Server* _config;
@@ -35,10 +35,8 @@ private:
 
     int _socket;
 
-    char*       _working_read_buffer;
     std::string _read_buffer;
     size_t      _read_index;
-    char*       _working_write_buffer;  // TODO Potentially useless
     std::string _write_buffer;
     size_t      _write_index;
 };
