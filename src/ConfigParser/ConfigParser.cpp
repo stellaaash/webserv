@@ -269,7 +269,6 @@ Config_Server parse_server(token_iterator* t, token_iterator end) {
             } else if (directive == "listen") {
                 if (tokens.size() != 4)
                     throw ParserError(tokens[0], "Wrong number of tokens in listen directive");
-                // TODO Take care of multiple listen directives
                 if (check_string(tokens[1].word, "1234567890.") == false)
                     throw ParserError(tokens[1], "Wrong IP syntax in listen directive");
                 if (check_string(tokens[2].word, "1234567890") == false)

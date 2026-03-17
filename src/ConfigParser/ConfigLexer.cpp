@@ -30,6 +30,7 @@ bool is_word(char c) {
  * words or special characters (braces and semicolons, comments are ignored).
  */
 std::vector<Token> lex_config(std::ifstream& file_stream) {
+    int                braces = 0;
     std::vector<Token> tokens;
     Token              token;
 
@@ -63,14 +64,20 @@ std::vector<Token> lex_config(std::ifstream& file_stream) {
                 token.type = SEMICOLON;
             } else if (c == '{') {
                 token.type = OPENING_BRACE;
+                ++braces;
             } else if (c == '}') {
                 token.type = CLOSING_BRACE;
+                --braces;
             }
             tokens.push_back(token);
             std::clog << "[!] - Extracted token " << token.word << " of type " << token.type
                       << std::endl;
             token.word.erase();
         }
+    }
+
+    if (braces != 0) {
+        throw ParserError("Mismatched braces");
     }
 
     return tokens;
