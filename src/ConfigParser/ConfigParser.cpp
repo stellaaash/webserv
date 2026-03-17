@@ -119,6 +119,23 @@ static void check_config(const Config& config) {
 }
 
 /**
+ * @brief Standardizes a file path.
+ *
+ * @description Removes a potential trailing slash.
+ */
+static File_Path standardize_path(const std::string& path) {
+    assert(path.empty() == false && "Empty path");
+
+    std::string standardized = path;
+
+    if (standardized.at(standardized.size() - 1) == '/') {
+        standardized.erase(standardized.size() - 1, standardized.size());
+    }
+
+    return standardized;
+}
+
+/**
  * @brief Parse a configuration file into a standardized Config struct.
  * Calls the lexer and then the parser in succession, and checks for semantic correctness.
  */
@@ -199,7 +216,7 @@ Config parse_config(token_iterator t, token_iterator end) {
             if (directive == "error_log") {
                 if (tokens.size() != 3)
                     throw ParserError(tokens[0], "Wrong number of tokens in error_log directive");
-                config.error_log = tokens[1].word;
+                config.error_log = standardize_path(tokens[1].word);
             } else if (directive == "server") {
                 if (tokens.size() != 2)
                     throw ParserError(tokens[0], "Wrong number of tokens in server directive");
@@ -258,7 +275,7 @@ Config_Server parse_server(token_iterator* t, token_iterator end) {
             } else if (directive == "error_page") {
                 if (tokens.size() < 4)
                     throw ParserError(tokens[0], "Wrong number of tokens in error_page directive");
-                File_Path path = tokens[tokens.size() - 2].word;
+                File_Path path = standardize_path(tokens[tokens.size() - 2].word);
                 for (size_t i = 1; i < tokens.size() - 2; ++i) {
                     if (check_string(tokens[i].word, "1234567890") == false)
                         throw ParserError(tokens[1], "Wrong error_page HTTP code syntax");
@@ -345,13 +362,12 @@ Config_Location parse_location(token_iterator* t, token_iterator end) {
             } else if (directive == "cgi") {
                 if (tokens.size() != 4)
                     throw ParserError(tokens[0], "Wrong number of tokens in cgi directive");
-                config.cgi.insert(
-                    std::pair<std::string, File_Path>(tokens[1].word, tokens[2].word));
+                config.cgi.insert(std::pair<std::string, File_Path>(
+                    tokens[1].word, standardize_path(tokens[2].word)));
             } else if (directive == "index") {
                 if (tokens.size() < 3)
                     throw ParserError(tokens[0], "Wrong number of tokens in index directive");
-                // TODO What happens when there's a / vs when there's none?
-                config.index = config.root + "/" + tokens[1].word;
+                config.index = config.root + "/" + standardize_path(tokens[1].word);
             } else if (directive == "redirect") {
                 if (tokens.size() != 4)
                     throw ParserError(tokens[0], "Wrong number of tokens in redirect directive");
@@ -362,12 +378,12 @@ Config_Location parse_location(token_iterator* t, token_iterator end) {
             } else if (directive == "root") {
                 if (tokens.size() != 3)
                     throw ParserError(tokens[0], "Wrong number of tokens in root directive");
-                config.root = tokens[1].word;
+                config.root = standardize_path(tokens[1].word);
             } else if (directive == "upload_store") {
                 if (tokens.size() != 3)
                     throw ParserError(tokens[0],
                                       "Wrong number of tokens in upload_store directive");
-                config.upload_store = tokens[1].word;
+                config.upload_store = standardize_path(tokens[1].word);
             } else {
                 throw ParserError(tokens[0], "Unknown directive in location context");
             }
