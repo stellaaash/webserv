@@ -1,11 +1,11 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 
-#include <cerrno>
-#include <cmath>
 #include <csignal>
 #include <cstdio>
+#include <cstring>
 #include <fstream>
 #include <iostream>
 
@@ -25,32 +25,42 @@ int main(int argc, char** argv) {
     if (argc != 2) return 1;
 
     signal(SIGINT, clean_exit);
+// Checks if config file is a "Regular" file (non folder/pipe/etc)
+    struct stat path_stat;
+    memset(&path_stat, 0, sizeof(path_stat));
+    stat(argv[1], &path_stat);
+    if (!S_ISREG(path_stat.st_mode)) {
+        std::clog << "[!] - Failed to open configuration file." << std::endl;
+        return 2;
+    }
 
     std::ifstream config_file(argv[1]);
 
     Config config;
     try {
         config = parse_file(config_file);
-
     } catch (const ParserError& e) {
-        std::cerr << "[!] - Error occurred during parsing: " << e.what() << std::endl;
-        return 2;
+        std::cerr << "[!] - " << e.what() << std::endl;
+        return 3;
     }
 
     int listen_fd = make_listen_socket(config.server);
     if (listen_fd < 0) {
         std::perror("make_listen_socket");
-        return 1;
+        return 4;
     }
 
     ConnectionManager manager;
+    // FIXME: Only one listener created, regardless of the number of listeners in the configuration
     manager.add(new Listener(&config.server, listen_fd));
 
     char ip_buffer[INET_ADDRSTRLEN];
-    inet_ntop(AF_INET, &config.server.listen.sin_addr, ip_buffer, INET_ADDRSTRLEN);
+    inet_ntop(AF_INET, &config.server.listen[0].sin_addr, ip_buffer, INET_ADDRSTRLEN);
     std::cout << "[MAIN] Server running : http://" << ip_buffer << ":"
-              << ntohs(config.server.listen.sin_port) << std::endl;
+              << ntohs(config.server.listen[0].sin_port) << std::endl;
     std::cout << "[MAIN] Listening on fd=" << listen_fd << std::endl;
+
     manager.run();
+
     return 0;
 }

@@ -67,7 +67,7 @@ re:				fclean all
 
 CONFIG		?=	config/1.conf
 
-test:			re
+test:			all
 				@printf "\n==============================================\n"
 				$(VALGRIND) $(VALFLAGS) ./$(NAME) $(CONFIG) | tee $(LOG)
 
