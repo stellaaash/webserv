@@ -25,7 +25,7 @@ int main(int argc, char** argv) {
     if (argc != 2) return 1;
 
     signal(SIGINT, clean_exit);
-
+// Checks if config file is a "Regular" file (non folder/pipe/etc)
     struct stat path_stat;
     memset(&path_stat, 0, sizeof(path_stat));
     stat(argv[1], &path_stat);
