@@ -6,6 +6,8 @@
 #include <limits>
 #include <vector>
 
+#include "ConfigParser.hpp"
+
 /**
  * @brief Determines whether a character has a special meaning.
  * Characters with special meaning are: ;{}#.
@@ -34,6 +36,9 @@ std::vector<Token> lex_config(std::ifstream& file_stream) {
     while (!file_stream.eof()) {
         char c = static_cast<char>(file_stream.get());
 
+        if (c == '\n' && !tokens.empty() && tokens.back().type == WORD)
+            throw ParserError(tokens.back(), "Missing semicolon or brace at end of line");
+
         // Add all word characters to the current token
         if (is_word(c)) {
             token.word.push_back(c);
@@ -48,6 +53,8 @@ std::vector<Token> lex_config(std::ifstream& file_stream) {
 
         if (is_special(c)) {
             if (c == '#') {  // Ignore comments
+                if (!tokens.empty() && tokens.back().type == WORD)
+                    throw ParserError(tokens.back(), "Erroneous comment");
                 file_stream.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
                 continue;
             }
