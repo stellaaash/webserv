@@ -51,7 +51,7 @@ Config mock_config() {
     server.client_max_body_size = 1024 * 1024;  // 1Mb
 
     server.location.insert(std::pair<std::string, Config_Location>("/", loc));
-    conf.server = server;
+    conf.server[0] = server;
     conf.error_log = "./logs/error.log";
 
     return (conf);

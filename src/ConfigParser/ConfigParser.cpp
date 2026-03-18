@@ -91,30 +91,34 @@ static void check_config(const Config& config) {
         if (!error_log) throw ParserError("Invalid error_log directive");
     }
 
-    for (std::map<HTTP_Code, std::string>::const_iterator i = config.server.error_page.begin();
-         i != config.server.error_page.end(); ++i) {
-        if (i->first <= 400 || i->first >= 599)
-            throw ParserError("Invalid error_page directive (wrong HTTP code)");
-    }
+    for (std::vector<Config_Server>::const_iterator s = config.server.begin();
+         s != config.server.end(); ++s) {
+        for (std::map<HTTP_Code, std::string>::const_iterator e = s->error_page.begin();
+             e != s->error_page.end(); ++e) {
+            if (e->first <= 400 || e->first >= 599)
+                throw ParserError("Invalid error_page directive (wrong HTTP code)");
+        }
 
-    for (std::map<std::string, Config_Location>::const_iterator i = config.server.location.begin();
-         i != config.server.location.end(); ++i) {
-        for (std::map<std::string, File_Path>::const_iterator j = i->second.cgi.begin();
-             j != i->second.cgi.end(); ++j) {
-            if (check_path(j->second, false) != 0) throw ParserError("Invalid cgi directive");
+        for (std::map<std::string, Config_Location>::const_iterator l = s->location.begin();
+             l != s->location.end(); ++l) {
+            for (std::map<std::string, File_Path>::const_iterator j = l->second.cgi.begin();
+                 j != l->second.cgi.end(); ++j) {
+                if (check_path(j->second, false) != 0) throw ParserError("Invalid cgi directive");
+            }
+            if (l->second.index.empty() == false && check_path(l->second.index, false) != 0)
+                throw ParserError("Invalid index directive");
+            for (std::map<HTTP_Code, std::string>::const_iterator r = l->second.redirect.begin();
+                 r != l->second.redirect.end(); ++r) {
+                // Redirection have to use a 3XX code
+                if (r->first < 300 || r->first > 399)
+                    throw ParserError("Invalid redirect directive");
+            }
+            if (l->second.root.empty() == false && check_path(l->second.root, true) != 0)
+                throw ParserError("Invalid root directive");
+            if (l->second.upload_store.empty() == false &&
+                check_path(l->second.upload_store, true) != 0)
+                throw ParserError("Invalid upload_store directive");
         }
-        if (i->second.index.empty() == false && check_path(i->second.index, false) != 0)
-            throw ParserError("Invalid index directive");
-        for (std::map<HTTP_Code, std::string>::const_iterator j = i->second.redirect.begin();
-             j != i->second.redirect.end(); ++j) {
-            // Redirection have to use a 3XX code
-            if (j->first < 300 || j->first > 399) throw ParserError("Invalid redirect directive");
-        }
-        if (i->second.root.empty() == false && check_path(i->second.root, true) != 0)
-            throw ParserError("Invalid root directive");
-        if (i->second.upload_store.empty() == false &&
-            check_path(i->second.upload_store, true) != 0)
-            throw ParserError("Invalid upload_store directive");
     }
 }
 
@@ -146,16 +150,21 @@ Config parse_file(std::ifstream& file) {
 
     // TODO check for at least a server directive (once multiple servers are possible)
 
-    if (config.server.listen.empty()) {
-        throw ParserError("Missing listen directive in server context");
-    } else if (config.server.location.empty()) {
-        throw ParserError("Missing location directive in server context");
-    } else {
-        for (std::map<std::string, Config_Location>::const_iterator i =
-                 config.server.location.begin();
-             i != config.server.location.end(); ++i) {
-            if (i->second.root.empty() && i->second.redirect.empty()) {
-                throw ParserError("Missing root directive in location context");
+    if (config.server.empty()) {
+        throw ParserError("Missing server directive");
+    }
+    for (std::vector<Config_Server>::const_iterator s = config.server.begin();
+         s != config.server.end(); ++s) {
+        if (s->listen.empty()) {
+            throw ParserError("Missing listen directive in server context");
+        } else if (s->location.empty()) {
+            throw ParserError("Missing location directive in server context");
+        } else {
+            for (std::map<std::string, Config_Location>::const_iterator i = s->location.begin();
+                 i != s->location.end(); ++i) {
+                if (i->second.root.empty() && i->second.redirect.empty()) {
+                    throw ParserError("Missing root directive in location context");
+                }
             }
         }
     }
@@ -221,7 +230,7 @@ Config parse_config(token_iterator t, token_iterator end) {
                 if (tokens.size() != 2)
                     throw ParserError(tokens[0], "Wrong number of tokens in server directive");
                 // We pass a pointer to the iterator so the progress is replicated here
-                config.server = parse_server(&t, end);
+                config.server.push_back(parse_server(&t, end));
             } else {
                 throw ParserError(tokens[0], "Unknown directive in root");
             }
