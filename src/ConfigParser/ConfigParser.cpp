@@ -148,8 +148,6 @@ Config parse_file(std::ifstream& file) {
 
     const Config config = parse_config(tokens.begin(), tokens.end());
 
-    // TODO check for at least a server directive (once multiple servers are possible)
-
     if (config.server.empty()) {
         throw ParserError("Missing server directive");
     }
@@ -217,7 +215,6 @@ Config parse_config(token_iterator t, token_iterator end) {
     Config config;
 
     while (t != end) {
-        // TODO Take care of multiple server directives
         std::vector<Token> tokens = parse_line(&t);
 
         if (tokens[0].type == WORD) {
