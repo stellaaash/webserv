@@ -6,6 +6,8 @@
 #include <limits>
 #include <vector>
 
+#include "ConfigParser.hpp"
+
 /**
  * @brief Determines whether a character has a special meaning.
  * Characters with special meaning are: ;{}#.
@@ -28,11 +30,15 @@ bool is_word(char c) {
  * words or special characters (braces and semicolons, comments are ignored).
  */
 std::vector<Token> lex_config(std::ifstream& file_stream) {
+    int                braces = 0;
     std::vector<Token> tokens;
     Token              token;
 
     while (!file_stream.eof()) {
         char c = static_cast<char>(file_stream.get());
+
+        if (c == '\n' && !tokens.empty() && tokens.back().type == WORD)
+            throw ParserError(tokens.back(), "Missing semicolon or brace at end of line");
 
         // Add all word characters to the current token
         if (is_word(c)) {
@@ -48,6 +54,8 @@ std::vector<Token> lex_config(std::ifstream& file_stream) {
 
         if (is_special(c)) {
             if (c == '#') {  // Ignore comments
+                if (!tokens.empty() && tokens.back().type == WORD)
+                    throw ParserError(tokens.back(), "Erroneous comment");
                 file_stream.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
                 continue;
             }
@@ -56,14 +64,20 @@ std::vector<Token> lex_config(std::ifstream& file_stream) {
                 token.type = SEMICOLON;
             } else if (c == '{') {
                 token.type = OPENING_BRACE;
+                ++braces;
             } else if (c == '}') {
                 token.type = CLOSING_BRACE;
+                --braces;
             }
             tokens.push_back(token);
             std::clog << "[!] - Extracted token " << token.word << " of type " << token.type
                       << std::endl;
             token.word.erase();
         }
+    }
+
+    if (braces != 0) {
+        throw ParserError("Mismatched braces");
     }
 
     return tokens;

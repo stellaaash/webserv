@@ -33,17 +33,17 @@ typedef struct Config_Location {
 typedef struct Config_Server {
     Config_Server();
 
-    size_t                           client_max_body_size;
-    std::map<HTTP_Code, std::string> error_page;  // Error code to URI
-    struct sockaddr_in               listen;
-    std::vector<Config_Location>     location;
-    size_t                           timeout;
+    size_t                                 client_max_body_size;
+    std::map<HTTP_Code, std::string>       error_page;  // Error code to URI
+    std::vector<struct sockaddr_in>        listen;
+    std::map<std::string, Config_Location> location;
+    size_t                                 timeout;
 } Config_Server;
 
 typedef struct Config {
     Config();
 
-    File_Path     error_log;
+    File_Path     error_log;  // An empty error_log path means everything is logged to stderr
     Config_Server server;
 } Config;
 
