@@ -20,6 +20,7 @@ CFILES		=	$(SRCDIR)/main.cpp \
 				$(SRCDIR)/ConnectionManager/HTTP_Message.cpp \
 				$(SRCDIR)/ConnectionManager/Connection.cpp \
 				$(SRCDIR)/ConnectionManager/Request.cpp \
+				$(SRCDIR)/ConnectionManager/RequestParser.cpp \
 				$(SRCDIR)/ConnectionManager/Response.cpp \
 				$(SRCDIR)/ConnectionManager/ConnectionManager.cpp \
 				$(SRCDIR)/ConnectionManager/ConnHandler.cpp \
