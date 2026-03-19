@@ -53,27 +53,25 @@ bool ConnHandler::handle_event(ConnectionManager& manager, uint32_t events) {
         std::cout << "[CONN " << _fd << "] EPOLLIN" << std::endl;
         ssize_t n = _conn.receive_data();
         if (n < 0) return false;
-        if (n == 0) return false; // temp to avoid infinite calls when closed by client
+        if (n == 0) return false;  // temp to avoid infinite calls when closed by client
 
         Status_Parsing r = _conn.parse_request();
-        if (r == PARSED)
-        {
+        if (r == PARSED) {
             const Request& req = _conn.request();
             std::cout << "----- [REQUEST] -----\n";
             std::cout << "Method: " << req.method() << "\n";
             std::cout << "Target: " << req.target() << "\n";
             std::cout << "Body: [" << req.body() << "]\n";
             std::cout << "----- [HEADERS] -----\n";
-            for (HTTP_Message::header_iterator it = req.headers_begin();
-                it != req.headers_end(); ++it)
-            {
+            for (HTTP_Message::header_iterator it = req.headers_begin(); it != req.headers_end();
+                 ++it) {
                 std::cout << it->first << ": " << it->second << "\n";
             }
             std::cout << "----- [REQ END] -----" << "\n\n\n";
         }
 
         if (!_conn.has_pending_write() && r == PARSED) {
-             _conn.queue_write(hello_response());
+            _conn.queue_write(hello_response());
         }
     }
     if ((events & EPOLLOUT) && _conn.has_pending_write()) {

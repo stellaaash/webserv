@@ -5,7 +5,8 @@
 #include "HTTP_Message.hpp"
 #include "config.hpp"
 
-Request::Request() : _config(NULL), _target(""), _content_length(0), _method(UNDEFINED), _status(EMPTY) {}
+Request::Request()
+    : _config(NULL), _target(""), _content_length(0), _method(UNDEFINED), _status(EMPTY) {}
 
 Request::Request(const Config_Location* const config, HTTP_Method method)
     : _config(config), _target(""), _content_length(0), _method(method), _status(EMPTY) {
@@ -13,7 +14,12 @@ Request::Request(const Config_Location* const config, HTTP_Method method)
 }
 
 Request::Request(const Request& other)
-    : HTTP_Message(other), _config(other._config), _target(other._target), _content_length(other._content_length), _method(other._method), _status(other._status) {}
+    : HTTP_Message(other),
+      _config(other._config),
+      _target(other._target),
+      _content_length(other._content_length),
+      _method(other._method),
+      _status(other._status) {}
 
 const Request& Request::operator=(const Request& other) {
     if (this == &other) return *this;

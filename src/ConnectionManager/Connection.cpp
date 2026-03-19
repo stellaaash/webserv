@@ -7,7 +7,6 @@
 #include <cerrno>
 #include <cstring>
 #include <iostream>
-#include <sstream>
 
 #include "Request.hpp"
 #include "RequestParser.hpp"

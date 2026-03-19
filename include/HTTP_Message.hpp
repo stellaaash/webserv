@@ -19,7 +19,7 @@ public:
     header_iterator    header(const std::string&) const;
     header_iterator    headers_end() const;
     header_iterator    headers_begin() const;
-    bool has_header(const std::string&) const;
+    bool               has_header(const std::string&) const;
     const std::string& body() const;
 
     void set_version(int major_version, int minor_version);
