@@ -4,6 +4,7 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 #include <cassert>
@@ -14,6 +15,7 @@
 #include <map>
 #include <sstream>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "ConfigLexer.hpp"
@@ -85,11 +87,51 @@ static int check_ip(std::string ip) {
     return 0;
 }
 
+/**
+ * @brief Checks a configuration for duplicates in its listen directives.
+ * It tries to find the same combination of address and port, or an already existing
+ * 0.0.0.0 (all interfaces, which means the port is used everywhere).
+ *
+ * @return 0 if no dupes were found, 1 if so.
+ */
+static int check_listen(const Config& config) {
+    const std::vector<Config_Server>&       servers = config.server;
+    std::multimap<unsigned short, uint32_t> listens;
+
+    for (std::vector<Config_Server>::const_iterator s = servers.begin(); s != servers.end(); ++s) {
+        for (std::vector<struct sockaddr_in>::const_iterator l = s->listen.begin();
+             l != s->listen.end(); ++l) {
+            const unsigned short port = l->sin_port;
+            const uint32_t       address = l->sin_addr.s_addr;
+
+            // Check for duplicate entries
+            std::multimap<unsigned short, uint32_t>::const_iterator i = listens.find(port);
+            // If there's already a listen directive with that port, and the current one has address
+            // 0.0.0.0, then it's a dupe
+            if (i != listens.end() && address == 0) return 1;
+            while (i != listens.end() && i->first == port) {
+                // If there was already a 0.0.0.0 with that port, it has to be a dupe
+                if (i->second == 0) return 1;
+                // If there was the same address with the same port, it's also a dupe
+                if (i->second == address) return 1;
+
+                ++i;
+            }
+
+            listens.insert(listens.end(), std::pair<unsigned short, uint32_t>(port, address));
+        }
+    }
+
+    return 0;
+}
+
 static void check_config(const Config& config) {
     if (config.error_log.empty() == false) {
         std::ofstream error_log(config.error_log.c_str());
         if (!error_log) throw ParserError("Invalid error_log directive");
     }
+
+    if (check_listen(config) != 0) throw ParserError("Duplicate listen directive");
 
     for (std::vector<Config_Server>::const_iterator s = config.server.begin();
          s != config.server.end(); ++s) {
