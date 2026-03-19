@@ -48,6 +48,12 @@ typedef struct Config {
     std::vector<Config_Server> server;
 } Config;
 
+typedef std::vector<Config_Server>::const_iterator             ServerIter;
+typedef std::vector<struct sockaddr_in>::const_iterator        ListenIter;
+typedef std::map<HTTP_Code, std::string>::const_iterator       ErrorPageIter;
+typedef std::map<std::string, Config_Location>::const_iterator LocationIter;
+typedef std::map<std::string, File_Path>::const_iterator       CgiIter;
+
 Config mock_config();
 
 #endif

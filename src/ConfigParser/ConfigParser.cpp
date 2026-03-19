@@ -98,9 +98,8 @@ static int check_listen(const Config& config) {
     const std::vector<Config_Server>&       servers = config.server;
     std::multimap<unsigned short, uint32_t> listens;
 
-    for (std::vector<Config_Server>::const_iterator s = servers.begin(); s != servers.end(); ++s) {
-        for (std::vector<struct sockaddr_in>::const_iterator l = s->listen.begin();
-             l != s->listen.end(); ++l) {
+    for (ServerIter s = servers.begin(); s != servers.end(); ++s) {
+        for (ListenIter l = s->listen.begin(); l != s->listen.end(); ++l) {
             const unsigned short port = l->sin_port;
             const uint32_t       address = l->sin_addr.s_addr;
 
@@ -133,24 +132,19 @@ static void check_config(const Config& config) {
 
     if (check_listen(config) != 0) throw ParserError("Duplicate listen directive");
 
-    for (std::vector<Config_Server>::const_iterator s = config.server.begin();
-         s != config.server.end(); ++s) {
-        for (std::map<HTTP_Code, std::string>::const_iterator e = s->error_page.begin();
-             e != s->error_page.end(); ++e) {
+    for (ServerIter s = config.server.begin(); s != config.server.end(); ++s) {
+        for (ErrorPageIter e = s->error_page.begin(); e != s->error_page.end(); ++e) {
             if (e->first <= 400 || e->first >= 599)
                 throw ParserError("Invalid error_page directive (wrong HTTP code)");
         }
 
-        for (std::map<std::string, Config_Location>::const_iterator l = s->location.begin();
-             l != s->location.end(); ++l) {
-            for (std::map<std::string, File_Path>::const_iterator j = l->second.cgi.begin();
-                 j != l->second.cgi.end(); ++j) {
+        for (LocationIter l = s->location.begin(); l != s->location.end(); ++l) {
+            for (CgiIter j = l->second.cgi.begin(); j != l->second.cgi.end(); ++j) {
                 if (check_path(j->second, false) != 0) throw ParserError("Invalid cgi directive");
             }
             if (l->second.index.empty() == false && check_path(l->second.index, false) != 0)
                 throw ParserError("Invalid index directive");
-            for (std::map<HTTP_Code, std::string>::const_iterator r = l->second.redirect.begin();
-                 r != l->second.redirect.end(); ++r) {
+            for (ErrorPageIter r = l->second.redirect.begin(); r != l->second.redirect.end(); ++r) {
                 // Redirection have to use a 3XX code
                 if (r->first < 300 || r->first > 399)
                     throw ParserError("Invalid redirect directive");
@@ -193,15 +187,13 @@ Config parse_file(std::ifstream& file) {
     if (config.server.empty()) {
         throw ParserError("Missing server directive");
     }
-    for (std::vector<Config_Server>::const_iterator s = config.server.begin();
-         s != config.server.end(); ++s) {
+    for (ServerIter s = config.server.begin(); s != config.server.end(); ++s) {
         if (s->listen.empty()) {
             throw ParserError("Missing listen directive in server context");
         } else if (s->location.empty()) {
             throw ParserError("Missing location directive in server context");
         } else {
-            for (std::map<std::string, Config_Location>::const_iterator i = s->location.begin();
-                 i != s->location.end(); ++i) {
+            for (LocationIter i = s->location.begin(); i != s->location.end(); ++i) {
                 if (i->second.root.empty() && i->second.redirect.empty()) {
                     throw ParserError("Missing root directive in location context");
                 }
