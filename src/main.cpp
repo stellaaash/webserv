@@ -25,7 +25,8 @@ int main(int argc, char** argv) {
     if (argc != 2) return 1;
 
     signal(SIGINT, clean_exit);
-// Checks if config file is a "Regular" file (non folder/pipe/etc)
+
+    // Checks if config file is a "Regular" file (non folder/pipe/etc)
     struct stat path_stat;
     memset(&path_stat, 0, sizeof(path_stat));
     stat(argv[1], &path_stat);
@@ -44,7 +45,7 @@ int main(int argc, char** argv) {
         return 3;
     }
 
-    int listen_fd = make_listen_socket(config.server);
+    int listen_fd = make_listen_socket(config.server[0]);
     if (listen_fd < 0) {
         std::perror("make_listen_socket");
         return 4;
@@ -52,12 +53,13 @@ int main(int argc, char** argv) {
 
     ConnectionManager manager;
     // FIXME: Only one listener created, regardless of the number of listeners in the configuration
-    manager.add(new Listener(&config.server, listen_fd));
+    // So, we need to take into account both multiple listen directives, and multiple server ones
+    manager.add(new Listener(&config.server[0], listen_fd));
 
     char ip_buffer[INET_ADDRSTRLEN];
-    inet_ntop(AF_INET, &config.server.listen[0].sin_addr, ip_buffer, INET_ADDRSTRLEN);
+    inet_ntop(AF_INET, &config.server[0].listen[0].sin_addr, ip_buffer, INET_ADDRSTRLEN);
     std::cout << "[MAIN] Server running : http://" << ip_buffer << ":"
-              << ntohs(config.server.listen[0].sin_port) << std::endl;
+              << ntohs(config.server[0].listen[0].sin_port) << std::endl;
     std::cout << "[MAIN] Listening on fd=" << listen_fd << std::endl;
 
     manager.run();
