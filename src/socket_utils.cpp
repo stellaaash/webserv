@@ -5,6 +5,7 @@
 #include <unistd.h>
 
 #include <cstdio>
+#include <exception>
 #include <iostream>
 #include <vector>
 
@@ -36,16 +37,16 @@ std::vector<int> make_listen_sockets(const Config_Server& config) {
         if (bind(fd, reinterpret_cast<const struct sockaddr*>(&*l), sizeof(*l)) < 0) {
             perror("make_listen_sockets (bind)");
             for (size_t i = 0; i < fds.size(); ++i) close(fds[i]);
-            throw;
+            throw std::exception();
         }
         if (listen(fd, 128) < 0) {
             perror("make_listen_sockets (listen)");
             for (size_t i = 0; i < fds.size(); ++i) close(fds[i]);
-            throw;
+            throw std::exception();
         }
         if (set_nonblocking(fd) < 0) {
             for (size_t i = 0; i < fds.size(); ++i) close(fds[i]);
-            throw;
+            throw std::exception();
         }
 
         char ip_buffer[INET_ADDRSTRLEN];
