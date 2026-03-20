@@ -59,6 +59,7 @@ bool ConnHandler::handle_event(ConnectionManager& manager, uint32_t events) {
         if (r == PARSED) {
             const Request& req = _conn.request();
             std::cout << "----- [REQUEST] -----\n";
+            std::cout << "Request Status:" << req.status() << "\n";
             std::cout << "Method: " << req.method() << "\n";
             std::cout << "Target: " << req.target() << "\n";
             std::cout << "Body: [" << req.body() << "]\n";
