@@ -33,20 +33,18 @@ std::vector<int> make_listen_sockets(const Config_Server& config) {
         int yes = 1;
         setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
 
-        // TODO: Shouldn't we getaddrinfo on these?
-
         if (bind(fd, reinterpret_cast<const struct sockaddr*>(&*l), sizeof(*l)) < 0) {
             perror("make_listen_sockets (bind)");
-            close(fd);  // TODO Close all already created fds in the vector
+            for (size_t i = 0; i < fds.size(); ++i) close(fds[i]);
             throw;
         }
         if (listen(fd, 128) < 0) {
             perror("make_listen_sockets (listen)");
-            close(fd);
+            for (size_t i = 0; i < fds.size(); ++i) close(fds[i]);
             throw;
         }
         if (set_nonblocking(fd) < 0) {
-            close(fd);
+            for (size_t i = 0; i < fds.size(); ++i) close(fds[i]);
             throw;
         }
 
