@@ -1,5 +1,7 @@
+#include <fcntl.h>
 #include <sys/stat.h>
 
+#include <cstdio>
 #include <cstring>
 
 #include "config.hpp"
@@ -20,8 +22,16 @@ bool is_regular_file(const File_Path& path) {
 
 /**
  * @brief Gets a file descriptor for a give file path.
+ *
+ * @return The file descriptor, or -1 if an error occurred.
  */
 int fetch_file(const File_Path& path) {
-    (void)path;
-    return 0;
+    int fd = open(path.c_str(), O_RDONLY);
+
+    if (fd < 0) {
+        perror("[fetch_file] - open");
+        return -1;
+    }
+
+    return fd;
 }
