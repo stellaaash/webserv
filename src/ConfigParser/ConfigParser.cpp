@@ -119,19 +119,19 @@ static void check_config(const Config& config) {
 
         for (LocationIter l = s->location.begin(); l != s->location.end(); ++l) {
             for (CgiIter j = l->second.cgi.begin(); j != l->second.cgi.end(); ++j) {
-                if (is_regular_file(j->second) != 0) throw ParserError("Invalid cgi directive");
+                if (is_regular_file(j->second) == false) throw ParserError("Invalid cgi directive");
             }
-            if (l->second.index.empty() == false && is_regular_file(l->second.index) != 0)
+            if (l->second.index.empty() == false && is_regular_file(l->second.index) == false)
                 throw ParserError("Invalid index directive");
             for (ErrorPageIter r = l->second.redirect.begin(); r != l->second.redirect.end(); ++r) {
                 // Redirection have to use a 3XX code
                 if (r->first < 300 || r->first > 399)
                     throw ParserError("Invalid redirect directive");
             }
-            if (l->second.root.empty() == false && is_directory(l->second.root) != 0)
+            if (l->second.root.empty() == false && is_directory(l->second.root) == false)
                 throw ParserError("Invalid root directive");
             if (l->second.upload_store.empty() == false &&
-                is_directory(l->second.upload_store) != 0)
+                is_directory(l->second.upload_store) == false)
                 throw ParserError("Invalid upload_store directive");
         }
     }
