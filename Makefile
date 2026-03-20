@@ -24,7 +24,8 @@ CFILES		=	$(SRCDIR)/main.cpp \
 				$(SRCDIR)/ConnectionManager/ConnectionManager.cpp \
 				$(SRCDIR)/ConnectionManager/ConnHandler.cpp \
 				$(SRCDIR)/ConnectionManager/Listener.cpp \
-				$(SRCDIR)/FileManager/files_fetch.cpp \
+				$(SRCDIR)/FileManager/files_read.cpp \
+				$(SRCDIR)/FileManager/files_write.cpp \
 				$(SRCDIR)/socket_utils.cpp \
 				$(SRCDIR)/config.cpp
 
