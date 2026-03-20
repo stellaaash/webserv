@@ -44,23 +44,20 @@ int main(int argc, char** argv) {
         std::cerr << "[!] - " << e.what() << std::endl;
         return 3;
     }
-
-    int listen_fd = make_listen_socket(config.server[0]);
-    if (listen_fd < 0) {
-        std::perror("make_listen_socket");
-        return 4;
-    }
+    config_file.close();
 
     ConnectionManager manager;
-    // FIXME: Only one listener created, regardless of the number of listeners in the configuration
-    // So, we need to take into account both multiple listen directives, and multiple server ones
-    manager.add(new Listener(&config.server[0], listen_fd));
-
-    char ip_buffer[INET_ADDRSTRLEN];
-    inet_ntop(AF_INET, &config.server[0].listen[0].sin_addr, ip_buffer, INET_ADDRSTRLEN);
-    std::cout << "[MAIN] Server running : http://" << ip_buffer << ":"
-              << ntohs(config.server[0].listen[0].sin_port) << std::endl;
-    std::cout << "[MAIN] Listening on fd=" << listen_fd << std::endl;
+    for (ServerIter s = config.server.begin(); s != config.server.end(); ++s) {
+        std::vector<int> listen_fds;
+        try {
+            listen_fds = make_listen_sockets(*s);
+        } catch (...) {
+            return 4;
+        }
+        for (size_t i = 0; i < listen_fds.size(); ++i) {
+            manager.add(new Listener(&*s, listen_fds[i]));
+        }
+    }
 
     manager.run();
 
