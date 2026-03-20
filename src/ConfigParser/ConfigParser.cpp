@@ -19,6 +19,7 @@
 #include <vector>
 
 #include "ConfigLexer.hpp"
+#include "FileManager.hpp"
 #include "config.hpp"
 
 // We construct the error string in the constructors to be able to return a pointer to it later
@@ -47,28 +48,6 @@ const char* ParserError::what() const throw() {
 }
 
 // =============================================================================
-
-/**
- * @brief Checks a path for existence of a file and access rights.
- * The directory flag specifies whether the function should check for the existence
- * of a directory, instead of a file.
- */
-static int check_path(const std::string& path, bool directory) {
-    assert(path.empty() == false && "String contains an actual path");
-
-    struct stat path_stat;
-    memset(&path_stat, 0, sizeof(path_stat));
-
-    if (stat(path.c_str(), &path_stat) != 0) return 1;
-
-    if (directory && path_stat.st_mode & S_IFDIR && access(path.c_str(), W_OK) == 0) {
-        return 0;
-    } else if (path_stat.st_mode & S_IFREG && access(path.c_str(), R_OK) == 0) {
-        return 0;
-    }
-
-    return 1;
-}
 
 /**
  * @brief Checks a string for a the right numbers in an IP address, so nothing higher
@@ -140,39 +119,22 @@ static void check_config(const Config& config) {
 
         for (LocationIter l = s->location.begin(); l != s->location.end(); ++l) {
             for (CgiIter j = l->second.cgi.begin(); j != l->second.cgi.end(); ++j) {
-                if (check_path(j->second, false) != 0) throw ParserError("Invalid cgi directive");
+                if (is_regular_file(j->second) != 0) throw ParserError("Invalid cgi directive");
             }
-            if (l->second.index.empty() == false && check_path(l->second.index, false) != 0)
+            if (l->second.index.empty() == false && is_regular_file(l->second.index) != 0)
                 throw ParserError("Invalid index directive");
             for (ErrorPageIter r = l->second.redirect.begin(); r != l->second.redirect.end(); ++r) {
                 // Redirection have to use a 3XX code
                 if (r->first < 300 || r->first > 399)
                     throw ParserError("Invalid redirect directive");
             }
-            if (l->second.root.empty() == false && check_path(l->second.root, true) != 0)
+            if (l->second.root.empty() == false && is_directory(l->second.root) != 0)
                 throw ParserError("Invalid root directive");
             if (l->second.upload_store.empty() == false &&
-                check_path(l->second.upload_store, true) != 0)
+                is_directory(l->second.upload_store) != 0)
                 throw ParserError("Invalid upload_store directive");
         }
     }
-}
-
-/**
- * @brief Standardizes a file path.
- *
- * @description Removes a potential trailing slash.
- */
-static File_Path standardize_path(const std::string& path) {
-    assert(path.empty() == false && "Empty path");
-
-    std::string standardized = path;
-
-    if (standardized.at(standardized.size() - 1) == '/') {
-        standardized.erase(standardized.size() - 1, standardized.size());
-    }
-
-    return standardized;
 }
 
 /**

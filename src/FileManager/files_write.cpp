@@ -3,7 +3,6 @@
 #include <cstdio>
 
 #include "FileManager.hpp"
-#include "config.hpp"
 
 /**
  * @brief Creates a file in read-write mode, and returns its file descriptor.
