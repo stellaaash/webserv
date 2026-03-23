@@ -1,6 +1,6 @@
 #include "ConfigParser.hpp"
 
-#include <arpa/inet.h>
+#include <netdb.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
@@ -335,12 +335,21 @@ Config_Server parse_server(token_iterator* t, token_iterator end) {
                 if (std::atol(tokens[2].word.c_str()) > 65535)
                     throw ParserError(tokens[2], "Wrong listen port value");
 
-                struct sockaddr_in listen;
-                listen.sin_family = AF_INET;
-                listen.sin_port = htons(static_cast<uint16_t>(std::atol(tokens[2].word.c_str())));
-                inet_pton(AF_INET, tokens[1].word.c_str(), &listen.sin_addr);
+                struct addrinfo  hints;
+                struct addrinfo* results;
 
-                config.listen.push_back(listen);
+                memset(&hints, 0, sizeof(hints));
+                hints.ai_family = AF_INET;
+                hints.ai_socktype = SOCK_STREAM;
+                hints.ai_flags = AI_PASSIVE | AI_NUMERICHOST;  // Only accept numeric hosts
+
+                int gai_status =
+                    getaddrinfo(tokens[1].word.c_str(), tokens[2].word.c_str(), &hints, &results);
+                if (gai_status != 0) throw ParserError(tokens[1], gai_strerror(gai_status));
+
+                config.listen.push_back(*reinterpret_cast<struct sockaddr_in*>(results->ai_addr));
+
+                freeaddrinfo(results);
             } else if (directive == "location") {
                 if (tokens.size() != 3)
                     throw ParserError(tokens[0], "Wrong number of tokens in location directive");
