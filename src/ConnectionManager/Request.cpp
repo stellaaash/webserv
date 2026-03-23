@@ -52,6 +52,10 @@ size_t Request::content_length() const {
     return _content_length;
 }
 
+HTTP_Code Request::error_status() const {
+    return _error_status;
+}
+
 void Request::set_config(const Config_Location* const config) {
     assert(config && "Config_Server pointer");
 
@@ -73,4 +77,8 @@ void Request::set_target(const std::string& target) {
 
 void Request::set_content_length(size_t content_length) {
     _content_length = content_length;
+}
+
+void Request::set_error_status(HTTP_Code code) {
+    _error_status = code;
 }

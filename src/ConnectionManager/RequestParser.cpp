@@ -68,23 +68,30 @@ Status_Parsing RequestParser::parse_request_line(const std::string& read_buffer,
     std::string        extra;
 
     // Fills values seperated by spaces. If extra succeeds after, Error.
-    if (!(stream >> method >> target >> version) || (stream >> extra)) return request.status();
-
+    if (!(stream >> method >> target >> version) || (stream >> extra)) {
+        request.set_status(ERROR);
+        request.set_error_status(400);  // Bad request 400, too many/too few elements
+        return request.status();
+    }
     if (method == "GET")
         request.set_method(GET);
     else if (method == "POST")
         request.set_method(POST);
     else if (method == "DELETE")
         request.set_method(DELETE);
-    else
+    else {
+        request.set_status(ERROR);
+        request.set_error_status(501);  // Not implemented
         request.set_method(UNDEFINED);
+    }
 
     request.set_target(target);
 
-    // TODO, add checks for missing elements. set status as BROKEN or something similar
-    //       Client currently waits indefinetly if request stays EMPTY
-    if (version != "HTTP/1.1") return request.status(); // TODO, dunno what to do with it yet.
-
+    if (version != "HTTP/1.1") {
+        request.set_status(ERROR);
+        request.set_error_status(505);  // HTTP version unsupported
+        return request.status();
+    }
     request.set_version(1, 1);
 
     read_index = line_end + 2;  // skip \r\n
@@ -127,7 +134,11 @@ Status_Parsing RequestParser::parse_headers(const std::string& read_buffer, size
         // retrieve each line without \r\n
         std::string            line = read_buffer.substr(read_index, line_end - read_index);
         std::string::size_type colon = line.find(':');
-        if (colon == std::string::npos) return request.status();  // Error
+        if (colon == std::string::npos) {
+            request.set_status(ERROR);
+            request.set_error_status(400);
+            return request.status();  // Error
+        }
 
         std::string key = trim(line.substr(0, colon));
         std::string value = trim(line.substr(colon + 1));

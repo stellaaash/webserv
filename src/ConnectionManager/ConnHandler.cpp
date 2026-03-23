@@ -7,6 +7,62 @@
 
 #include "ConnectionManager.hpp"
 #include "Request.hpp"
+#include "config.hpp"
+
+static std::string itoa(int n) {
+    char buf[32];
+    std::sprintf(buf, "%d", n);
+    return std::string(buf);
+}
+
+static std::string error_response(HTTP_Code code) {
+    std::string reason;
+
+    switch (code) {
+        case 400:
+            reason = "Bad Request";
+            break;
+        case 405:
+            reason = "Method Not Allowed";
+            break;
+        case 411:
+            reason = "Length Required";
+            break;
+        case 413:
+            reason = "Payload Too Large";
+            break;
+        case 414:
+            reason = "URI Too Long";
+            break;
+        case 431:
+            reason = "Request Header Fields Too Large";
+            break;
+        case 501:
+            reason = "Not Implemented";
+            break;
+        case 505:
+            reason = "HTTP Version Not Supported";
+            break;
+        default:
+            reason = "Error";
+            break;
+    }
+
+    std::string body = itoa(static_cast<int>(code)) + " " + reason + "\n";
+
+    char lenbuf[32];
+    std::sprintf(lenbuf, "%lu", (unsigned long)body.size());
+
+    return "HTTP/1.1 " + itoa(static_cast<int>(code)) + " " + reason +
+           "\r\n"
+           "Content-Type: text/plain\r\n"
+           "Content-Length: " +
+           std::string(lenbuf) +
+           "\r\n"
+           "Connection: close\r\n"
+           "\r\n" +
+           body;
+}
 
 static std::string hello_response() {
     const std::string body = "Hello\n";
@@ -25,7 +81,10 @@ static std::string hello_response() {
 }
 
 ConnHandler::ConnHandler(const Config_Server* srv, int client_fd)
-    : _fd(client_fd), _conn(srv, client_fd) {}
+    : _fd(client_fd),
+      _conn(srv, client_fd),
+      _last_activity(std::time(NULL)),
+      _timeout(static_cast<long>(srv->timeout)) {}
 
 ConnHandler::~ConnHandler() {}
 
@@ -41,6 +100,11 @@ uint32_t ConnHandler::interests() const {
         return EPOLLIN;
 }
 
+bool ConnHandler::is_timed_out() const {
+    std::cout << _timeout << std::endl;
+    return (std::time(NULL) - _last_activity) > _timeout;
+}
+
 bool ConnHandler::handle_event(ConnectionManager& manager, uint32_t events) {
     (void)manager;
 
@@ -52,10 +116,15 @@ bool ConnHandler::handle_event(ConnectionManager& manager, uint32_t events) {
     if (events & EPOLLIN) {
         std::cout << "[CONN " << _fd << "] EPOLLIN" << std::endl;
         ssize_t n = _conn.receive_data();
+
         if (n < 0) return false;
         if (n == 0) return false;  // temp to avoid infinite calls when closed by client
 
         Status_Parsing r = _conn.parse_request();
+        if (r == ERROR) {
+            HTTP_Code code = _conn.request().error_status();
+            _conn.queue_write(error_response(code));
+        }
         if (r == PARSED) {
             const Request& req = _conn.request();
             std::cout << "----- [REQUEST] -----\n";

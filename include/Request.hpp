@@ -8,7 +8,7 @@
 #include "config.hpp"
 
 // TODO Move Status_Parsing to a parsing.hpp header once parsing is done
-enum Status_Parsing { EMPTY, REQUEST_LINE, HEADERS, BODY, PARSED };
+enum Status_Parsing { EMPTY, REQUEST_LINE, HEADERS, BODY, PARSED, ERROR };
 
 /**
  * @brief Represents a request issued by an active connection.
@@ -25,12 +25,14 @@ public:
     Status_Parsing     status() const;
     const std::string& target() const;
     size_t             content_length() const;
+    HTTP_Code          error_status() const;
 
     void set_config(const Config_Location* const);
     void set_method(HTTP_Method);
     void set_status(Status_Parsing);
     void set_target(const std::string&);
     void set_content_length(size_t);
+    void set_error_status(HTTP_Code);
 
 private:
     const Config_Location* _config;
@@ -39,6 +41,7 @@ private:
     size_t         _content_length;
     HTTP_Method    _method;
     Status_Parsing _status;
+    HTTP_Code      _error_status;
 };
 
 #endif
