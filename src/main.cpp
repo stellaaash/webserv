@@ -48,6 +48,8 @@ int main(int argc, char** argv) {
         return 4;
     }
 
+    get_dir_contents(".");
+
     ConnectionManager manager;
     // FIXME: Only one listener created, regardless of the number of listeners in the configuration
     // So, we need to take into account both multiple listen directives, and multiple server ones
