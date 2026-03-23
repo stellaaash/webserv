@@ -292,8 +292,6 @@ Config_Server parse_server(token_iterator* t, token_iterator end) {
                     throw ParserError(tokens[1], "Wrong IP syntax in listen directive");
                 if (check_string(tokens[2].word, "1234567890") == false)
                     throw ParserError(tokens[2], "Wrong port syntax in listen directive");
-                if (check_ip(tokens[1].word) != 0)
-                    throw ParserError(tokens[1], "Wrong listen IP value");
                 if (std::atol(tokens[2].word.c_str()) > 65535)
                     throw ParserError(tokens[2], "Wrong listen port value");
 
