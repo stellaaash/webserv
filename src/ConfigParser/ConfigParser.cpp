@@ -71,23 +71,6 @@ static int check_path(const std::string& path, bool directory) {
 }
 
 /**
- * @brief Checks a string for a the right numbers in an IP address, so nothing higher
- * than 255 or lower than 0.
- *
- * @return 0 if the numbers are good; 1 if they aren't.
- */
-static int check_ip(std::string ip) {
-    size_t point = 0;
-    while (point < ip.npos) {
-        if (std::atol(ip.c_str()) < 0 || std::atol(ip.c_str()) > 255) return 1;
-        point = ip.find('.');
-        ip = ip.substr(point + 1, ip.npos);
-    }
-
-    return 0;
-}
-
-/**
  * @brief Checks a configuration for duplicates in its listen directives.
  * It tries to find the same combination of address and port, or an already existing
  * 0.0.0.0 (all interfaces, which means the port is used everywhere).
@@ -330,8 +313,6 @@ Config_Server parse_server(token_iterator* t, token_iterator end) {
                     throw ParserError(tokens[1], "Wrong IP syntax in listen directive");
                 if (check_string(tokens[2].word, "1234567890") == false)
                     throw ParserError(tokens[2], "Wrong port syntax in listen directive");
-                if (check_ip(tokens[1].word) != 0)
-                    throw ParserError(tokens[1], "Wrong listen IP value");
                 if (std::atol(tokens[2].word.c_str()) > 65535)
                     throw ParserError(tokens[2], "Wrong listen port value");
 
