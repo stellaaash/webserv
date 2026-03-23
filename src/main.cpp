@@ -1,4 +1,6 @@
 #include <arpa/inet.h>
+#include <fcntl.h>
+#include <netinet/in.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
 
@@ -42,7 +44,11 @@ int main(int argc, char** argv) {
     }
     config_file.close();
 
-    get_dir_contents(".");
+    // REMOVE WHEN MERGING - Create listing.html to show results of create_listing
+    int directive_output = open("listing.html", O_CREAT | O_WRONLY | O_TRUNC, 0600);
+    if (directive_output < 0) perror("[main] - open");
+    append_file(directive_output, create_listing("."));
+    close(directive_output);
 
     ConnectionManager manager;
     for (ServerIter s = config.server.begin(); s != config.server.end(); ++s) {
