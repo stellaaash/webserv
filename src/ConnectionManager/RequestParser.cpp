@@ -81,10 +81,9 @@ Status_Parsing RequestParser::parse_request_line(const std::string& read_buffer,
 
     request.set_target(target);
 
-    // TODO, dunno what we need here yet.
     // TODO, add checks for missing elements. set status as BROKEN or something similar
     //       Client currently waits indefinetly if request stays EMPTY
-    if (version != "HTTP/1.1") return request.status();
+    if (version != "HTTP/1.1") return request.status(); // TODO, dunno what to do with it yet.
 
     request.set_version(1, 1);
 
