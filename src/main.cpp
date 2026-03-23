@@ -47,14 +47,15 @@ int main(int argc, char** argv) {
 
     ConnectionManager manager;
     for (ServerIter s = config.server.begin(); s != config.server.end(); ++s) {
-        std::vector<int> listen_fds;
+        const Config_Server& server_config = *s;
+        std::vector<int>     listen_fds;
         try {
-            listen_fds = make_listen_sockets(*s);
+            listen_fds = make_listen_sockets(server_config);
         } catch (...) {
             return 4;
         }
         for (size_t i = 0; i < listen_fds.size(); ++i) {
-            manager.add(new Listener(&*s, listen_fds[i]));
+            manager.add(new Listener(&server_config, listen_fds[i]));
         }
     }
 

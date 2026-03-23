@@ -28,13 +28,14 @@ std::vector<int> make_listen_sockets(const Config_Server& config) {
     std::vector<int> fds;
 
     for (ListenIter l = config.listen.begin(); l != config.listen.end(); ++l) {
-        int fd = socket(AF_INET, SOCK_STREAM, 0);
+        const struct sockaddr_in& address = *l;
+        int                       fd = socket(AF_INET, SOCK_STREAM, 0);
         if (fd < 0) throw;
 
         int yes = 1;
         setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
 
-        if (bind(fd, reinterpret_cast<const struct sockaddr*>(&*l), sizeof(*l)) < 0) {
+        if (bind(fd, reinterpret_cast<const struct sockaddr*>(&address), sizeof(address)) < 0) {
             perror("make_listen_sockets (bind)");
             for (size_t i = 0; i < fds.size(); ++i) close(fds[i]);
             throw std::exception();
@@ -50,9 +51,9 @@ std::vector<int> make_listen_sockets(const Config_Server& config) {
         }
 
         char ip_buffer[INET_ADDRSTRLEN];
-        inet_ntop(AF_INET, &l->sin_addr, ip_buffer, INET_ADDRSTRLEN);
+        inet_ntop(AF_INET, &address.sin_addr, ip_buffer, INET_ADDRSTRLEN);
         std::clog << "[make_listen_sockets] - Created fd " << fd << " to listen at " << ip_buffer
-                  << " on port " << ntohs(l->sin_port) << std::endl;
+                  << " on port " << ntohs(address.sin_port) << std::endl;
 
         fds.push_back(fd);
     }
