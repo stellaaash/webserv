@@ -54,6 +54,4 @@ typedef std::map<HTTP_Code, std::string>::const_iterator       ErrorPageIter;
 typedef std::map<std::string, Config_Location>::const_iterator LocationIter;
 typedef std::map<std::string, File_Path>::const_iterator       CgiIter;
 
-Config mock_config();
-
 #endif
