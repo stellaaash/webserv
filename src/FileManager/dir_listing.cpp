@@ -13,7 +13,7 @@
 /**
  * @brief Gets the content of a directory, and returns them as a multimpa of path to file type.
  */
-std::multimap<Path_Type, File_Path> get_dir_contents(File_Path directory) {
+std::map<File_Path, Path_Type> get_dir_contents(File_Path directory) {
     assert(is_directory(directory) && "File path is a directory");
 
     DIR* stream = opendir(directory.c_str());
@@ -22,14 +22,14 @@ std::multimap<Path_Type, File_Path> get_dir_contents(File_Path directory) {
         throw std::exception();
     }
 
-    struct dirent*                      result;
-    std::multimap<Path_Type, File_Path> entries;
+    struct dirent*                 result;
+    std::map<File_Path, Path_Type> entries;
 
     errno = 0;
     result = readdir(stream);
     while (result != NULL) {
-        Path_Type type;
         File_Path path = result->d_name;
+        Path_Type type;
 
         switch (result->d_type) {
             case DT_DIR:
@@ -42,7 +42,7 @@ std::multimap<Path_Type, File_Path> get_dir_contents(File_Path directory) {
                 continue;
         }
 
-        entries.insert(std::pair<Path_Type, File_Path>(type, path));
+        entries.insert(std::pair<File_Path, Path_Type>(path, type));
         result = readdir(stream);
     }
     if (errno != 0) {

@@ -42,6 +42,8 @@ int main(int argc, char** argv) {
     }
     config_file.close();
 
+    get_dir_contents(".");
+
     ConnectionManager manager;
     for (ServerIter s = config.server.begin(); s != config.server.end(); ++s) {
         const Config_Server& server_config = *s;
