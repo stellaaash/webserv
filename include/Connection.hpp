@@ -1,6 +1,8 @@
 #ifndef CONNECTION_HPP
 #define CONNECTION_HPP
 
+#include <sys/types.h>
+
 #include "Request.hpp"
 #include "Response.hpp"
 #include "config.hpp"
