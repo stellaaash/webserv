@@ -3,7 +3,7 @@
 
 #include "config.hpp"
 
-int set_nonblocking(int fd);
-int make_listen_socket(const Config_Server& srv);
+int              set_nonblocking(int fd);
+std::vector<int> make_listen_sockets(const Config_Server&);
 
 #endif
