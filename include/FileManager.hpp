@@ -24,6 +24,7 @@ int     create_file(const File_Path&);
 ssize_t append_file(int, const std::string&);
 
 // dir_listing.cpp
-std::map<File_Path, Path_Type> get_dir_contents(File_Path);
+std::map<File_Path, Path_Type> get_dir_contents(const File_Path&);
+std::string                    create_listing(const File_Path&);
 
 #endif  // FILEMANAGER_HPP

@@ -6,6 +6,7 @@
 #include <cstdio>
 #include <exception>
 #include <map>
+#include <sstream>
 #include <utility>
 
 #include "FileManager.hpp"
@@ -13,7 +14,7 @@
 /**
  * @brief Gets the content of a directory, and returns them as a multimpa of path to file type.
  */
-std::map<File_Path, Path_Type> get_dir_contents(File_Path directory) {
+std::map<File_Path, Path_Type> get_dir_contents(const File_Path& directory) {
     assert(is_directory(directory) && "File path is a directory");
 
     DIR* stream = opendir(directory.c_str());
@@ -49,6 +50,35 @@ std::map<File_Path, Path_Type> get_dir_contents(File_Path directory) {
         perror("[get_dir_contents] - readdir");
         throw std::exception();
     }
+    closedir(stream);
 
     return entries;
+}
+
+/**
+ * @brief Creates an HTML listing of a directory, containing links to all entries inside.
+ */
+std::string create_listing(const File_Path& directory) {
+    std::map<File_Path, Path_Type> entries = get_dir_contents(directory);
+    std::stringstream              html_listing;
+
+    html_listing << "<html>\n";
+    html_listing << "<head>\n";
+    html_listing << "<title>" << directory << "</title>\n";
+    html_listing << "</head>\n";
+    html_listing << "<body>\n";
+    html_listing << "<h1>Listing of " << directory << "</h1>\n";
+    html_listing << "<ul>\n";
+    for (std::map<File_Path, Path_Type>::const_iterator e = entries.begin(); e != entries.end();
+         ++e) {
+        std::string path = e->first;
+        if (e->second == DIR_PATH) path.append("/");
+
+        html_listing << "<li><a href=\"" << e->first << "\">" << path << "</a></li>\n";
+    }
+    html_listing << "</ul>\n";
+    html_listing << "</body>\n";
+    html_listing << "</html>\n";
+
+    return html_listing.str();
 }
