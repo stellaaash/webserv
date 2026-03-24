@@ -8,7 +8,7 @@
 #include <cstring>
 #include <iostream>
 
-#include "signalstate.hpp"
+#include "signal_state.hpp"
 
 ConnectionManager::ConnectionManager() : _epfd(epoll_create(1)) {
     if (_epfd < 0)

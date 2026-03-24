@@ -15,16 +15,16 @@ RMFLAGS		=	-f
 
 SRCDIR		=	src
 CFILES		=	$(SRCDIR)/main.cpp \
-				$(SRCDIR)/ConfigParser/ConfigLexer.cpp \
-				$(SRCDIR)/ConfigParser/ConfigParser.cpp \
-				$(SRCDIR)/ConnectionManager/HTTP_Message.cpp \
+				$(SRCDIR)/ConfigParser/config_lexer.cpp \
+				$(SRCDIR)/ConfigParser/config_parser.cpp \
+				$(SRCDIR)/ConnectionManager/HttpMessage.cpp \
 				$(SRCDIR)/ConnectionManager/Connection.cpp \
 				$(SRCDIR)/ConnectionManager/Request.cpp \
 				$(SRCDIR)/ConnectionManager/request_parser.cpp \
 				$(SRCDIR)/ConnectionManager/Response.cpp \
 				$(SRCDIR)/ConnectionManager/ConnectionManager.cpp \
 				$(SRCDIR)/ConnectionManager/IHandler.cpp \
-				$(SRCDIR)/ConnectionManager/ConnHandler.cpp \
+				$(SRCDIR)/ConnectionManager/ConnectionHandler.cpp \
 				$(SRCDIR)/ConnectionManager/Listener.cpp \
 				$(SRCDIR)/FileManager/read.cpp \
 				$(SRCDIR)/FileManager/write.cpp \

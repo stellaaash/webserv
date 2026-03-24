@@ -4,13 +4,13 @@
 #include <cstdlib>
 #include <string>
 
-#include "HTTP_Message.hpp"
+#include "HttpMessage.hpp"
 #include "config.hpp"
 
 Response::Response() : _code(0), _response_string() {}
 
 Response::Response(const Response& other)
-    : HTTP_Message(other), _code(other._code), _response_string(other._response_string) {}
+    : HttpMessage(other), _code(other._code), _response_string(other._response_string) {}
 
 const Response& Response::operator=(const Response& other) {
     if (this == &other) return *this;
@@ -23,7 +23,7 @@ const Response& Response::operator=(const Response& other) {
 
 Response::~Response() {}
 
-HTTP_Code Response::code() const {
+HttpCode Response::code() const {
     return _code;
 }
 
@@ -31,7 +31,7 @@ const std::string& Response::response_string() const {
     return _response_string;
 }
 
-void Response::set_code(HTTP_Code code) {
+void Response::set_code(HttpCode code) {
     assert(code >= 100 && code <= 599 && "Correct HTTP Code");
     _code = code;
 }

@@ -1,4 +1,5 @@
-#include <ConfigLexer.hpp>
+#include "config_lexer.hpp"
+
 #include <cctype>
 #include <fstream>
 #include <ios>

@@ -6,11 +6,11 @@
 
 #include <iostream>
 
-#include "ConnHandler.hpp"
+#include "ConnectionHandler.hpp"
 #include "ConnectionManager.hpp"
 #include "socket_utils.hpp"
 
-Listener::Listener(const Config_Server* srv, int listen_fd) : _srv(srv), _fd(listen_fd) {}
+Listener::Listener(const ConfigServer* srv, int listen_fd) : _srv(srv), _fd(listen_fd) {}
 Listener::~Listener() {}
 
 int Listener::fd() const {
@@ -40,7 +40,7 @@ bool Listener::handle_event(ConnectionManager& manager, uint32_t events) {
 
         std::cout << "[LISTENER] New client accepted fd=" << client_fd << std::endl;
 
-        manager.add(new ConnHandler(_srv, client_fd));
+        manager.add(new ConnectionHandler(_srv, client_fd));
     }
     return true;  // keeps listener
 }

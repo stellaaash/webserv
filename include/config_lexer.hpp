@@ -1,5 +1,5 @@
-#ifndef CONFIGLEXER_HPP
-#define CONFIGLEXER_HPP
+#ifndef CONFIG_LEXER_HPP
+#define CONFIG_LEXER_HPP
 
 #include <fstream>
 #include <string>
@@ -12,7 +12,7 @@ struct Token {
     std::string    word;
 };
 
-typedef std::vector<Token>::const_iterator token_iterator;
+typedef std::vector<Token>::const_iterator TokenIterator;
 
 std::vector<Token> lex_config(std::ifstream& file_stream);
 

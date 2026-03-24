@@ -1,14 +1,14 @@
-#include "HTTP_Message.hpp"
+#include "HttpMessage.hpp"
 
-HTTP_Message::HTTP_Message() : _major_version(0), _minor_version(0), _headers(), _body() {}
+HttpMessage::HttpMessage() : _major_version(0), _minor_version(0), _headers(), _body() {}
 
-HTTP_Message::HTTP_Message(const HTTP_Message& other)
+HttpMessage::HttpMessage(const HttpMessage& other)
     : _major_version(other._major_version),
       _minor_version(other._minor_version),
       _headers(other._headers),
       _body(other._body) {}
 
-const HTTP_Message& HTTP_Message::operator=(const HTTP_Message& other) {
+const HttpMessage& HttpMessage::operator=(const HttpMessage& other) {
     if (this == &other) {
         return *this;
     }
@@ -21,36 +21,37 @@ const HTTP_Message& HTTP_Message::operator=(const HTTP_Message& other) {
     return *this;
 }
 
-HTTP_Message::~HTTP_Message() {}
+HttpMessage::~HttpMessage() {}
 
-const std::string& HTTP_Message::body() const {
+const std::string& HttpMessage::body() const {
     return _body;
 }
 
-int HTTP_Message::major_version() const {
+int HttpMessage::major_version() const {
     return _major_version;
 }
 
-int HTTP_Message::minor_version() const {
+int HttpMessage::minor_version() const {
     return _minor_version;
 }
+
 /**
  * @brief Return an iterator to the first header with the name `header_name`.
  */
-HTTP_Message::header_iterator HTTP_Message::header(const std::string& header_name) const {
+HttpMessage::HeaderIterator HttpMessage::header(const std::string& header_name) const {
     return _headers.lower_bound(header_name);
 }
 
-void HTTP_Message::set_version(int major_version, int minor_version) {
+void HttpMessage::set_version(int major_version, int minor_version) {
     _major_version = major_version;
     _minor_version = minor_version;
 }
 
-void HTTP_Message::set_header(const std::string& name, const std::string& value) {
+void HttpMessage::set_header(const std::string& name, const std::string& value) {
     _headers.insert(std::pair<std::string, std::string>(name, value));
 }
 
-void HTTP_Message::append_body(const std::string& data) {
+void HttpMessage::append_body(const std::string& data) {
     _body.append(data);
 }
 

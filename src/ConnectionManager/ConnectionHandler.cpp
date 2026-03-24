@@ -1,4 +1,4 @@
-#include "ConnHandler.hpp"
+#include "ConnectionHandler.hpp"
 
 #include <sys/epoll.h>
 
@@ -76,19 +76,19 @@ static std::string hello_response() {
            body;
 }
 
-ConnHandler::ConnHandler(const Config_Server* srv, int client_fd)
+ConnectionHandler::ConnectionHandler(const ConfigServer* srv, int client_fd)
     : _fd(client_fd),
       _conn(srv, client_fd),
       _last_activity(std::time(NULL)),
       _timeout(static_cast<long>(srv->timeout)) {}
 
-ConnHandler::~ConnHandler() {}
+ConnectionHandler::~ConnectionHandler() {}
 
-int ConnHandler::fd() const {
+int ConnectionHandler::fd() const {
     return _fd;
 }
 
-uint32_t ConnHandler::interests() const {
+uint32_t ConnectionHandler::interests() const {
     // EPOLLOUT only when something must be sent back, else stay ready to listen
     if (_conn.has_pending_write())
         return EPOLLIN | EPOLLOUT;
@@ -96,12 +96,12 @@ uint32_t ConnHandler::interests() const {
         return EPOLLIN;
 }
 
-bool ConnHandler::is_timed_out() const {
+bool ConnectionHandler::is_timed_out() const {
     std::cout << _timeout << std::endl;
     return (std::time(NULL) - _last_activity) > _timeout;
 }
 
-bool ConnHandler::handle_event(ConnectionManager& manager, uint32_t events) {
+bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events) {
     (void)manager;
 
     if (events & (EPOLLERR | EPOLLHUP)) {

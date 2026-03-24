@@ -45,8 +45,8 @@ int main(int argc, char** argv) {
     config_file.close();
 
     ConnectionManager manager;
-    for (ServerIter s = config.server.begin(); s != config.server.end(); ++s) {
-        const Config_Server& server_config = *s;
+    for (ServerIterator s = config.server.begin(); s != config.server.end(); ++s) {
+        const ConfigServer&  server_config = *s;
         std::vector<int>     listen_fds;
         try {
             listen_fds = make_listen_sockets(server_config);

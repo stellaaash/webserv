@@ -1,5 +1,3 @@
-#include "ConfigParser.hpp"
-
 #include <netdb.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
@@ -18,8 +16,9 @@
 #include <utility>
 #include <vector>
 
-#include "ConfigLexer.hpp"
+#include "ConfigParser.hpp"
 #include "config.hpp"
+#include "config_lexer.hpp"
 #include "file_manager.hpp"
 
 // We construct the error string in the constructors to be able to return a pointer to it later
@@ -57,11 +56,11 @@ const char* ParserError::what() const throw() {
  * @return 0 if no dupes were found, 1 if so.
  */
 static int check_listen(const Config& config) {
-    const std::vector<Config_Server>&       servers = config.server;
+    const std::vector<ConfigServer>&        servers = config.server;
     std::multimap<unsigned short, uint32_t> listens;
 
-    for (ServerIter s = servers.begin(); s != servers.end(); ++s) {
-        for (ListenIter l = s->listen.begin(); l != s->listen.end(); ++l) {
+    for (ServerIterator s = servers.begin(); s != servers.end(); ++s) {
+        for (ListenIterator l = s->listen.begin(); l != s->listen.end(); ++l) {
             const unsigned short port = l->sin_port;
             const uint32_t       address = l->sin_addr.s_addr;
 
@@ -94,22 +93,23 @@ static void check_config(const Config& config) {
 
     if (check_listen(config) != 0) throw ParserError("Duplicate listen directive");
 
-    for (ServerIter s = config.server.begin(); s != config.server.end(); ++s) {
-        for (ErrorPageIter e = s->error_page.begin(); e != s->error_page.end(); ++e) {
+    for (ServerIterator s = config.server.begin(); s != config.server.end(); ++s) {
+        for (ErrorPageIterator e = s->error_page.begin(); e != s->error_page.end(); ++e) {
             if (e->first <= 400 || e->first >= 599)
                 throw ParserError("Invalid error_page directive (wrong HTTP code)");
         }
 
-        for (LocationIter l = s->location.begin(); l != s->location.end(); ++l) {
+        for (LocationIterator l = s->location.begin(); l != s->location.end(); ++l) {
             if (l->second.allowed_methods.empty())
                 std::cerr << "[PARSING] - Location " << l->first << " is missing an allowed method."
                           << std::endl;
-            for (CgiIter j = l->second.cgi.begin(); j != l->second.cgi.end(); ++j) {
+            for (CgiIterator j = l->second.cgi.begin(); j != l->second.cgi.end(); ++j) {
                 if (is_regular_file(j->second) == false) throw ParserError("Invalid cgi directive");
             }
             if (l->second.index.empty() == false && is_regular_file(l->second.index) == false)
                 throw ParserError("Invalid index directive");
-            for (ErrorPageIter r = l->second.redirect.begin(); r != l->second.redirect.end(); ++r) {
+            for (ErrorPageIterator r = l->second.redirect.begin(); r != l->second.redirect.end();
+                 ++r) {
                 // Redirection have to use a 3XX code
                 if (r->first < 300 || r->first > 399)
                     throw ParserError("Invalid redirect directive");
@@ -135,13 +135,13 @@ Config parse_file(std::ifstream& file) {
     if (config.server.empty()) {
         throw ParserError("Missing server directive");
     }
-    for (ServerIter s = config.server.begin(); s != config.server.end(); ++s) {
+    for (ServerIterator s = config.server.begin(); s != config.server.end(); ++s) {
         if (s->listen.empty()) {
             throw ParserError("Missing listen directive in server context");
         } else if (s->location.empty()) {
             throw ParserError("Missing location directive in server context");
         } else {
-            for (LocationIter i = s->location.begin(); i != s->location.end(); ++i) {
+            for (LocationIterator i = s->location.begin(); i != s->location.end(); ++i) {
                 if (i->second.root.empty() && i->second.redirect.empty()) {
                     throw ParserError("Missing root directive in location context");
                 }
@@ -170,7 +170,7 @@ static bool check_string(const std::string& string, const std::string& allowed_s
  * @brief Consume all tokens until the first one that is a special character.
  * For reference, special characters are braces and semicolons.
  */
-static std::vector<Token> parse_line(token_iterator* t) {
+static std::vector<Token> parse_line(TokenIterator* t) {
     std::vector<Token> tokens;
 
     while ((*t)->type == WORD) {
@@ -193,7 +193,7 @@ static std::vector<Token> parse_line(token_iterator* t) {
 /**
  * @brief Process a vector of tokens to create a Config struct out of them.
  */
-Config parse_config(token_iterator t, token_iterator end) {
+Config parse_config(TokenIterator t, TokenIterator end) {
     Config config;
 
     while (t != end) {
@@ -221,8 +221,8 @@ Config parse_config(token_iterator t, token_iterator end) {
     return config;
 }
 
-Config_Server parse_server(token_iterator* t, token_iterator end) {
-    Config_Server config;
+ConfigServer parse_server(TokenIterator* t, TokenIterator end) {
+    ConfigServer config;
 
     while (*t != end) {
         std::vector<Token> tokens = parse_line(t);
@@ -263,13 +263,13 @@ Config_Server parse_server(token_iterator* t, token_iterator end) {
             } else if (directive == "error_page") {
                 if (tokens.size() < 4)
                     throw ParserError(tokens[0], "Wrong number of tokens in error_page directive");
-                File_Path path = standardize_path(tokens[tokens.size() - 2].word);
+                FilePath path = standardize_path(tokens[tokens.size() - 2].word);
                 for (size_t i = 1; i < tokens.size() - 2; ++i) {
                     if (check_string(tokens[i].word, "1234567890") == false)
                         throw ParserError(tokens[1], "Wrong error_page HTTP code syntax");
-                    HTTP_Code code = static_cast<unsigned int>(std::atol(tokens[i].word.c_str()));
+                    HttpCode code = static_cast<unsigned int>(std::atol(tokens[i].word.c_str()));
 
-                    config.error_page.insert(std::pair<HTTP_Code, File_Path>(code, path));
+                    config.error_page.insert(std::pair<HttpCode, FilePath>(code, path));
                 }
             } else if (directive == "listen") {
                 if (tokens.size() != 4)
@@ -299,7 +299,7 @@ Config_Server parse_server(token_iterator* t, token_iterator end) {
             } else if (directive == "location") {
                 if (tokens.size() != 3)
                     throw ParserError(tokens[0], "Wrong number of tokens in location directive");
-                config.location.insert(std::pair<std::string, Config_Location>(
+                config.location.insert(std::pair<std::string, ConfigLocation>(
                     tokens[1].word, parse_location((t), end)));
             } else if (directive == "timeout") {
                 if (tokens.size() != 3)
@@ -320,8 +320,8 @@ Config_Server parse_server(token_iterator* t, token_iterator end) {
     return config;
 }
 
-Config_Location parse_location(token_iterator* t, token_iterator end) {
-    Config_Location config;
+ConfigLocation parse_location(TokenIterator* t, TokenIterator end) {
+    ConfigLocation config;
 
     while (*t != end) {
         std::vector<Token> tokens = parse_line(t);
@@ -361,7 +361,7 @@ Config_Location parse_location(token_iterator* t, token_iterator end) {
             } else if (directive == "cgi") {
                 if (tokens.size() != 4)
                     throw ParserError(tokens[0], "Wrong number of tokens in cgi directive");
-                config.cgi.insert(std::pair<std::string, File_Path>(
+                config.cgi.insert(std::pair<std::string, FilePath>(
                     tokens[1].word, standardize_path(tokens[2].word)));
             } else if (directive == "index") {
                 if (tokens.size() < 3)
@@ -372,8 +372,8 @@ Config_Location parse_location(token_iterator* t, token_iterator end) {
                     throw ParserError(tokens[0], "Wrong number of tokens in redirect directive");
                 if (check_string(tokens[1].word, "1234567890") == false)
                     throw ParserError(tokens[1], "Wrong redirection code syntax");
-                HTTP_Code code = static_cast<HTTP_Code>(std::atol(tokens[1].word.c_str()));
-                config.redirect.insert(std::pair<HTTP_Code, std::string>(code, tokens[2].word));
+                HttpCode code = static_cast<HttpCode>(std::atol(tokens[1].word.c_str()));
+                config.redirect.insert(std::pair<HttpCode, std::string>(code, tokens[2].word));
             } else if (directive == "root") {
                 if (tokens.size() != 3)
                     throw ParserError(tokens[0], "Wrong number of tokens in root directive");

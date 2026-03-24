@@ -1,24 +1,24 @@
-#ifndef HTTP_MESSAGE_HPP
-#define HTTP_MESSAGE_HPP
+#ifndef HTTPMESSAGE_HPP
+#define HTTPMESSAGE_HPP
 
 #include <map>
 #include <string>
 
-class HTTP_Message {
+class HttpMessage {
 public:
     // What the header getter will return, this makes it easier to iterate over duplicate headers
-    typedef std::multimap<std::string, std::string>::const_iterator header_iterator;
+    typedef std::multimap<std::string, std::string>::const_iterator HeaderIterator;
 
-    HTTP_Message();
-    HTTP_Message(const HTTP_Message&);
-    const HTTP_Message& operator=(const HTTP_Message&);
-    ~HTTP_Message();
+    HttpMessage();
+    HttpMessage(const HttpMessage&);
+    const HttpMessage& operator=(const HttpMessage&);
+    ~HttpMessage();
 
     int                major_version() const;
     int                minor_version() const;
-    header_iterator    header(const std::string&) const;
-    header_iterator    headers_end() const;
-    header_iterator    headers_begin() const;
+    HeaderIterator     header(const std::string&) const;
+    HeaderIterator     headers_end() const;
+    HeaderIterator     headers_begin() const;
     bool               has_header(const std::string&) const;
     const std::string& body() const;
 

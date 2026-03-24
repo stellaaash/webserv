@@ -14,7 +14,9 @@
 
 class Connection {
 public:
-    Connection(const Config_Server* const, int socket);
+    Connection(const ConfigServer* const, int socket);
+    Connection(const Connection&);
+    const Connection& operator=(const Connection&);
     ~Connection();
 
     const Request&  request() const;
@@ -24,7 +26,7 @@ public:
     ssize_t        receive_data();
     Status_Parsing parse_request();
 
-    void set_config(const Config_Server* const);
+    void set_config(const ConfigServer* const);
     void queue_write(const std::string& data);
     bool has_pending_write() const;
 
@@ -35,7 +37,7 @@ private:
     Connection(const Connection&);
     Connection& operator=(const Connection&);
 
-    const Config_Server* _config;
+    const ConfigServer* _config;
 
     Request  _request;
     Response _response;

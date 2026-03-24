@@ -12,7 +12,7 @@
 #include "Response.hpp"
 #include "config.hpp"
 
-Connection::Connection(const Config_Server* const config, int socket)
+Connection::Connection(const ConfigServer* const config, int socket)
     : _config(config),
       _request(),
       _response(),
@@ -21,7 +21,7 @@ Connection::Connection(const Config_Server* const config, int socket)
       _read_index(0),
       _write_buffer(),
       _write_index(0) {
-    assert(config && "Config_Server pointer");
+    assert(config && "ConfigServer pointer");
     assert(socket > 2 && "Valid Socket Number");
     _request.set_client_max_body_size(_config->client_max_body_size);
 }
@@ -119,8 +119,8 @@ bool Connection::has_pending_write() const {
     return _write_index < _write_buffer.size();
 }
 
-void Connection::set_config(const Config_Server* const config) {
-    assert(config && "Config_Server pointer");
+void Connection::set_config(const ConfigServer* const config) {
+    assert(config && "ConfigServer pointer");
 
     _config = config;
 }

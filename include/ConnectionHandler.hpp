@@ -1,5 +1,5 @@
-#ifndef CONNHANDLER_HPP
-#define CONNHANDLER_HPP
+#ifndef CONNECTIONHANDLER_HPP
+#define CONNECTIONHANDLER_HPP
 
 #include <stdint.h>
 
@@ -9,10 +9,10 @@
 #include "IHandler.hpp"
 #include "config.hpp"
 
-class ConnHandler : public IHandler {
+class ConnectionHandler : public IHandler {
 public:
-    ConnHandler(const Config_Server* srv, int client_fd);
-    virtual ~ConnHandler();
+    ConnectionHandler(const ConfigServer* srv, int client_fd);
+    virtual ~ConnectionHandler();
 
     virtual int      fd() const;
     virtual uint32_t interests() const;
@@ -25,8 +25,8 @@ private:
     std::time_t _last_activity;
     long        _timeout;
 
-    ConnHandler(const ConnHandler&);
-    ConnHandler& operator=(const ConnHandler&);
+    ConnectionHandler(const ConnectionHandler&);
+    ConnectionHandler& operator=(const ConnectionHandler&);
 };
 
 #endif

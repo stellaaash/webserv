@@ -4,39 +4,39 @@
 #include <cstddef>
 #include <string>
 
-#include "HTTP_Message.hpp"
+#include "HttpMessage.hpp"
 #include "config.hpp"
 
-// TODO Move Status_Parsing to a parsing.hpp header once parsing is done
-enum Status_Parsing { EMPTY, REQUEST_LINE, HEADERS, BODY, PARSED, ERROR };
+// TODO Move ParsingStatus to a parsing.hpp header once parsing is done
+enum ParsingStatus { EMPTY, REQUEST_LINE, HEADERS, BODY, PARSED };
 
 /**
  * @brief Represents a request issued by an active connection.
  */
-class Request : public HTTP_Message {
+class Request : public HttpMessage {
 public:
     Request();
-    Request(const Config_Location* const, HTTP_Method);
+    Request(const ConfigLocation* const, HttpMethod);
     ~Request();
 
-    HTTP_Method        method() const;
-    Status_Parsing     status() const;
+    HttpMethod         method() const;
+    ParsingStatus      status() const;
     const std::string& target() const;
     size_t             content_length() const;
     size_t             client_max_body_size() const;
     size_t             body_received() const;
-    HTTP_Code          error_status() const;
+    HttpCode           error_status() const;
 
     bool               is_body_spooled() const;
     const std::string& body_path() const;
 
-    void set_config(const Config_Location* const);
-    void set_method(HTTP_Method);
-    void set_status(Status_Parsing);
+    void set_config(const ConfigLocation* const);
+    void set_method(HttpMethod);
+    void set_status(ParsingStatus);
     void set_target(const std::string&);
     void set_content_length(size_t);
     void set_client_max_body_size(size_t);
-    void set_error_status(HTTP_Code);
+    void set_error_status(HttpCode);
 
     bool append_body_chunk(const char* data, size_t len);
 
@@ -49,15 +49,15 @@ private:
     bool write_all(int fd, const char* data, size_t len);
     void cleanup_temp_file();
 
-    const Config_Location* _config;
+    const ConfigLocation* _config;
 
-    std::string    _target;
-    size_t         _content_length;
-    size_t         _client_max_body_size;
-    size_t         _body_received;
-    HTTP_Method    _method;
-    Status_Parsing _status;
-    HTTP_Code      _error_status;
+    std::string   _target;
+    size_t        _content_length;
+    size_t        _client_max_body_size;
+    size_t        _body_received;
+    HttpMethod    _method;
+    ParsingStatus _status;
+    HttpCode      _error_status;
 
     // Large bodies, over 64Kb
     size_t      _spool_threshold;
@@ -66,6 +66,6 @@ private:
     std::string _body_path;
 };
 
-Status_Parsing parse(std::string& read_buffer, size_t& read_index, Request& request);
+ParsingStatus parse(std::string& read_buffer, size_t& read_index, Request& request);
 
 #endif

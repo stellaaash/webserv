@@ -12,6 +12,7 @@
 #include <iostream>
 #include <sstream>
 
+#include "HttpMessage.hpp"
 #include "config.hpp"
 
 #ifndef REQUEST_BODY_SPOOL_THRESHOLD
@@ -32,7 +33,7 @@ Request::Request()
       _body_fd(-1),
       _body_path("") {}
 
-Request::Request(const Config_Location* const config, HTTP_Method method)
+Request::Request(const ConfigLocation* const config, HttpMethod method)
     : _config(config),
       _target(""),
       _content_length(0),
@@ -56,7 +57,7 @@ HTTP_Method Request::method() const {
     return _method;
 }
 
-Status_Parsing Request::status() const {
+ParsingStatus Request::status() const {
     return _status;
 }
 
@@ -71,6 +72,7 @@ size_t Request::content_length() const {
 size_t Request::client_max_body_size() const {
     return _client_max_body_size;
 }
+
 void Request::set_client_max_body_size(size_t client_max_body_size) {
     _client_max_body_size = client_max_body_size;
 }
@@ -91,17 +93,17 @@ const std::string& Request::body_path() const {
     return _body_path;
 }
 
-void Request::set_config(const Config_Location* const config) {
+void Request::set_config(const ConfigLocation* const config) {
     assert(config && "Config_Server pointer");
 
     _config = config;
 }
 
-void Request::set_method(HTTP_Method method) {
+void Request::set_method(HttpMethod method) {
     _method = method;
 }
 
-void Request::set_status(Status_Parsing status) {
+void Request::set_status(ParsingStatus status) {
     if (status == ERROR) {
         _status = status;
         return;

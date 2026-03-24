@@ -4,6 +4,6 @@
 #include "config.hpp"
 
 int              set_nonblocking(int fd);
-std::vector<int> make_listen_sockets(const Config_Server&);
+std::vector<int> make_listen_sockets(const ConfigServer&);
 
 #endif
