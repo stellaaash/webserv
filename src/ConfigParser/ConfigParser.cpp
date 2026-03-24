@@ -19,8 +19,8 @@
 #include <vector>
 
 #include "ConfigLexer.hpp"
-#include "FileManager.hpp"
 #include "config.hpp"
+#include "file_manager.hpp"
 
 // We construct the error string in the constructors to be able to return a pointer to it later
 // Having the stringstream be part of the what() member function wouldn't work because of

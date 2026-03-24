@@ -6,7 +6,7 @@
 #include <cstdio>
 #include <cstring>
 
-#include "FileManager.hpp"
+#include "file_manager.hpp"
 
 /**
  * @brief Checks that a file path is an actual path and not a folder or some other file type.

@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <cstdio>
 
-#include "FileManager.hpp"
+#include "file_manager.hpp"
 
 // Size of buffer to be used when writing data to files
 const size_t write_size = 1024;

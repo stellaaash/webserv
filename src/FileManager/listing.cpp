@@ -9,7 +9,7 @@
 #include <sstream>
 #include <utility>
 
-#include "FileManager.hpp"
+#include "file_manager.hpp"
 
 /**
  * @brief Gets the content of a directory, and returns them as a multimpa of path to file type.
