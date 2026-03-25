@@ -14,7 +14,7 @@ const size_t write_size = 1024;
  * @brief Creates a file in read-write mode, and returns its file descriptor.
  */
 int create_file(const File_Path& path) {
-    int fd = open(path.c_str(), O_RDWR);
+    int fd = open(path.c_str(), O_CREAT | O_WRONLY | O_TRUNC, 0600);
 
     if (fd < 0) {
         perror("[create_file] - open");

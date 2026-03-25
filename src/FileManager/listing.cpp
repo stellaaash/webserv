@@ -12,7 +12,7 @@
 #include "file_manager.hpp"
 
 /**
- * @brief Gets the content of a directory, and returns them as a multimpa of path to file type.
+ * @brief Gets the content of a directory, and returns them as a multimap of path to file type.
  */
 std::map<File_Path, Path_Type> get_dir_contents(const File_Path& directory) {
     assert(is_directory(directory) && "File path is a directory");
@@ -26,6 +26,7 @@ std::map<File_Path, Path_Type> get_dir_contents(const File_Path& directory) {
     struct dirent*                 result;
     std::map<File_Path, Path_Type> entries;
 
+    // Set to 0 in order to know if readdir returning NULL is an error or just EOF
     errno = 0;
     result = readdir(stream);
     while (result != NULL) {
@@ -46,11 +47,11 @@ std::map<File_Path, Path_Type> get_dir_contents(const File_Path& directory) {
         entries.insert(std::pair<File_Path, Path_Type>(path, type));
         result = readdir(stream);
     }
+    closedir(stream);
     if (errno != 0) {
         perror("[get_dir_contents] - readdir");
         throw std::exception();
     }
-    closedir(stream);
 
     return entries;
 }

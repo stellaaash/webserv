@@ -17,7 +17,7 @@ enum Path_Type { FILE_PATH, DIR_PATH };
 bool      is_regular_file(const File_Path&);
 bool      is_directory(const File_Path&);
 int       fetch_file(const File_Path&);
-File_Path standardize_path(const std::string& path);
+File_Path standardize_path(const std::string&);
 
 // files_write.cpp
 int     create_file(const File_Path&);
