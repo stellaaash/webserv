@@ -67,7 +67,7 @@ fclean:			clean
 
 re:				fclean all
 
-CONFIG		?=	config/minimal1.conf
+CONFIG		?=	config/1.conf
 
 test:			all
 				@printf "\n==============================================\n"
