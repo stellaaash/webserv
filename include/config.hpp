@@ -13,8 +13,9 @@
 #include <string>
 #include <vector>
 
+#include "file_manager.hpp"
+
 typedef unsigned int HTTP_Code;
-typedef std::string  File_Path;
 
 enum HTTP_Method { UNDEFINED, GET, POST, DELETE };
 
