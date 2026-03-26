@@ -25,6 +25,7 @@ CFILES		=	$(SRCDIR)/main.cpp \
 				$(SRCDIR)/ConnectionManager/ConnectionManager.cpp \
 				$(SRCDIR)/ConnectionManager/ConnHandler.cpp \
 				$(SRCDIR)/ConnectionManager/Listener.cpp \
+				$(SRCDIR)/ConnectionManager/IHandler.cpp \
 				$(SRCDIR)/socket_utils.cpp \
 				$(SRCDIR)/config.cpp
 
@@ -66,7 +67,7 @@ fclean:			clean
 
 re:				fclean all
 
-CONFIG		?=	config/1.conf
+CONFIG		?=	config/minimal1.conf
 
 test:			all
 				@printf "\n==============================================\n"
