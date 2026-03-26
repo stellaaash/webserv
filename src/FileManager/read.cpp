@@ -19,7 +19,7 @@ bool is_regular_file(const File_Path& path) {
     memset(&path_stat, 0, sizeof(path_stat));
     if (stat(path.c_str(), &path_stat) != 0) {
         perror("[is_regular_file] - stat");
-        return -1;
+        return false;
     }
     if (!S_ISREG(path_stat.st_mode)) {
         return false;
@@ -45,7 +45,7 @@ bool is_directory(const File_Path& path) {
     stat(path.c_str(), &path_stat);
     if (stat(path.c_str(), &path_stat) != 0) {
         perror("[is_regular_file] - stat");
-        return -1;
+        return false;
     }
     if (!S_ISDIR(path_stat.st_mode)) {
         return false;
@@ -53,7 +53,7 @@ bool is_directory(const File_Path& path) {
 
     int access_status = access(path.c_str(), W_OK);
     if (access_status != 0) {
-        if (access_status < 0) perror("[is_regular_file] - access");
+        if (access_status < 0) perror("[is_directory] - access");
         return false;
     }
 
