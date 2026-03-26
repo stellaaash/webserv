@@ -1,4 +1,6 @@
 #include <arpa/inet.h>
+#include <fcntl.h>
+#include <netinet/in.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
 
@@ -12,6 +14,7 @@
 #include "ConnectionManager.hpp"
 #include "Listener.hpp"
 #include "config.hpp"
+#include "file_manager.hpp"
 #include "socket_utils.hpp"
 
 volatile sig_atomic_t g_stop = 0;
@@ -25,11 +28,7 @@ int main(int argc, char** argv) {
 
     signal(SIGINT, clean_exit);
 
-    // Checks if config file is a "Regular" file (non folder/pipe/etc)
-    struct stat path_stat;
-    memset(&path_stat, 0, sizeof(path_stat));
-    stat(argv[1], &path_stat);
-    if (!S_ISREG(path_stat.st_mode)) {
+    if (!is_regular_file(argv[1])) {
         std::clog << "[!] - Failed to open configuration file." << std::endl;
         return 2;
     }
