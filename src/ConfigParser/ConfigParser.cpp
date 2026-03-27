@@ -118,6 +118,9 @@ static void check_config(const Config& config) {
         }
 
         for (LocationIter l = s->location.begin(); l != s->location.end(); ++l) {
+            if (l->second.allowed_methods.empty())
+                std::cerr << "[PARSING] - Location " << l->first << " is missing an allowed method."
+                          << std::endl;
             for (CgiIter j = l->second.cgi.begin(); j != l->second.cgi.end(); ++j) {
                 if (is_regular_file(j->second) == false) throw ParserError("Invalid cgi directive");
             }
@@ -341,15 +344,19 @@ Config_Location parse_location(token_iterator* t, token_iterator end) {
                     throw ParserError(tokens[0],
                                       "Wrong number of tokens in allowed_methods directive");
                 for (size_t i = 1; i < tokens.size() - 1; ++i) {
+                    HTTP_Method m;
                     if (tokens[i].word == "GET") {
-                        config.allowed_methods.insert(GET);
+                        m = GET;
                     } else if (tokens[i].word == "POST") {
-                        config.allowed_methods.insert(POST);
+                        m = POST;
                     } else if (tokens[i].word == "DELETE") {
-                        config.allowed_methods.insert(DELETE);
+                        m = DELETE;
                     } else {
                         throw ParserError(tokens[i], "Unknown HTTP method");
                     }
+                    if (config.allowed_methods.find(m) != config.allowed_methods.end())
+                        throw ParserError(tokens[i], "Duplicate allowed method");
+                    config.allowed_methods.insert(m);
                 }
             } else if (directive == "autoindex") {
                 if (tokens.size() != 3)
