@@ -50,23 +50,6 @@ const char* ParserError::what() const throw() {
 // =============================================================================
 
 /**
- * @brief Checks a string for a the right numbers in an IP address, so nothing higher
- * than 255 or lower than 0.
- *
- * @return 0 if the numbers are good; 1 if they aren't.
- */
-static int check_ip(std::string ip) {
-    size_t point = 0;
-    while (point < ip.npos) {
-        if (std::atol(ip.c_str()) < 0 || std::atol(ip.c_str()) > 255) return 1;
-        point = ip.find('.');
-        ip = ip.substr(point + 1, ip.npos);
-    }
-
-    return 0;
-}
-
-/**
  * @brief Checks a configuration for duplicates in its listen directives.
  * It tries to find the same combination of address and port, or an already existing
  * 0.0.0.0 (all interfaces, which means the port is used everywhere).
