@@ -9,7 +9,6 @@
 #include <iostream>
 
 #include "Request.hpp"
-#include "RequestParser.hpp"
 #include "Response.hpp"
 #include "config.hpp"
 
@@ -122,7 +121,7 @@ ssize_t Connection::receive_data() {
 }
 
 Status_Parsing Connection::parse_request() {
-    return RequestParser::parse(_read_buffer, _read_index, _request);
+    return parse(_read_buffer, _read_index, _request);
 }
 
 void Connection::queue_write(const std::string& data) {

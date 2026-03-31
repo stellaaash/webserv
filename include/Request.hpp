@@ -44,4 +44,6 @@ private:
     HTTP_Code      _error_status;
 };
 
+Status_Parsing parse(std::string& read_buffer, size_t& read_index, Request& request);
+
 #endif

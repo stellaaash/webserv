@@ -1,5 +1,3 @@
-#include "RequestParser.hpp"
-
 #include <sstream>
 #include <string>
 #include <vector>
@@ -40,19 +38,8 @@ static std::vector<std::string> split_header_values(const std::string& value) {
     return result;
 }
 
-Status_Parsing RequestParser::parse(std::string& read_buffer, size_t& read_index,
-                                    Request& request) {
-    if (request.status() == EMPTY) parse_request_line(read_buffer, read_index, request);
-
-    if (request.status() == REQUEST_LINE) parse_headers(read_buffer, read_index, request);
-
-    if (request.status() == BODY) parse_body(read_buffer, read_index, request);
-
-    return request.status();
-}
-
-Status_Parsing RequestParser::parse_request_line(const std::string& read_buffer, size_t& read_index,
-                                                 Request& request) {
+static Status_Parsing parse_request_line(const std::string& read_buffer, size_t& read_index,
+                                         Request& request) {
     if (request.status() != EMPTY) return request.status();
 
     std::string::size_type line_end = read_buffer.find("\r\n", read_index);
@@ -100,8 +87,8 @@ Status_Parsing RequestParser::parse_request_line(const std::string& read_buffer,
     return request.status();
 }
 
-Status_Parsing RequestParser::parse_headers(const std::string& read_buffer, size_t& read_index,
-                                            Request& request) {
+static Status_Parsing parse_headers(const std::string& read_buffer, size_t& read_index,
+                                    Request& request) {
     if (request.status() != REQUEST_LINE) return request.status();
 
     while (true) {
@@ -154,8 +141,8 @@ Status_Parsing RequestParser::parse_headers(const std::string& read_buffer, size
     }
 }
 
-Status_Parsing RequestParser::parse_body(const std::string& read_buffer, size_t& read_index,
-                                         Request& request) {
+static Status_Parsing parse_body(const std::string& read_buffer, size_t& read_index,
+                                 Request& request) {
     if (request.status() != BODY) return request.status();
 
     size_t expected = request.content_length();
@@ -168,6 +155,16 @@ Status_Parsing RequestParser::parse_body(const std::string& read_buffer, size_t&
 
     read_index += expected;
     request.set_status(PARSED);
+
+    return request.status();
+}
+
+Status_Parsing parse(std::string& read_buffer, size_t& read_index, Request& request) {
+    if (request.status() == EMPTY) parse_request_line(read_buffer, read_index, request);
+
+    if (request.status() == REQUEST_LINE) parse_headers(read_buffer, read_index, request);
+
+    if (request.status() == BODY) parse_body(read_buffer, read_index, request);
 
     return request.status();
 }
