@@ -131,7 +131,13 @@ bool ConnHandler::handle_event(ConnectionManager& manager, uint32_t events) {
             std::cout << "Request Status:" << req.status() << "\n";
             std::cout << "Method: " << req.method() << "\n";
             std::cout << "Target: " << req.target() << "\n";
-            std::cout << "Body: [" << req.body() << "]\n";
+            std::cout << "Body received: [" << req.body_received() << "]\n";
+            std::cout << "Is body spooled: [" << req.is_body_spooled() << "]\n";
+            if (req.is_body_spooled()) {
+                std::cout << "Body path: " << req.body_path() << "\n";
+            } else {
+                std::cout << "Body size (RAM): " << req.body().size() << "\n";
+            }
             std::cout << "----- [HEADERS] -----\n";
             for (HTTP_Message::header_iterator it = req.headers_begin(); it != req.headers_end();
                  ++it) {

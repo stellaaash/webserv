@@ -25,33 +25,6 @@ Connection::Connection(const Config_Server* const config, int socket)
     assert(socket > 2 && "Valid Socket Number");
 }
 
-Connection::Connection(const Connection& other)
-    : _config(other._config),
-      _request(other._request),
-      _response(other._response),
-      _socket(other._socket),
-      _read_buffer(),
-      _read_index(other._read_index),
-      _write_buffer(),
-      _write_index(other._write_index) {}
-
-const Connection& Connection::operator=(const Connection& other) {
-    if (this == &other) {
-        return *this;
-    }
-
-    _config = other._config;
-    _request = other._request;
-    _response = other._response;
-    _socket = other._socket;
-    _read_buffer = other._read_buffer;
-    _read_index = other._read_index;
-    _write_buffer = other._write_buffer;
-    _write_index = other._write_index;
-
-    return *this;
-}
-
 Connection::~Connection() {}
 
 const Request& Connection::request() const {
@@ -98,9 +71,6 @@ ssize_t Connection::receive_data() {
     while (true) {
         ssize_t n = recv(_socket, buffer, sizeof(buffer), 0);
         if (n > 0) {
-            std::cout << "[CONN " << _socket << "] buffer:" << std::endl;
-            std::cout.write(buffer, n);
-            std::cout << std::endl;
             _read_buffer.append(buffer, static_cast<size_t>(n));
             total += n;
         } else if (n == 0) {
@@ -109,19 +79,35 @@ ssize_t Connection::receive_data() {
             return 0;
         } else {
             if (errno == EAGAIN || errno == EWOULDBLOCK) break;  // nothing to read
-
-            std::cerr << "[Connection::receive_data] recv: " << strerror(errno) << std::endl;
+            std::cerr << "[Connection::receive_data] recv: " << std::strerror(errno) << std::endl;
             return -1;
         }
-        if (total > 0)
-            std::cout << "[CONN " << _socket << "] received " << n << " bytes" << std::endl;
     }
-    if (total > 0) return total;
-    return -1;
+    if (total > 0)
+        std::cout << "[CONN " << _socket << "] received " << total << " bytes" << std::endl;
+
+    return total;
+}
+
+void Connection::compact_read_buffer() {
+    if (_read_index == 0) return;
+
+    if (_read_index >= _read_buffer.size()) {
+        _read_buffer.clear();
+        _read_index = 0;
+        return;
+    }
+    // Clean buffer after consuming 8Kb or half the read buffer.
+    if (_read_index >= 8192 || _read_index * 2 >= _read_buffer.size()) {
+        _read_buffer.erase(0, _read_index);
+        _read_index = 0;
+    }
 }
 
 Status_Parsing Connection::parse_request() {
-    return parse(_read_buffer, _read_index, _request);
+    Status_Parsing status = parse(_read_buffer, _read_index, _request);
+    compact_read_buffer();
+    return status;
 }
 
 void Connection::queue_write(const std::string& data) {

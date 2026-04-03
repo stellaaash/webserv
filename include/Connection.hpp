@@ -13,8 +13,12 @@
 class Connection {
 public:
     Connection(const Config_Server* const, int socket);
+
+private:
     Connection(const Connection&);
-    const Connection& operator=(const Connection&);
+    Connection& operator=(const Connection&);
+
+public:
     ~Connection();
 
     const Request&  request() const;
@@ -27,6 +31,9 @@ public:
     void set_config(const Config_Server* const);
     void queue_write(const std::string& data);
     bool has_pending_write() const;
+
+private:
+    void compact_read_buffer();
 
 private:
     const Config_Server* _config;

@@ -1,3 +1,4 @@
+#include <limits>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -36,6 +37,23 @@ static std::vector<std::string> split_header_values(const std::string& value) {
     }
 
     return result;
+}
+
+static bool parse_content_length_value(const std::string& value, size_t& out) {
+    if (value.empty()) return false;
+
+    for (size_t i = 0; i < value.size(); ++i) {
+        if (!std::isdigit(static_cast<unsigned char>(value[i]))) return false;
+    }
+
+    std::istringstream stream(value);
+    unsigned long      parsed = 0;
+    stream >> parsed;
+    if (!stream || !stream.eof()) return false;
+    if (parsed > std::numeric_limits<size_t>::max()) return false;
+
+    out = static_cast<size_t>(parsed);
+    return true;
 }
 
 static Status_Parsing parse_request_line(const std::string& read_buffer, size_t& read_index,
@@ -100,21 +118,33 @@ static Status_Parsing parse_headers(const std::string& read_buffer, size_t& read
         if (line_end == read_index) {
             read_index += 2;
 
-            // if Headers include "Content-Length", set parse status as body
-            if (request.has_header("Content-Length")) {
-                HTTP_Message::header_iterator it = request.header("Content-Length");
-                std::istringstream            stream(it->second);
-                size_t                        len = 0;
-                if (!(stream >> len)) return request.status();  // TODO : Exception/Error on NaN
+            // if Headers include only one "Content-Length", set parse status as body
+            size_t content_length_count = 0;
+            size_t content_length_value = 0;
 
-                request.set_content_length(len);
-
-                if (len > 0) {
+            for (HTTP_Message::header_iterator it = request.headers_begin();
+                 it != request.headers_end(); ++it) {
+                if (it->first == "Content-Length") {
+                    ++content_length_count;
+                    if (content_length_count > 1) {
+                        request.set_error_status(400);
+                        request.set_status(ERROR);
+                        return request.status();
+                    }
+                    if (!parse_content_length_value(it->second, content_length_value)) {
+                        request.set_error_status(400);
+                        request.set_status(ERROR);
+                        return request.status();
+                    }
+                }
+            }
+            if (content_length_count == 1) {
+                request.set_content_length(content_length_value);
+                if (content_length_value > 0) {
                     request.set_status(BODY);
                     return request.status();
                 }
             }
-
             request.set_status(PARSED);
             return request.status();
         }
@@ -129,8 +159,12 @@ static Status_Parsing parse_headers(const std::string& read_buffer, size_t& read
 
         std::string key = trim(line.substr(0, colon));
         std::string value = trim(line.substr(colon + 1));
-        // Not all headers must be split. Set-cookies shouldn't
-        std::vector<std::string> values = split_header_values(value);
+        // Not all headers must be split
+        std::vector<std::string> values;
+        if (key == "Set-Cookie")
+            values.push_back(value);
+        else
+            values = split_header_values(value);
 
         if (values.empty()) {
             request.set_header(key, "");
@@ -146,15 +180,29 @@ static Status_Parsing parse_body(const std::string& read_buffer, size_t& read_in
     if (request.status() != BODY) return request.status();
 
     size_t expected = request.content_length();
+    size_t received = request.body_received();
+
+    if (received > expected) {
+        request.set_error_status(400);
+        request.set_status(ERROR);
+        return request.status();
+    }
+
+    size_t remaining = expected - received;
     size_t available = read_buffer.size() - read_index;
+    size_t chunk = std::min(remaining, available);
 
-    if (available < expected) return request.status();
+    if (chunk == 0) return request.status();
 
-    std::string body = read_buffer.substr(read_index, expected);
-    request.append_body(body);
+    if (!request.append_body_chunk(read_buffer.data() + read_index, chunk)) {
+        request.set_error_status(500);
+        request.set_status(ERROR);
+        return request.status();
+    }
 
-    read_index += expected;
-    request.set_status(PARSED);
+    read_index += chunk;
+
+    if (request.body_received() == expected) request.set_status(PARSED);
 
     return request.status();
 }
