@@ -140,6 +140,11 @@ static Status_Parsing parse_headers(const std::string& read_buffer, size_t& read
             }
             if (content_length_count == 1) {
                 request.set_content_length(content_length_value);
+                if (content_length_value > request.client_max_body_size()) {
+                    request.set_error_status(413);  // Payload too large
+                    request.set_status(ERROR);
+                    return request.status();
+                }
                 if (content_length_value > 0) {
                     request.set_status(BODY);
                     return request.status();

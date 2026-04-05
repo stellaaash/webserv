@@ -22,6 +22,7 @@ Request::Request()
     : _config(NULL),
       _target(""),
       _content_length(0),
+      _client_max_body_size(0),
       _body_received(0),
       _method(UNDEFINED),
       _status(EMPTY),
@@ -35,6 +36,7 @@ Request::Request(const Config_Location* const config, HTTP_Method method)
     : _config(config),
       _target(""),
       _content_length(0),
+      _client_max_body_size(0),
       _body_received(0),
       _method(method),
       _status(EMPTY),
@@ -64,6 +66,13 @@ const std::string& Request::target() const {
 
 size_t Request::content_length() const {
     return _content_length;
+}
+
+size_t Request::client_max_body_size() const {
+    return _client_max_body_size;
+}
+void Request::set_client_max_body_size(size_t client_max_body_size) {
+    _client_max_body_size = client_max_body_size;
 }
 
 size_t Request::body_received() const {
@@ -180,7 +189,7 @@ bool Request::flush_memory_body_to_file() {
 void Request::cleanup_temp_file() {
     if (_body_fd >= 0) {
         ::close(_body_fd);
-        ::unlink(_body_path.c_str());
+        ::remove(_body_path.c_str());
         _body_fd = -1;
     }
 }

@@ -124,6 +124,8 @@ bool ConnHandler::handle_event(ConnectionManager& manager, uint32_t events) {
         if (r == ERROR) {
             HTTP_Code code = _conn.request().error_status();
             _conn.queue_write(error_response(code));
+            _conn.send_data();
+            return false;
         }
         if (r == PARSED) {
             const Request& req = _conn.request();

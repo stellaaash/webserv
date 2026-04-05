@@ -23,6 +23,7 @@ Connection::Connection(const Config_Server* const config, int socket)
       _write_index(0) {
     assert(config && "Config_Server pointer");
     assert(socket > 2 && "Valid Socket Number");
+    _request.set_client_max_body_size(_config->client_max_body_size);
 }
 
 Connection::~Connection() {}

@@ -29,6 +29,7 @@ public:
     Status_Parsing     status() const;
     const std::string& target() const;
     size_t             content_length() const;
+    size_t             client_max_body_size() const;
     size_t             body_received() const;
     HTTP_Code          error_status() const;
 
@@ -40,6 +41,7 @@ public:
     void set_status(Status_Parsing);
     void set_target(const std::string&);
     void set_content_length(size_t);
+    void set_client_max_body_size(size_t);
     void set_error_status(HTTP_Code);
 
     bool append_body_chunk(const char* data, size_t len);
@@ -55,6 +57,7 @@ private:
 
     std::string    _target;
     size_t         _content_length;
+    size_t         _client_max_body_size;
     size_t         _body_received;
     HTTP_Method    _method;
     Status_Parsing _status;
