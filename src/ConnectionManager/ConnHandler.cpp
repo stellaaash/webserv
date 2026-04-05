@@ -4,16 +4,11 @@
 
 #include <cstdio>
 #include <iostream>
+#include <sstream>
 
 #include "ConnectionManager.hpp"
 #include "Request.hpp"
 #include "config.hpp"
-
-static std::string itoa(int n) {
-    char buf[32];
-    std::sprintf(buf, "%d", n);
-    return std::string(buf);
-}
 
 static std::string error_response(HTTP_Code code) {
     std::string reason;
@@ -48,32 +43,33 @@ static std::string error_response(HTTP_Code code) {
             break;
     }
 
-    std::string body = itoa(static_cast<int>(code)) + " " + reason + "\n";
+    int code_int = static_cast<int>(code);
 
-    char lenbuf[32];
-    std::sprintf(lenbuf, "%lu", (unsigned long)body.size());
+    std::ostringstream body_stream;
+    body_stream << code_int << " " << reason << "\n";
+    std::string body = body_stream.str();
 
-    return "HTTP/1.1 " + itoa(static_cast<int>(code)) + " " + reason +
-           "\r\n"
-           "Content-Type: text/plain\r\n"
-           "Content-Length: " +
-           std::string(lenbuf) +
-           "\r\n"
-           "Connection: close\r\n"
-           "\r\n" +
-           body;
+    std::ostringstream response;
+    response << "HTTP/1.1 " << code_int << " " << reason << "\r\n"
+             << "Content-Type: text/plain\r\n"
+             << "Content-Length: " << body.size() << "\r\n"
+             << "Connection: close\r\n"
+             << "\r\n"
+             << body;
+
+    return response.str();
 }
 
 static std::string hello_response() {
     const std::string body = "Hello\n";
-    char              lenbuf[32];
 
-    std::sprintf(lenbuf, "%lu", (unsigned long)body.size());
+    std::ostringstream oss;
+    oss << body.size();
 
     return "HTTP/1.1 200 OK\r\n"
            "Content-Type: text/plain\r\n"
            "Content-Length: " +
-           std::string(lenbuf) +
+           oss.str() +
            "\r\n"
            "Connection: keep-alive\r\n"
            "\r\n" +
