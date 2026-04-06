@@ -113,7 +113,24 @@ FilePath standardize_path(const std::string& path) {
     return standardized;
 }
 
-// TODO: function to check if a standardized path is higher than a root
+/**
+ * @brief This functions checks whether a path is "under" a directory, that is, whether it is
+ * contained within it or one of its subdirectories.
+ *
+ * @description Important: Both arguments must be standardized, absolute paths.
+ * It is worth noting that the directory itself is considered to be "under" itself (as `.`).
+ * Also worth noting that this function does not check for the existence of a file at `path`, and
+ * will return true if the path is theorically under the directory.
+ * @see standardize_path()
+ */
+bool is_under_directory(const File_Path& path, const File_Path& directory) {
+    if (directory.length() > path.length()) return false;
+
+    for (size_t i = 0; i < directory.length(); ++i) {
+        if (directory[i] != path[i]) return false;
+    }
+    return true;
+}
 
 /**
  * @brief Gets a file descriptor for a give file path.
