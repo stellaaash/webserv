@@ -5,6 +5,9 @@
 #include <cassert>
 #include <cstdio>
 #include <cstring>
+#include <stack>
+#include <string>
+#include <vector>
 
 #include "file_manager.hpp"
 
@@ -62,19 +65,51 @@ bool is_directory(const FilePath& path) {
 /**
  * @brief Standardizes a file path.
  *
- * @description Removes a potential trailing slash.
+ * @description Removes a potential trailing slash, as well as processing .. or . tokens.
  */
 FilePath standardize_path(const std::string& path) {
     assert(path.empty() == false && "Empty path");
 
-    std::string standardized = path;
+    std::stack<std::string> tokens;
+    size_t                  begin = 0;
+    for (size_t i = 0; i < path.size(); ++i) {
+        std::string folder_name;
+        if (path[i] == '/') {  // End of the folder name
+            folder_name = path.substr(begin, i - begin);
+            begin = i + 1;
+        } else if (i == path.size() - 1) {  // End of the path
+            folder_name = path.substr(begin, i - begin + 1);
+            begin = i + 1;
+        }
 
-    if (standardized.at(standardized.size() - 1) == '/') {
-        standardized.erase(standardized.size() - 1, standardized.size());
+        if (folder_name == ".")
+            ;
+        else if (folder_name == "..")
+            tokens.pop();
+        else if (!folder_name.empty())
+            tokens.push(folder_name);
+    }
+
+    std::vector<std::string> in_order_tokens;
+    while (!tokens.empty()) {
+        in_order_tokens.insert(in_order_tokens.begin(), tokens.top());
+        tokens.pop();
+    }
+
+    File_Path standardized;
+    if (path[0] != '/')  // If path is relative
+        standardized = working_directory;
+    for (std::vector<std::string>::const_iterator i = in_order_tokens.begin();
+         i != in_order_tokens.end(); ++i) {
+        if (i->empty()) continue;
+        standardized.append("/");
+        standardized.append(*i);
     }
 
     return standardized;
 }
+
+// TODO: function to check if a standardized path is higher than a root
 
 /**
  * @brief Gets a file descriptor for a give file path.

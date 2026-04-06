@@ -362,7 +362,7 @@ ConfigLocation parse_location(TokenIterator* t, TokenIterator end) {
             } else if (directive == "index") {
                 if (tokens.size() < 3)
                     throw ParserError(tokens[0], "Wrong number of tokens in index directive");
-                config.index = config.root + "/" + standardize_path(tokens[1].word);
+                config.index = config.root + "/" + tokens[1].word;
             } else if (directive == "redirect") {
                 if (tokens.size() != 4)
                     throw ParserError(tokens[0], "Wrong number of tokens in redirect directive");
