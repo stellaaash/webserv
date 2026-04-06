@@ -70,23 +70,29 @@ bool is_directory(const FilePath& path) {
 FilePath standardize_path(const std::string& path) {
     assert(path.empty() == false && "Empty path");
 
+    std::string full_path;
+    if (path[0] != '/')  // If path is relative
+        full_path = working_directory + "/" + path;
+    else
+        full_path = path;
+
     std::stack<std::string> tokens;
     size_t                  begin = 0;
-    for (size_t i = 0; i < path.size(); ++i) {
+    for (size_t i = 0; i < full_path.size(); ++i) {
         std::string folder_name;
-        if (path[i] == '/') {  // End of the folder name
-            folder_name = path.substr(begin, i - begin);
+        if (full_path[i] == '/') {  // End of the folder name
+            folder_name = full_path.substr(begin, i - begin);
             begin = i + 1;
-        } else if (i == path.size() - 1) {  // End of the path
-            folder_name = path.substr(begin, i - begin + 1);
+        } else if (i == full_path.size() - 1) {  // End of the path
+            folder_name = full_path.substr(begin, i - begin + 1);
             begin = i + 1;
         }
 
         if (folder_name == ".")
             ;
-        else if (folder_name == "..")
-            tokens.pop();
-        else if (!folder_name.empty())
+        else if (folder_name == "..") {
+            if (!tokens.empty()) tokens.pop();
+        } else if (!folder_name.empty())
             tokens.push(folder_name);
     }
 
@@ -97,8 +103,6 @@ FilePath standardize_path(const std::string& path) {
     }
 
     File_Path standardized;
-    if (path[0] != '/')  // If path is relative
-        standardized = working_directory;
     for (std::vector<std::string>::const_iterator i = in_order_tokens.begin();
          i != in_order_tokens.end(); ++i) {
         if (i->empty()) continue;
