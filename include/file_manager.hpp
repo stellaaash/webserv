@@ -8,6 +8,9 @@
 
 typedef std::string FilePath;
 
+// Stores the working directory of the server
+extern File_Path working_directory;
+
 /**
  * @brief Defines the type of a FilePath, whether it is a standard file or a folder.
  */
