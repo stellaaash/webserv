@@ -1,5 +1,5 @@
-#ifndef SIGNALSTATE_HPP
-#define SIGNALSTATE_HPP
+#ifndef SIGNAL_STATE_HPP
+#define SIGNAL_STATE_HPP
 
 #include <csignal>
 

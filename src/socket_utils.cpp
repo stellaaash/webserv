@@ -24,10 +24,10 @@ int set_nonblocking(int fd) {
 /**
  * @brief Creates a vector of listening sockets based on all listen directives in a server context.
  */
-std::vector<int> make_listen_sockets(const Config_Server& config) {
+std::vector<int> make_listen_sockets(const ConfigServer& config) {
     std::vector<int> fds;
 
-    for (ListenIter l = config.listen.begin(); l != config.listen.end(); ++l) {
+    for (ListenIterator l = config.listen.begin(); l != config.listen.end(); ++l) {
         const struct sockaddr_in& address = *l;
         int                       fd = socket(AF_INET, SOCK_STREAM, 0);
         if (fd < 0) throw;

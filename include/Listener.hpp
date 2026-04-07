@@ -8,7 +8,7 @@
 
 class Listener : public IHandler {
 public:
-    Listener(const Config_Server* srv, int listen_fd);
+    Listener(const ConfigServer* srv, int listen_fd);
     virtual ~Listener();
 
     virtual int      fd() const;
@@ -16,8 +16,8 @@ public:
     virtual bool     handle_event(ConnectionManager& manager, uint32_t events);
 
 private:
-    const Config_Server* _srv;
-    int                  _fd;
+    const ConfigServer* _srv;
+    int                 _fd;
 
     Listener(const Listener&);
     Listener& operator=(const Listener&);

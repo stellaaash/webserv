@@ -1,4 +1,4 @@
-#include "ConnHandler.hpp"
+#include "ConnectionHandler.hpp"
 
 #include <sys/epoll.h>
 
@@ -10,7 +10,7 @@
 #include "Request.hpp"
 #include "config.hpp"
 
-static std::string error_response(HTTP_Code code) {
+static std::string error_response(HttpCode code) {
     std::string reason;
 
     switch (code) {
@@ -76,19 +76,19 @@ static std::string hello_response() {
            body;
 }
 
-ConnHandler::ConnHandler(const Config_Server* srv, int client_fd)
+ConnectionHandler::ConnectionHandler(const ConfigServer* srv, int client_fd)
     : _fd(client_fd),
       _conn(srv, client_fd),
       _last_activity(std::time(NULL)),
       _timeout(static_cast<long>(srv->timeout)) {}
 
-ConnHandler::~ConnHandler() {}
+ConnectionHandler::~ConnectionHandler() {}
 
-int ConnHandler::fd() const {
+int ConnectionHandler::fd() const {
     return _fd;
 }
 
-uint32_t ConnHandler::interests() const {
+uint32_t ConnectionHandler::interests() const {
     // EPOLLOUT only when something must be sent back, else stay ready to listen
     if (_conn.has_pending_write())
         return EPOLLIN | EPOLLOUT;
@@ -96,12 +96,12 @@ uint32_t ConnHandler::interests() const {
         return EPOLLIN;
 }
 
-bool ConnHandler::is_timed_out() const {
+bool ConnectionHandler::is_timed_out() const {
     std::cout << _timeout << std::endl;
     return (std::time(NULL) - _last_activity) > _timeout;
 }
 
-bool ConnHandler::handle_event(ConnectionManager& manager, uint32_t events) {
+bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events) {
     (void)manager;
 
     if (events & (EPOLLERR | EPOLLHUP)) {
@@ -116,9 +116,9 @@ bool ConnHandler::handle_event(ConnectionManager& manager, uint32_t events) {
         if (n < 0) return false;
         if (n == 0) return false;  // temp to avoid infinite calls when closed by client
 
-        Status_Parsing r = _conn.parse_request();
+        ParsingStatus r = _conn.parse_request();
         if (r == ERROR) {
-            HTTP_Code code = _conn.request().error_status();
+            HttpCode code = _conn.request().error_status();
             _conn.queue_write(error_response(code));
             _conn.send_data();
             return false;
@@ -137,7 +137,7 @@ bool ConnHandler::handle_event(ConnectionManager& manager, uint32_t events) {
                 std::cout << "Body size (RAM): " << req.body().size() << "\n";
             }
             std::cout << "----- [HEADERS] -----\n";
-            for (HTTP_Message::header_iterator it = req.headers_begin(); it != req.headers_end();
+            for (HttpMessage::HeaderIterator it = req.headers_begin(); it != req.headers_end();
                  ++it) {
                 std::cout << it->first << ": " << it->second << "\n";
             }

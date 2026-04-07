@@ -3,26 +3,26 @@
 
 #include <string>
 
-#include "HTTP_Message.hpp"
+#include "HttpMessage.hpp"
 #include "config.hpp"
 
-class Response : public HTTP_Message {
+class Response : public HttpMessage {
 public:
     Response();
     Response(const Response&);
     const Response& operator=(const Response&);
     ~Response();
 
-    HTTP_Code          code() const;
+    HttpCode           code() const;
     const std::string& response_string() const;
 
-    void set_code(HTTP_Code);
+    void set_code(HttpCode);
     void set_response_string(const std::string&);
 
     std::string serialize() const;
 
 private:
-    HTTP_Code   _code;
+    HttpCode    _code;
     std::string _response_string;
 };
 

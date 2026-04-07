@@ -4,8 +4,8 @@
 #include <exception>
 #include <fstream>
 
-#include "ConfigLexer.hpp"
 #include "config.hpp"
+#include "config_lexer.hpp"
 
 class ParserError : public std::exception {
 public:
@@ -22,8 +22,8 @@ private:
 
 Config parse_file(std::ifstream&);
 
-Config          parse_config(token_iterator, token_iterator end);
-Config_Server   parse_server(token_iterator*, token_iterator end);
-Config_Location parse_location(token_iterator*, token_iterator end);
+Config         parse_config(TokenIterator, TokenIterator end);
+ConfigServer   parse_server(TokenIterator*, TokenIterator end);
+ConfigLocation parse_location(TokenIterator*, TokenIterator end);
 
 #endif
