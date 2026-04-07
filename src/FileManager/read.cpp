@@ -140,10 +140,7 @@ bool is_under_directory(const File_Path& path, const File_Path& directory) {
 int fetch_file(const FilePath& path) {
     int fd = open(path.c_str(), O_RDONLY);
 
-    if (fd < 0) {
-        perror("[fetch_file] - open");
-        return -1;
-    }
+    if (fd < 0) return -1;
 
     return fd;
 }
