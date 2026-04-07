@@ -31,6 +31,10 @@ const std::string& Response::response_string() const {
     return _response_string;
 }
 
+void Response::set_fd(int fd) {
+    _fd = fd;
+}
+
 void Response::set_code(HttpCode code) {
     assert(code >= 100 && code <= 599 && "Correct HTTP Code");
     _code = code;

@@ -16,12 +16,14 @@ public:
     HttpCode           code() const;
     const std::string& response_string() const;
 
+    void set_fd(int);
     void set_code(HttpCode);
     void set_response_string(const std::string&);
 
     std::string serialize() const;
 
 private:
+    int         _fd;
     HttpCode    _code;
     std::string _response_string;
 };
