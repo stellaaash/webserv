@@ -3,6 +3,7 @@
 #include <unistd.h>
 
 #include <cerrno>
+#include <cstddef>
 #include <cstdio>
 #include <cstring>
 #include <iostream>
@@ -80,7 +81,7 @@ void ConnectionManager::run() {
 
     while (!g_stop) {
         // returns the amount of fds ready for io operations
-        int fds = epoll_wait(_epfd, events, 64, -1);
+        int fds = epoll_wait(_epfd, events, 64, 10000);
         if (fds < 0) {
             std::cerr << "[ConnectionManager::run] epoll_wait: " << strerror(errno) << std::endl;
             continue;
@@ -98,6 +99,17 @@ void ConnectionManager::run() {
             } else {
                 // if interests() changed. IN/OUT
                 mod(h);
+            }
+        }
+        for (std::map<int, IHandler*>::iterator it = _handlers.begin(); it != _handlers.end();) {
+            IHandler* h = it->second;
+
+            if (h->is_timed_out()) {
+                std::cout << "[TIMEOUT] fd=" << h->fd() << std::endl;
+                ++it;
+                del(h);
+            } else {
+                ++it;
             }
         }
     }
