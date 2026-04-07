@@ -57,8 +57,8 @@ static bool parse_content_length_value(const std::string& value, size_t& out) {
     return true;
 }
 
-static Status_Parsing parse_request_line(const std::string& read_buffer, size_t& read_index,
-                                         Request& request) {
+static ParsingStatus parse_request_line(const std::string& read_buffer, size_t& read_index,
+                                        Request& request) {
     if (request.status() != EMPTY) return request.status();
 
     std::string::size_type line_end = read_buffer.find("\r\n", read_index);
@@ -106,8 +106,8 @@ static Status_Parsing parse_request_line(const std::string& read_buffer, size_t&
     return request.status();
 }
 
-static Status_Parsing parse_headers(const std::string& read_buffer, size_t& read_index,
-                                    Request& request) {
+static ParsingStatus parse_headers(const std::string& read_buffer, size_t& read_index,
+                                   Request& request) {
     if (request.status() != REQUEST_LINE) return request.status();
 
     while (true) {
@@ -123,7 +123,7 @@ static Status_Parsing parse_headers(const std::string& read_buffer, size_t& read
             size_t content_length_count = 0;
             size_t content_length_value = 0;
 
-            for (HTTP_Message::header_iterator it = request.headers_begin();
+            for (HttpMessage::HeaderIterator it = request.headers_begin();
                  it != request.headers_end(); ++it) {
                 if (it->first == "Content-Length") {
                     ++content_length_count;
@@ -181,8 +181,8 @@ static Status_Parsing parse_headers(const std::string& read_buffer, size_t& read
     }
 }
 
-static Status_Parsing parse_body(const std::string& read_buffer, size_t& read_index,
-                                 Request& request) {
+static ParsingStatus parse_body(const std::string& read_buffer, size_t& read_index,
+                                Request& request) {
     if (request.status() != BODY) return request.status();
 
     size_t expected = request.content_length();
@@ -213,7 +213,7 @@ static Status_Parsing parse_body(const std::string& read_buffer, size_t& read_in
     return request.status();
 }
 
-Status_Parsing parse(std::string& read_buffer, size_t& read_index, Request& request) {
+ParsingStatus parse(std::string& read_buffer, size_t& read_index, Request& request) {
     if (request.status() == EMPTY) parse_request_line(read_buffer, read_index, request);
 
     if (request.status() == REQUEST_LINE) parse_headers(read_buffer, read_index, request);

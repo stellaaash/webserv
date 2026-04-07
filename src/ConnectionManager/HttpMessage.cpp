@@ -55,14 +55,14 @@ void HttpMessage::append_body(const std::string& data) {
     _body.append(data);
 }
 
-bool HTTP_Message::has_header(const std::string& header_name) const {
+bool HttpMessage::has_header(const std::string& header_name) const {
     return _headers.find(header_name) != _headers.end();
 }
 
-HTTP_Message::header_iterator HTTP_Message::headers_begin() const {
+HttpMessage::HeaderIterator HttpMessage::headers_begin() const {
     return _headers.begin();
 }
 
-HTTP_Message::header_iterator HTTP_Message::headers_end() const {
+HttpMessage::HeaderIterator HttpMessage::headers_end() const {
     return _headers.end();
 }

@@ -10,7 +10,7 @@
 #include "Request.hpp"
 #include "config.hpp"
 
-static std::string error_response(HTTP_Code code) {
+static std::string error_response(HttpCode code) {
     std::string reason;
 
     switch (code) {
@@ -116,9 +116,9 @@ bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events
         if (n < 0) return false;
         if (n == 0) return false;  // temp to avoid infinite calls when closed by client
 
-        Status_Parsing r = _conn.parse_request();
+        ParsingStatus r = _conn.parse_request();
         if (r == ERROR) {
-            HTTP_Code code = _conn.request().error_status();
+            HttpCode code = _conn.request().error_status();
             _conn.queue_write(error_response(code));
             _conn.send_data();
             return false;
@@ -137,7 +137,7 @@ bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events
                 std::cout << "Body size (RAM): " << req.body().size() << "\n";
             }
             std::cout << "----- [HEADERS] -----\n";
-            for (HTTP_Message::header_iterator it = req.headers_begin(); it != req.headers_end();
+            for (HttpMessage::HeaderIterator it = req.headers_begin(); it != req.headers_end();
                  ++it) {
                 std::cout << it->first << ": " << it->second << "\n";
             }

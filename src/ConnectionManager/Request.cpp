@@ -53,7 +53,7 @@ Request::~Request() {
     cleanup_temp_file();
 }
 
-HTTP_Method Request::method() const {
+HttpMethod Request::method() const {
     return _method;
 }
 
@@ -81,7 +81,7 @@ size_t Request::body_received() const {
     return _body_received;
 }
 
-HTTP_Code Request::error_status() const {
+HttpCode Request::error_status() const {
     return _error_status;
 }
 
@@ -120,7 +120,7 @@ void Request::set_content_length(size_t content_length) {
     _content_length = content_length;
 }
 
-void Request::set_error_status(HTTP_Code code) {
+void Request::set_error_status(HttpCode code) {
     _error_status = code;
 }
 
