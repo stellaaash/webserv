@@ -334,7 +334,7 @@ ConfigLocation parse_location(TokenIterator* t, TokenIterator end) {
                     throw ParserError(tokens[0],
                                       "Wrong number of tokens in allowed_methods directive");
                 for (size_t i = 1; i < tokens.size() - 1; ++i) {
-                    HTTP_Method m;
+                    HttpMethod m;
                     if (tokens[i].word == "GET") {
                         m = GET;
                     } else if (tokens[i].word == "POST") {
