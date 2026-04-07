@@ -126,7 +126,7 @@ bool Request::write_all(int fd, const char* data, size_t len) {
     size_t written = 0;
 
     while (written < len) {
-        ssize_t n = ::write(fd, data + written, len - written);
+        ssize_t n = write(fd, data + written, len - written);
         if (n < 0) {
             perror("[Request] write");
             return false;
@@ -140,7 +140,7 @@ bool Request::open_temp_body_file() {
     if (_body_fd >= 0) return true;
 
     struct stat st;
-    if (::stat("tmp", &st) == -1 || !S_ISDIR(st.st_mode)) {
+    if (stat("tmp", &st) == -1 || !S_ISDIR(st.st_mode)) {
         std::cerr << "[Request::open_temp_body_file] tmp directory missing\n";
         return false;
     }
@@ -153,7 +153,7 @@ bool Request::open_temp_body_file() {
 
         std::string path = oss.str();
 
-        int fd = ::open(path.c_str(), O_WRONLY | O_CREAT | O_EXCL, 0644);
+        int fd = open(path.c_str(), O_WRONLY | O_CREAT | O_EXCL, 0644);
         if (fd >= 0) {
             _body_fd = fd;
             _body_path = path;
@@ -188,8 +188,8 @@ bool Request::flush_memory_body_to_file() {
 
 void Request::cleanup_temp_file() {
     if (_body_fd >= 0) {
-        ::close(_body_fd);
-        ::remove(_body_path.c_str());
+        close(_body_fd);
+        remove(_body_path.c_str());
         _body_fd = -1;
     }
 }
