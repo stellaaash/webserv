@@ -13,12 +13,6 @@
 class Connection {
 public:
     Connection(const Config_Server* const, int socket);
-
-private:
-    Connection(const Connection&);
-    Connection& operator=(const Connection&);
-
-public:
     ~Connection();
 
     const Request&  request() const;
@@ -36,6 +30,9 @@ private:
     void compact_read_buffer();
 
 private:
+    Connection(const Connection&);
+    Connection& operator=(const Connection&);
+
     const Config_Server* _config;
 
     Request  _request;

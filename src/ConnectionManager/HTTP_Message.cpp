@@ -55,8 +55,7 @@ void HTTP_Message::append_body(const std::string& data) {
 }
 
 bool HTTP_Message::has_header(const std::string& header_name) const {
-    header_iterator it = _headers.lower_bound(header_name);
-    return it != _headers.end() && it->first == header_name;
+    return _headers.find(header_name) != _headers.end();
 }
 
 HTTP_Message::header_iterator HTTP_Message::headers_begin() const {

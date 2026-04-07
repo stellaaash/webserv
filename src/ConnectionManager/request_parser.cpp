@@ -6,13 +6,14 @@
 #include "Request.hpp"
 
 static std::string trim(const std::string& s) {
-    size_t start = 0;
-    while (start < s.size() && (s[start] == ' ' || s[start] == '\t')) ++start;
+    const std::string whitespace = " \t\n\r\f\v";
 
-    size_t end = s.size();
-    while (end > start && (s[end - 1] == ' ' || s[end - 1] == '\t')) --end;
+    size_t start = s.find_first_not_of(whitespace);
+    if (start == std::string::npos) return "";
 
-    return s.substr(start, end - start);
+    size_t end = s.find_last_not_of(whitespace);
+
+    return s.substr(start, end - start + 1);
 }
 
 static std::vector<std::string> split_header_values(const std::string& value) {

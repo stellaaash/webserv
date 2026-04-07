@@ -17,12 +17,6 @@ class Request : public HTTP_Message {
 public:
     Request();
     Request(const Config_Location* const, HTTP_Method);
-
-private:
-    Request(const Request&);
-    const Request& operator=(const Request&);
-
-public:
     ~Request();
 
     HTTP_Method        method() const;
@@ -47,12 +41,14 @@ public:
     bool append_body_chunk(const char* data, size_t len);
 
 private:
+    Request(const Request&);
+    const Request& operator=(const Request&);
+
     bool open_temp_body_file();
     bool flush_memory_body_to_file();
     bool write_all(int fd, const char* data, size_t len);
     void cleanup_temp_file();
 
-private:
     const Config_Location* _config;
 
     std::string    _target;
