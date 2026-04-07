@@ -54,6 +54,10 @@ Request::~Request() {
     }
 }
 
+const ConfigLocation* Request::config() const {
+    return _config;
+}
+
 HttpMethod Request::method() const {
     return _method;
 }

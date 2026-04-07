@@ -19,13 +19,14 @@ public:
     Request(const ConfigLocation* const, HttpMethod);
     ~Request();
 
-    HttpMethod         method() const;
-    ParsingStatus      status() const;
-    const std::string& target() const;
-    size_t             content_length() const;
-    size_t             client_max_body_size() const;
-    size_t             body_received() const;
-    HttpCode           error_status() const;
+    const Config_Location* config() const;
+    HttpMethod             method() const;
+    ParsingStatus          status() const;
+    const std::string&     target() const;
+    size_t                 content_length() const;
+    size_t                 client_max_body_size() const;
+    size_t                 body_received() const;
+    HttpCode               error_status() const;
 
     bool               is_body_spooled() const;
     const std::string& body_path() const;
