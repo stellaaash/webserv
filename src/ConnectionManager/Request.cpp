@@ -124,6 +124,12 @@ void Request::set_error_status(HttpCode code) {
     _error_status = code;
 }
 
+/**
+ * @brief Attempts to create a temporary file for the body of the Request.
+ * Attempts to create the file using 128 file names before giving up if all of them already exist.
+ * Theorically, a file should be created in the first few attempts,
+ * otherwise something is seriously wrong.
+ */
 bool Request::open_temp_body_file() {
     if (_body_fd >= 0) return true;
 
@@ -134,21 +140,27 @@ bool Request::open_temp_body_file() {
 
     static unsigned long counter = 0;
 
-    std::ostringstream oss;
-    oss << "tmp/webserv_body_" << reinterpret_cast<unsigned long>(this) << "_" << counter++;
+    for (int attempt = 0; attempt < 128; ++attempt) {
+        std::ostringstream oss;
+        oss << "tmp/webserv_body_" << reinterpret_cast<unsigned long>(this) << "_" << counter++;
 
-    std::string path = oss.str();
+        const std::string path = oss.str();
 
-    int fd = create_file(path);
-    _body_fd = fd;
-    _body_path = path;
+        int fd = create_file(path);
 
-    if (fd < 0 && errno != EEXIST) {
-        std::cerr << "[open_temp_body_file] failed to create unique temp file" << std::endl;
-        perror("[open_temp_body_file] - create_file");
-        return false;
+        if (fd >= 0) {
+            _body_fd = fd;
+            _body_path = path;
+            return true;
+        }
+
+        if (errno != EEXIST) {
+            perror("[open_temp_body_file] - create_file");
+            return false;
+        }
     }
-    return true;
+    std::cerr << "[open_temp_body_file] failed to create unique temp file" << std::endl;
+    return false;
 }
 
 /**
@@ -174,6 +186,10 @@ void Request::cleanup_temp_file() {
     _body_fd = -1;
 }
 
+/**
+ * @brief Appends a chunk of data received to the body of the request. This body can be stored
+ * either in memory as a string, or in a file on disk.
+ */
 bool Request::append_body_chunk(const char* data, size_t len) {
     if (len == 0) return true;
 
