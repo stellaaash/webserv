@@ -76,6 +76,29 @@ static std::string hello_response() {
            body;
 }
 
+/**
+ * @brief Prints a request's status, as well as its body information and headers.
+ */
+static void log_request(const Request& request) {
+    std::cout << "----- [REQUEST] -----\n";
+    std::cout << "Request Status:" << request.status() << "\n";
+    std::cout << "Method: " << request.method() << "\n";
+    std::cout << "Target: " << request.target() << "\n";
+    std::cout << "Body received: [" << request.body_received() << "]\n";
+    std::cout << "Is body spooled: [" << request.is_body_spooled() << "]\n";
+    if (request.is_body_spooled()) {
+        std::cout << "Body path: " << request.body_path() << "\n";
+    } else {
+        std::cout << "Body size (RAM): " << request.body().size() << "\n";
+    }
+    std::cout << "----- [HEADERS] -----\n";
+    for (HttpMessage::HeaderIterator it = request.headers_begin(); it != request.headers_end();
+         ++it) {
+        std::cout << it->first << ": " << it->second << "\n";
+    }
+    std::cout << "----- [REQ END] -----" << "\n\n\n";
+}
+
 ConnectionHandler::ConnectionHandler(const ConfigServer* srv, int client_fd)
     : _fd(client_fd),
       _conn(srv, client_fd),
@@ -101,6 +124,16 @@ bool ConnectionHandler::is_timed_out() const {
     return (std::time(NULL) - _last_activity) > _timeout;
 }
 
+/**
+ * @brief This functions handles an event happening over a connection; either data arrived or is
+ * ready to be sent.
+ *
+ * In any case, if any error occurs, or if the data was fully sent or received, it closes the
+ * connection by returning `false`. Returning `true` keeps the connection alive upstream.
+ */
+// TODO Still now sure why we need the manager in this function?
+// In any case, having this function do something with the manager is really obfuscated, which is
+// bad and we should avoid
 bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events) {
     (void)manager;
 
@@ -125,23 +158,7 @@ bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events
         }
         if (r == PARSED) {
             const Request& req = _conn.request();
-            std::cout << "----- [REQUEST] -----\n";
-            std::cout << "Request Status:" << req.status() << "\n";
-            std::cout << "Method: " << req.method() << "\n";
-            std::cout << "Target: " << req.target() << "\n";
-            std::cout << "Body received: [" << req.body_received() << "]\n";
-            std::cout << "Is body spooled: [" << req.is_body_spooled() << "]\n";
-            if (req.is_body_spooled()) {
-                std::cout << "Body path: " << req.body_path() << "\n";
-            } else {
-                std::cout << "Body size (RAM): " << req.body().size() << "\n";
-            }
-            std::cout << "----- [HEADERS] -----\n";
-            for (HttpMessage::HeaderIterator it = req.headers_begin(); it != req.headers_end();
-                 ++it) {
-                std::cout << it->first << ": " << it->second << "\n";
-            }
-            std::cout << "----- [REQ END] -----" << "\n\n\n";
+            log_request(req);
         }
 
         if (!_conn.has_pending_write() && r == PARSED) {
