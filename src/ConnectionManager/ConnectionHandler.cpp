@@ -96,7 +96,7 @@ static void log_request(const Request& request) {
          ++it) {
         std::cout << it->first << ": " << it->second << "\n";
     }
-    std::cout << "----- [REQ END] -----" << "\n\n\n";
+    std::cout << "----- [REQ END] -----" << "\n";
 }
 
 ConnectionHandler::ConnectionHandler(const ConfigServer* srv, int client_fd)
@@ -142,7 +142,6 @@ bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events
     }
 
     if (events & EPOLLIN) {
-        std::cout << "[CONN " << _fd << "] EPOLLIN" << std::endl;
         ssize_t n = _conn.receive_data();
 
         if (n < 0) return false;

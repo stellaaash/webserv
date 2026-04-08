@@ -45,7 +45,6 @@ ssize_t Connection::send_data() {
     size_t chunk = remaining > SEND_SIZE ? SEND_SIZE : remaining;
 
     ssize_t n = send(_socket, _write_buffer.data() + _write_index, chunk, 0);
-    std::cout << "[CONN " << _socket << "] sent " << n << " bytes" << std::endl;
     if (n == 0)
         return 0;
     else if (n < 0) {
@@ -61,7 +60,6 @@ ssize_t Connection::send_data() {
         _write_buffer.clear();
         _write_index = 0;
     }
-    std::cout << "[CONN " << _socket << "] write complete" << std::endl;
     return n;
 }
 
@@ -84,8 +82,8 @@ ssize_t Connection::receive_data() {
             return -1;
         }
     }
-    if (total > 0)
-        std::cout << "[CONN " << _socket << "] received " << total << " bytes" << std::endl;
+    // if (total > 0)
+    //     std::cout << "[CONN " << _socket << "] received " << total << " bytes" << std::endl;
 
     return total;
 }

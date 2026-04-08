@@ -87,11 +87,11 @@ void ConnectionManager::run() {
             continue;
         }
 
-        std::cout << "[EPOLL] woke up with " << fds << " events" << std::endl;
+        // Commented to avoid spamming console/logs
+        // std::cout << "[EPOLL] woke up with " << fds << " events" << std::endl;
 
         for (int i = 0; i < fds; ++i) {
             IHandler* h = (IHandler*)events[i].data.ptr;
-            std::cout << "[EPOLL] fd=" << h->fd() << " events=" << events[i].events << std::endl;
             // Keep or delete connection
             bool keep = h->handle_event(*this, events[i].events);
             if (!keep) {
