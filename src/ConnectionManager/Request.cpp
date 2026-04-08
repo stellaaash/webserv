@@ -12,7 +12,6 @@
 #include <iostream>
 #include <sstream>
 
-#include "HttpMessage.hpp"
 #include "config.hpp"
 
 #ifndef REQUEST_BODY_SPOOL_THRESHOLD
