@@ -129,38 +129,28 @@ void Request::set_error_status(HttpCode code) {
 bool Request::open_temp_body_file() {
     if (_body_fd >= 0) return true;
 
-    struct stat st;
-    if (stat("tmp", &st) == -1 || !S_ISDIR(st.st_mode)) {
+    if (is_directory("tmp") == false) {
         std::cerr << "[Request::open_temp_body_file] tmp directory missing\n";
         return false;
     }
 
     static unsigned long counter = 0;
 
-    for (int attempt = 0; attempt < 128; ++attempt) {
-        std::ostringstream oss;
-        oss << "tmp/webserv_body_" << reinterpret_cast<unsigned long>(this) << "_" << counter++;
+    std::ostringstream oss;
+    oss << "tmp/webserv_body_" << reinterpret_cast<unsigned long>(this) << "_" << counter++;
 
-        std::string path = oss.str();
+    std::string path = oss.str();
 
-        int fd = create_file(path.c_str());
-        if (fd >= 0) {
-            _body_fd = fd;
-            _body_path = path;
-            return true;
-        } else {
-            perror("[open_temp_body_file] - create_file");
-        }
+    int fd = create_file(path.c_str());
+    _body_fd = fd;
+    _body_path = path;
 
-        if (errno != EEXIST) {
-            std::cerr << "[Request::open_temp_body_file] open: " << std::strerror(errno)
-                      << std::endl;
-            return false;
-        }
+    if (fd < 0 && errno != EEXIST) {
+        std::cerr << "[open_temp_body_file] failed to create unique temp file" << std::endl;
+        perror("[open_temp_body_file] - create_file");
+        return false;
     }
-
-    std::cerr << "[Request::open_temp_body_file] failed to create unique temp file\n";
-    return false;
+    return true;
 }
 
 /**
