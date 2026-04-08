@@ -13,6 +13,7 @@
 #include <sstream>
 
 #include "config.hpp"
+#include "file_manager.hpp"
 
 #ifndef REQUEST_BODY_SPOOL_THRESHOLD
 #define REQUEST_BODY_SPOOL_THRESHOLD (64 * 1024)
@@ -49,7 +50,9 @@ Request::Request(const ConfigLocation* const config, HttpMethod method)
 }
 
 Request::~Request() {
-    cleanup_temp_file();
+    if (_body_fd >= 0) {
+        cleanup_temp_file();
+    }
 }
 
 HttpMethod Request::method() const {
@@ -154,11 +157,13 @@ bool Request::open_temp_body_file() {
 
         std::string path = oss.str();
 
-        int fd = open(path.c_str(), O_WRONLY | O_CREAT | O_EXCL, 0644);
+        int fd = create_file(path.c_str());
         if (fd >= 0) {
             _body_fd = fd;
             _body_path = path;
             return true;
+        } else {
+            perror("[open_temp_body_file] - create_file");
         }
 
         if (errno != EEXIST) {
@@ -188,11 +193,9 @@ bool Request::flush_memory_body_to_file() {
 }
 
 void Request::cleanup_temp_file() {
-    if (_body_fd >= 0) {
-        close(_body_fd);
-        remove(_body_path.c_str());
-        _body_fd = -1;
-    }
+    close(_body_fd);
+    remove_file(_body_path.c_str());
+    _body_fd = -1;
 }
 
 bool Request::append_body_chunk(const char* data, size_t len) {
@@ -203,7 +206,10 @@ bool Request::append_body_chunk(const char* data, size_t len) {
     }
 
     if (_is_body_spooled) {
-        if (!write_all(_body_fd, data, len)) return false;
+        if (append_file(_body_fd, data) < 0) {
+            perror("[append_body_chunk] - append_file");
+            return false;
+        }
     } else {
         append_body(std::string(data, len));
     }

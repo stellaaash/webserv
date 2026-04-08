@@ -16,10 +16,7 @@ const size_t write_size = 1024;
 int create_file(const File_Path& path) {
     int fd = open(path.c_str(), O_CREAT | O_WRONLY | O_TRUNC, 0600);
 
-    if (fd < 0) {
-        perror("[create_file] - open");
-        return -1;
-    }
+    if (fd < 0) return -1;
 
     return fd;
 }
@@ -44,4 +41,11 @@ ssize_t append_file(int fd, const std::string& data) {
     }
 
     return static_cast<ssize_t>(write_index);
+}
+
+/**
+ * @brief Removes a file and returns the status of the `remove` function called.
+ */
+int remove_file(const File_Path& path) {
+    return remove(path.c_str());
 }
