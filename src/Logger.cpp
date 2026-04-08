@@ -35,9 +35,9 @@ static void write_log(std::ofstream& ofs, const std::string& msg) {
 }
 
 static void dispatch_log(LogLevel level, const std::string& msg) {
-    if (level >= DEBUGLOG) write_log(get_debug_file(), msg);
-    if (level >= GENERALLOG) write_log(get_general_file(), msg);
-    if (level >= ERRORLOG) write_log(get_error_file(), msg);
+    if (level >= DEBUG_LOG) write_log(get_debug_file(), msg);
+    if (level >= GENERAL_LOG) write_log(get_general_file(), msg);
+    if (level >= ERROR_LOG) write_log(get_error_file(), msg);
 }
 
 Logger::Logger(LogLevel level) : _level(level) {}
