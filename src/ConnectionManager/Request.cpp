@@ -198,7 +198,7 @@ bool Request::append_body_chunk(const char* data, size_t len) {
     }
 
     if (_is_body_spooled) {
-        // Use the length explicitely in case the data is binary and contains null bytes
+        // Use the length explicitly in case the data is binary and contains null bytes
         if (append_file(_body_fd, std::string(data, len)) < 0) {
             perror("[append_body_chunk] - append_file");
             return false;
