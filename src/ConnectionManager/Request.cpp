@@ -126,20 +126,6 @@ void Request::set_error_status(HttpCode code) {
     _error_status = code;
 }
 
-bool Request::write_all(int fd, const char* data, size_t len) {
-    size_t written = 0;
-
-    while (written < len) {
-        ssize_t n = write(fd, data + written, len - written);
-        if (n < 0) {
-            perror("[Request] write");
-            return false;
-        }
-        written += static_cast<size_t>(n);
-    }
-    return true;
-}
-
 bool Request::open_temp_body_file() {
     if (_body_fd >= 0) return true;
 
@@ -185,8 +171,10 @@ bool Request::flush_memory_body_to_file() {
     if (!open_temp_body_file()) return false;
 
     const std::string& in_memory = body();
-    if (!in_memory.empty() && !write_all(_body_fd, in_memory.data(), in_memory.size()))
+    if (!in_memory.empty() && append_file(_body_fd, in_memory) < 0) {
+        perror("[flush_memory_body_to_file] - append_file");
         return false;
+    }
 
     _is_body_spooled = true;
     return true;
