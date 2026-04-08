@@ -16,7 +16,7 @@ RMFLAGS		=	-f
 SRCDIR		=	src
 CFILES		=	$(SRCDIR)/main.cpp \
 				$(SRCDIR)/config.cpp \
-				$(SRCDIR)/logger.cpp \
+				$(SRCDIR)/Logger.cpp \
 				$(SRCDIR)/ConfigParser/config_lexer.cpp \
 				$(SRCDIR)/ConfigParser/config_parser.cpp \
 				$(SRCDIR)/ConnectionManager/Connection.cpp \
