@@ -1,7 +1,5 @@
 #include "Request.hpp"
 
-#include <fcntl.h>
-#include <sys/stat.h>
 #include <unistd.h>
 
 #include <cassert>
@@ -13,6 +11,7 @@
 #include <sstream>
 
 #include "config.hpp"
+#include "file_manager.hpp"
 
 #ifndef REQUEST_BODY_SPOOL_THRESHOLD
 #define REQUEST_BODY_SPOOL_THRESHOLD (64 * 1024)
@@ -49,7 +48,9 @@ Request::Request(const ConfigLocation* const config, HttpMethod method)
 }
 
 Request::~Request() {
-    cleanup_temp_file();
+    if (_body_fd >= 0) {
+        cleanup_temp_file();
+    }
 }
 
 HttpMethod Request::method() const {
@@ -123,25 +124,16 @@ void Request::set_error_status(HttpCode code) {
     _error_status = code;
 }
 
-bool Request::write_all(int fd, const char* data, size_t len) {
-    size_t written = 0;
-
-    while (written < len) {
-        ssize_t n = write(fd, data + written, len - written);
-        if (n < 0) {
-            perror("[Request] write");
-            return false;
-        }
-        written += static_cast<size_t>(n);
-    }
-    return true;
-}
-
+/**
+ * @brief Attempts to create a temporary file for the body of the Request.
+ * Attempts to create the file using 128 file names before giving up if all of them already exist.
+ * Theorically, a file should be created in the first few attempts,
+ * otherwise something is seriously wrong.
+ */
 bool Request::open_temp_body_file() {
     if (_body_fd >= 0) return true;
 
-    struct stat st;
-    if (stat("tmp", &st) == -1 || !S_ISDIR(st.st_mode)) {
+    if (is_directory("tmp") == false) {
         std::cerr << "[Request::open_temp_body_file] tmp directory missing\n";
         return false;
     }
@@ -152,9 +144,10 @@ bool Request::open_temp_body_file() {
         std::ostringstream oss;
         oss << "tmp/webserv_body_" << reinterpret_cast<unsigned long>(this) << "_" << counter++;
 
-        std::string path = oss.str();
+        const std::string path = oss.str();
 
-        int fd = open(path.c_str(), O_WRONLY | O_CREAT | O_EXCL, 0644);
+        int fd = create_file(path);
+
         if (fd >= 0) {
             _body_fd = fd;
             _body_path = path;
@@ -162,13 +155,11 @@ bool Request::open_temp_body_file() {
         }
 
         if (errno != EEXIST) {
-            std::cerr << "[Request::open_temp_body_file] open: " << std::strerror(errno)
-                      << std::endl;
+            perror("[open_temp_body_file] - create_file");
             return false;
         }
     }
-
-    std::cerr << "[Request::open_temp_body_file] failed to create unique temp file\n";
+    std::cerr << "[open_temp_body_file] failed to create unique temp file" << std::endl;
     return false;
 }
 
@@ -180,21 +171,25 @@ bool Request::flush_memory_body_to_file() {
     if (!open_temp_body_file()) return false;
 
     const std::string& in_memory = body();
-    if (!in_memory.empty() && !write_all(_body_fd, in_memory.data(), in_memory.size()))
+    if (!in_memory.empty() && append_file(_body_fd, in_memory) < 0) {
+        perror("[flush_memory_body_to_file] - append_file");
         return false;
+    }
 
     _is_body_spooled = true;
     return true;
 }
 
 void Request::cleanup_temp_file() {
-    if (_body_fd >= 0) {
-        close(_body_fd);
-        remove(_body_path.c_str());
-        _body_fd = -1;
-    }
+    close(_body_fd);
+    remove_file(_body_path);
+    _body_fd = -1;
 }
 
+/**
+ * @brief Appends a chunk of data received to the body of the request. This body can be stored
+ * either in memory as a string, or in a file on disk.
+ */
 bool Request::append_body_chunk(const char* data, size_t len) {
     if (len == 0) return true;
 
@@ -203,7 +198,11 @@ bool Request::append_body_chunk(const char* data, size_t len) {
     }
 
     if (_is_body_spooled) {
-        if (!write_all(_body_fd, data, len)) return false;
+        // Use the length explicitly in case the data is binary and contains null bytes
+        if (append_file(_body_fd, std::string(data, len)) < 0) {
+            perror("[append_body_chunk] - append_file");
+            return false;
+        }
     } else {
         append_body(std::string(data, len));
     }

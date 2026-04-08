@@ -46,7 +46,6 @@ private:
 
     bool open_temp_body_file();
     bool flush_memory_body_to_file();
-    bool write_all(int fd, const char* data, size_t len);
     void cleanup_temp_file();
 
     const ConfigLocation* _config;
