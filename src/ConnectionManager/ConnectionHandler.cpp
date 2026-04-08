@@ -120,7 +120,6 @@ uint32_t ConnectionHandler::interests() const {
 }
 
 bool ConnectionHandler::is_timed_out() const {
-    std::cout << _timeout << std::endl;
     return (std::time(NULL) - _last_activity) > _timeout;
 }
 
