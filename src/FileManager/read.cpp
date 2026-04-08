@@ -42,7 +42,6 @@ bool is_directory(const File_Path& path) {
 
     struct stat path_stat;
     memset(&path_stat, 0, sizeof(path_stat));
-    stat(path.c_str(), &path_stat);
     if (stat(path.c_str(), &path_stat) != 0) {
         perror("[is_regular_file] - stat");
         return false;

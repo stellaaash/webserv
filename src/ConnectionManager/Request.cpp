@@ -1,7 +1,5 @@
 #include "Request.hpp"
 
-#include <fcntl.h>
-#include <sys/stat.h>
 #include <unistd.h>
 
 #include <cassert>
@@ -141,7 +139,7 @@ bool Request::open_temp_body_file() {
 
     std::string path = oss.str();
 
-    int fd = create_file(path.c_str());
+    int fd = create_file(path);
     _body_fd = fd;
     _body_path = path;
 
@@ -172,7 +170,7 @@ bool Request::flush_memory_body_to_file() {
 
 void Request::cleanup_temp_file() {
     close(_body_fd);
-    remove_file(_body_path.c_str());
+    remove_file(_body_path);
     _body_fd = -1;
 }
 
@@ -184,7 +182,8 @@ bool Request::append_body_chunk(const char* data, size_t len) {
     }
 
     if (_is_body_spooled) {
-        if (append_file(_body_fd, data) < 0) {
+        // Use the length explicitely in case the data is binary and contains null bytes
+        if (append_file(_body_fd, std::string(data, len)) < 0) {
             perror("[append_body_chunk] - append_file");
             return false;
         }
