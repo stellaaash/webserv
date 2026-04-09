@@ -5,6 +5,7 @@
 
 #include <cassert>
 #include <cerrno>
+#include <cstdio>
 #include <cstring>
 
 #include "Logger.hpp"
@@ -51,7 +52,6 @@ ssize_t Connection::send_data() {
         Logger(LOG_ERROR) << "[Connection::send_data] send: " << strerror(errno);
         return -1;
     }
-
     // update write index with real bytes sent (can be lower than chunk)
     _write_index += static_cast<size_t>(n);
 
@@ -107,6 +107,66 @@ ParsingStatus Connection::parse_request() {
     ParsingStatus status = parse(*_config, _read_buffer, _read_index, _request);
     compact_read_buffer();
     return status;
+}
+
+/**
+ * @brief Processes a Request, returning an appropriate Response object.
+ *
+ * @description The Response object will either contain a valid file descriptor to read from, or a
+ * filled body string containing the generated content.
+ */
+// TODO: Return status of the processing
+void Connection::process_request() {
+    Response                    result;
+    const ConfigLocation* const config = _request.config();
+    File_Path                   resource_path;
+
+    // HARDCODING FOR NOW
+    _response.set_version(1, 1);
+    _response.set_response_string("OK");
+    _response.set_fd(fetch_file("html/index.html"));
+    _response.set_version(1, 1);
+    _response.set_code(200);
+    return;
+    // HARDCODING FOR NOW
+
+    // TODO Need to add logic to find the right location configuration in the parser
+    assert(config && "Config pointer valid");
+
+    // Isolate the resource needed
+    if (_request.target() == "/" && !config->index.empty()) {
+        resource_path = config->index;
+    }
+
+    // Fetch the resource or generate content
+    if (_request.target() == "/" && config->autoindex == true) {
+        result.append_body(create_listing(config->root));
+    } else if (_request.method() == GET) {
+        int fd = fetch_file(resource_path);
+        if (fd < 0) perror("[_process_request] - fetch_file");
+        // TODO Throw or return error page (we could technically throw a Response)
+
+        result.set_fd(fd);
+        result.set_code(200);
+        result.set_response_string("OK");
+        // TODO Set header, MIME types??
+    } else if (_request.method() == POST) {
+        // TODO Store file or launch CGI
+        result.set_code(501);
+        result.set_response_string("Not Implemented");
+    } else if (_request.method() == DELETE) {
+        // TODO Remove file
+        result.set_code(501);
+        result.set_response_string("Not Implemented");
+    } else {
+        result.set_code(501);
+        result.set_response_string("Not Implemented");
+    }
+
+    // TODO Fetch the error page if needed and configured
+
+    result.set_version(1, 1);
+    _response = result;
 }
 
 void Connection::queue_write(const std::string& data) {

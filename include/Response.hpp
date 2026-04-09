@@ -13,6 +13,7 @@ public:
     const Response& operator=(const Response&);
     ~Response();
 
+    int                fd() const;
     HttpCode           code() const;
     const std::string& response_string() const;
 

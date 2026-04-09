@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <cstdlib>
+#include <sstream>
 #include <string>
 
 #include "HttpMessage.hpp"
@@ -22,6 +23,10 @@ const Response& Response::operator=(const Response& other) {
 }
 
 Response::~Response() {}
+
+int Response::fd() const {
+    return _fd;
+}
 
 HttpCode Response::code() const {
     return _code;
@@ -51,10 +56,14 @@ void Response::set_response_string(const std::string& response_string) {
 std::string Response::serialize() const {
     assert(_response_string.empty() == false && "Response ready");
 
-    std::string serialized;
+    std::stringstream serialized;
 
-    // TODO append the http code first
-    serialized.append(_response_string);
+    serialized << "HTTP/" << major_version() << "." << minor_version() << " " << code() << " "
+               << response_string();
 
-    return serialized;
+    // TODO Add headers
+
+    serialized << "\r\n\r\n";
+
+    return serialized.str();
 }

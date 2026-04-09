@@ -3,6 +3,7 @@
 #include <sys/epoll.h>
 
 #include <cstdio>
+#include <fstream>
 #include <iostream>
 #include <sstream>
 
@@ -61,21 +62,21 @@ static std::string error_response(HttpCode code) {
     return response.str();
 }
 
-static std::string hello_response() {
-    const std::string body = "Hello\n";
+// static std::string hello_response() {
+//     const std::string body = "Hello\n";
 
-    std::ostringstream oss;
-    oss << body.size();
+//     std::ostringstream oss;
+//     oss << body.size();
 
-    return "HTTP/1.1 200 OK\r\n"
-           "Content-Type: text/plain\r\n"
-           "Content-Length: " +
-           oss.str() +
-           "\r\n"
-           "Connection: keep-alive\r\n"
-           "\r\n" +
-           body;
-}
+//     return "HTTP/1.1 200 OK\r\n"
+//            "Content-Type: text/plain\r\n"
+//            "Content-Length: " +
+//            oss.str() +
+//            "\r\n"
+//            "Connection: keep-alive\r\n"
+//            "\r\n" +
+//            body;
+// }
 
 /**
  * @brief Prints a request's status, as well as its body information and headers.
@@ -160,8 +161,14 @@ bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events
             log_request(req);
         }
 
+        _conn.process_request();
+
+        // TODO Will need to not do everything in one go to prevent blocking on processing the
+        // request
+
         if (!_conn.has_pending_write() && r == PARSED) {
-            _conn.queue_write(hello_response());
+            _conn.queue_write(_conn.response().serialize());
+            // TODO Send body
         }
     }
     if ((events & EPOLLOUT) && _conn.has_pending_write()) {
