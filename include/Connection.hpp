@@ -33,7 +33,7 @@ private:
     Connection(const Connection&);
     Connection& operator=(const Connection&);
 
-    void compact_read_buffer();
+    void shrink_read_buffer();
 
     const ConfigServer* _config;
 

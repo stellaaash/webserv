@@ -50,8 +50,8 @@ void Response::set_response_string(const std::string& response_string) {
 }
 
 /**
- * @brief Serialize the Response in order to be able to send it through a socket
- * directly.
+ * @brief Serialize the Response answer string and headers in order to be able to send it through a
+ * socket directly.
  */
 std::string Response::serialize() const {
     assert(_response_string.empty() == false && "Response ready");

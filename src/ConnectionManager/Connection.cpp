@@ -37,6 +37,10 @@ const Response& Connection::response() const {
     return _response;
 }
 
+/**
+ * @brief Sends data through the connection socket. Each call of this functions sends a chunk of
+ * size determined by the SEND_SIZE macro.
+ */
 ssize_t Connection::send_data() {
     if (_write_index >= _write_buffer.size()) return 0;
 
@@ -88,7 +92,11 @@ ssize_t Connection::receive_data() {
     return total;
 }
 
-void Connection::compact_read_buffer() {
+/**
+ * @brief This function either erases the read buffer of the connection if all its contents were
+ * sent, or shrinks it after consuming either 8kb or half of it.
+ */
+void Connection::shrink_read_buffer() {
     if (_read_index == 0) return;
 
     if (_read_index >= _read_buffer.size()) {
@@ -105,7 +113,7 @@ void Connection::compact_read_buffer() {
 
 ParsingStatus Connection::parse_request() {
     ParsingStatus status = parse(*_config, _read_buffer, _read_index, _request);
-    compact_read_buffer();
+    shrink_read_buffer();
     return status;
 }
 
@@ -127,6 +135,7 @@ void Connection::process_request() {
     _response.set_fd(fetch_file("html/index.html"));
     _response.set_version(1, 1);
     _response.set_code(200);
+    _response.append_body("Hewwo :3");
     return;
     // HARDCODING FOR NOW
 
