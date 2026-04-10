@@ -1,3 +1,4 @@
+#include <cassert>
 #include <limits>
 #include <sstream>
 #include <string>
@@ -59,7 +60,7 @@ static bool parse_content_length_value(const std::string& value, size_t& out) {
 
 static ParsingStatus parse_request_line(const std::string& read_buffer, size_t& read_index,
                                         Request& request) {
-    if (request.status() != EMPTY) return request.status();
+    assert(request.status() == EMPTY);
 
     std::string::size_type line_end = read_buffer.find("\r\n", read_index);
     if (line_end == std::string::npos) return request.status();
@@ -106,9 +107,10 @@ static ParsingStatus parse_request_line(const std::string& read_buffer, size_t& 
     return request.status();
 }
 
+// TODO This function really needs an overhaul. It's long and hard to read
 static ParsingStatus parse_headers(const std::string& read_buffer, size_t& read_index,
                                    Request& request) {
-    if (request.status() != REQUEST_LINE) return request.status();
+    assert(request.status() == REQUEST_LINE);
 
     while (true) {
         // Find \r\n, will return npos if not found. Means it didn't finish parsing headers
@@ -119,7 +121,6 @@ static ParsingStatus parse_headers(const std::string& read_buffer, size_t& read_
         if (line_end == read_index) {
             read_index += 2;
 
-            // if Headers include only one "Content-Length", set parse status as body
             size_t content_length_count = 0;
             size_t content_length_value = 0;
 
@@ -147,7 +148,7 @@ static ParsingStatus parse_headers(const std::string& read_buffer, size_t& read_
                     return request.status();
                 }
                 if (content_length_value > 0) {
-                    request.set_status(BODY);
+                    request.set_status(HEADERS);
                     return request.status();
                 }
             }
@@ -183,7 +184,7 @@ static ParsingStatus parse_headers(const std::string& read_buffer, size_t& read_
 
 static ParsingStatus parse_body(const std::string& read_buffer, size_t& read_index,
                                 Request& request) {
-    if (request.status() != BODY) return request.status();
+    assert(request.status() == HEADERS);
 
     size_t expected = request.content_length();
     size_t received = request.body_received();
@@ -208,7 +209,7 @@ static ParsingStatus parse_body(const std::string& read_buffer, size_t& read_ind
 
     read_index += chunk;
 
-    if (request.body_received() == expected) request.set_status(PARSED);
+    if (request.body_received() == expected) request.set_status(BODY);
 
     return request.status();
 }
@@ -218,7 +219,9 @@ ParsingStatus parse(std::string& read_buffer, size_t& read_index, Request& reque
 
     if (request.status() == REQUEST_LINE) parse_headers(read_buffer, read_index, request);
 
-    if (request.status() == BODY) parse_body(read_buffer, read_index, request);
+    if (request.status() == HEADERS) parse_body(read_buffer, read_index, request);
+
+    // TODO Isolate location config
 
     return request.status();
 }
