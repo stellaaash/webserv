@@ -23,7 +23,7 @@
 
 volatile sig_atomic_t g_stop = 0;
 
-File_Path working_directory;
+FilePath working_directory;
 
 void clean_exit(int) {
     g_stop = 1;

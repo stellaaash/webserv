@@ -78,10 +78,6 @@ size_t Request::client_max_body_size() const {
     return _client_max_body_size;
 }
 
-void Request::set_client_max_body_size(size_t client_max_body_size) {
-    _client_max_body_size = client_max_body_size;
-}
-
 size_t Request::body_received() const {
     return _body_received;
 }
@@ -123,6 +119,10 @@ void Request::set_target(const std::string& target) {
 
 void Request::set_content_length(size_t content_length) {
     _content_length = content_length;
+}
+
+void Request::set_client_max_body_size(size_t client_max_body_size) {
+    _client_max_body_size = client_max_body_size;
 }
 
 void Request::set_error_status(HttpCode code) {

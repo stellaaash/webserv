@@ -102,7 +102,7 @@ FilePath standardize_path(const std::string& path) {
         tokens.pop();
     }
 
-    File_Path standardized;
+    FilePath standardized;
     for (std::vector<std::string>::const_iterator i = in_order_tokens.begin();
          i != in_order_tokens.end(); ++i) {
         if (i->empty()) continue;
@@ -123,7 +123,7 @@ FilePath standardize_path(const std::string& path) {
  * will return true if the path is theorically under the directory.
  * @see standardize_path()
  */
-bool is_under_directory(const File_Path& path, const File_Path& directory) {
+bool is_under_directory(const FilePath& path, const FilePath& directory) {
     if (directory.length() > path.length()) return false;
 
     for (size_t i = 0; i < directory.length(); ++i) {

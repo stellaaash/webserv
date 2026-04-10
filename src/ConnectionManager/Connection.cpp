@@ -127,7 +127,7 @@ ParsingStatus Connection::parse_request() {
 void Connection::process_request() {
     Response                    result;
     const ConfigLocation* const config = _request.config();
-    File_Path                   resource_path;
+    FilePath                    resource_path;
 
     // HARDCODING FOR NOW
     _response.set_version(1, 1);
