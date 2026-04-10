@@ -12,6 +12,7 @@
 #include "Request.hpp"
 #include "Response.hpp"
 #include "config.hpp"
+#include "file_manager.hpp"
 
 Connection::Connection(const ConfigServer* const config, int socket)
     : _config(config),
@@ -125,56 +126,77 @@ ParsingStatus Connection::parse_request() {
  */
 // TODO: Return status of the processing
 void Connection::process_request() {
-    Response                    result;
     const ConfigLocation* const config = _request.config();
     FilePath                    resource_path;
+    FilePath                    relative_path;
 
-    // HARDCODING FOR NOW
-    _response.set_version(1, 1);
-    _response.set_response_string("OK");
-    _response.set_fd(fetch_file("html/index.html"));
-    _response.set_version(1, 1);
-    _response.set_code(200);
-    return;
-    // HARDCODING FOR NOW
-
-    // TODO Need to add logic to find the right location configuration in the parser
     assert(config && "Config pointer valid");
 
+    _response.set_version(1, 1);
+
+    // The relative path is the path from the root of the location to the resource
+    relative_path = _request.target().substr(config->name.length(), _request.target().npos);
+    std::cout << "[!] - Relative path: " << relative_path << std::endl;
+
     // Isolate the resource needed
-    if (_request.target() == "/" && !config->index.empty()) {
+    if (relative_path.empty() && !config->index.empty()) {
         resource_path = config->index;
+    } else {
+        resource_path = config->root + "/" + relative_path;
     }
 
+    std::cout << "[REPRO] - Fetching resource: " << resource_path << std::endl;
+
     // Fetch the resource or generate content
-    if (_request.target() == "/" && config->autoindex == true) {
-        result.append_body(create_listing(config->root));
+    if (is_directory(resource_path) == true) {
+        if (config->autoindex == true) {
+            _response.append_body(create_listing(config->root));
+            _response.set_code(200);
+            _response.set_response_string("OK");
+        } else
+            _response.set_code(404);
     } else if (_request.method() == GET) {
         int fd = fetch_file(resource_path);
-        if (fd < 0) perror("[_process_request] - fetch_file");
+        if (fd < 0) {
+            perror("[process_request] - fetch_file");
+            if (errno == EACCES)
+                _response.set_code(403);
+            else if (errno == ENOENT)
+                _response.set_code(404);
+            else if (errno == EINVAL || errno == ENAMETOOLONG)
+                _response.set_code(400);
+            else
+                _response.set_code(500);
+            return;
+        }
         // TODO Throw or return error page (we could technically throw a Response)
 
-        result.set_fd(fd);
-        result.set_code(200);
-        result.set_response_string("OK");
+        _response.set_fd(fd);
+        _response.set_code(200);
+        _response.set_response_string("OK");
         // TODO Set header, MIME types??
+        // TODO set content-length
     } else if (_request.method() == POST) {
         // TODO Store file or launch CGI
-        result.set_code(501);
-        result.set_response_string("Not Implemented");
+        _response.set_code(501);
+        _response.set_response_string("Not Implemented");
     } else if (_request.method() == DELETE) {
         // TODO Remove file
-        result.set_code(501);
-        result.set_response_string("Not Implemented");
+        _response.set_code(501);
+        _response.set_response_string("Not Implemented");
     } else {
-        result.set_code(501);
-        result.set_response_string("Not Implemented");
+        _response.set_code(501);
+        _response.set_response_string("Not Implemented");
     }
 
     // TODO Fetch the error page if needed and configured
 
-    result.set_version(1, 1);
-    _response = result;
+    std::clog << "----- [RESP BEGIN] -----" << std::endl;
+    std::clog << "Code: " << _response.code() << std::endl;
+    std::clog << "Response String: " << _response.response_string() << std::endl;
+    std::clog << "File Descriptor: " << _response.fd() << std::endl;
+    std::clog << "Body length: " << _response.body().length() << std::endl;
+    std::clog << "----- [RESP END] -----" << std::endl;
 }
 
 void Connection::queue_write(const std::string& data) {

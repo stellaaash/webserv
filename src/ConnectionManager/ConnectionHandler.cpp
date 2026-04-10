@@ -79,6 +79,7 @@ static void log_request(const Request& request) {
     } else {
         Logger(LOG_DEBUG) << "Body size (RAM): " << request.body().size();
     }
+    Logger(LOG_DEBUG) << "Request location config:" << request.config()->name;
     Logger(LOG_DEBUG) << "----- [HEADERS] -----";
     for (HttpMessage::HeaderIterator it = request.headers_begin(); it != request.headers_end();
          ++it) {
@@ -146,12 +147,13 @@ bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events
 
         _conn.process_request();
 
+        const Response& response = _conn.response();
         // TODO Will need to not do everything in one go to prevent blocking on processing the
         // request
-
-        if (!_conn.has_pending_write() && r == PARSED) {
+        if (response.code() >= 400 && response.code() <= 599) {
+            _conn.queue_write(error_response(response.code()));
+        } else if (!_conn.has_pending_write() && r == PARSED) {
             // TODO Don't send the headers at every pass, only the first time
-            const Response& response = _conn.response();
             _conn.queue_write(response.serialize());
             if (response.body().empty() == false) {
                 _conn.queue_write(response.body());
