@@ -1,3 +1,5 @@
+#include <cassert>
+#include <iostream>
 #include <limits>
 #include <sstream>
 #include <string>
@@ -59,7 +61,7 @@ static bool parse_content_length_value(const std::string& value, size_t& out) {
 
 static ParsingStatus parse_request_line(const std::string& read_buffer, size_t& read_index,
                                         Request& request) {
-    if (request.status() != EMPTY) return request.status();
+    assert(request.status() == EMPTY);
 
     std::string::size_type line_end = read_buffer.find("\r\n", read_index);
     if (line_end == std::string::npos) return request.status();
@@ -106,9 +108,10 @@ static ParsingStatus parse_request_line(const std::string& read_buffer, size_t& 
     return request.status();
 }
 
+// TODO This function really needs an overhaul. It's long and hard to read
 static ParsingStatus parse_headers(const std::string& read_buffer, size_t& read_index,
                                    Request& request) {
-    if (request.status() != REQUEST_LINE) return request.status();
+    assert(request.status() == REQUEST_LINE);
 
     while (true) {
         // Find \r\n, will return npos if not found. Means it didn't finish parsing headers
@@ -119,7 +122,6 @@ static ParsingStatus parse_headers(const std::string& read_buffer, size_t& read_
         if (line_end == read_index) {
             read_index += 2;
 
-            // if Headers include only one "Content-Length", set parse status as body
             size_t content_length_count = 0;
             size_t content_length_value = 0;
 
@@ -147,11 +149,11 @@ static ParsingStatus parse_headers(const std::string& read_buffer, size_t& read_
                     return request.status();
                 }
                 if (content_length_value > 0) {
-                    request.set_status(BODY);
+                    request.set_status(HEADERS);
                     return request.status();
                 }
             }
-            request.set_status(PARSED);
+            request.set_status(BODY);
             return request.status();
         }
         // retrieve each line without \r\n
@@ -183,7 +185,7 @@ static ParsingStatus parse_headers(const std::string& read_buffer, size_t& read_
 
 static ParsingStatus parse_body(const std::string& read_buffer, size_t& read_index,
                                 Request& request) {
-    if (request.status() != BODY) return request.status();
+    assert(request.status() == HEADERS);
 
     size_t expected = request.content_length();
     size_t received = request.body_received();
@@ -208,17 +210,54 @@ static ParsingStatus parse_body(const std::string& read_buffer, size_t& read_ind
 
     read_index += chunk;
 
-    if (request.body_received() == expected) request.set_status(PARSED);
+    if (request.body_received() == expected) request.set_status(BODY);
 
     return request.status();
 }
 
-ParsingStatus parse(std::string& read_buffer, size_t& read_index, Request& request) {
+/**
+ * @brief Resolves which location config should be assigned to the given request, based on its
+ * target.
+ * It resolves in order, but the most precise location found will be set.
+ * For example, if the target of the request is /images, but there are / and /images locations in
+ * the configuration, the /images location will be choosen, even though / comes before
+ * alphabetically.
+ */
+static ParsingStatus resolve_location(const ConfigServer& config, Request& request) {
+    assert(request.status() == BODY);
+
+    const std::string& request_target = request.target();
+    bool               matched = false;
+
+    for (LocationIterator l = config.location.begin(); l != config.location.end(); ++l) {
+        const std::string& location_name = l->first;
+        const size_t       location_length = location_name.length();
+
+        // If the target matches a location, even just as a prefix, then it's the right location
+        if (request_target.substr(0, location_length) == location_name) {
+            request.set_config(&l->second);
+            matched = true;
+        }
+    }
+
+    if (!matched) {
+        request.set_error_status(404);
+        request.set_status(ERROR);
+    } else {
+        request.set_status(PARSED);
+    }
+    return request.status();
+}
+
+ParsingStatus parse(const ConfigServer& config, std::string& read_buffer, size_t& read_index,
+                    Request& request) {
     if (request.status() == EMPTY) parse_request_line(read_buffer, read_index, request);
 
     if (request.status() == REQUEST_LINE) parse_headers(read_buffer, read_index, request);
 
-    if (request.status() == BODY) parse_body(read_buffer, read_index, request);
+    if (request.status() == HEADERS) parse_body(read_buffer, read_index, request);
+
+    if (request.status() == BODY) resolve_location(config, request);
 
     return request.status();
 }
