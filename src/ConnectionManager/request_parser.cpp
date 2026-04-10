@@ -227,6 +227,7 @@ static ParsingStatus resolve_location(const ConfigServer& config, Request& reque
     assert(request.status() == BODY);
 
     const std::string& request_target = request.target();
+    bool               matched = false;
 
     for (LocationIterator l = config.location.begin(); l != config.location.end(); ++l) {
         const std::string& location_name = l->first;
@@ -235,12 +236,16 @@ static ParsingStatus resolve_location(const ConfigServer& config, Request& reque
         // If the target matches a location, even just as a prefix, then it's the right location
         if (request_target.substr(0, location_length) == location_name) {
             request.set_config(&l->second);
+            matched = true;
         }
     }
 
-    // TODO If no location was found, return an appropriate error
-
-    request.set_status(PARSED);
+    if (!matched) {
+        request.set_error_status(404);
+        request.set_status(ERROR);
+    } else {
+        request.set_status(PARSED);
+    }
     return request.status();
 }
 
