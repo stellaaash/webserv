@@ -1,4 +1,5 @@
 #include <cassert>
+#include <iostream>
 #include <limits>
 #include <sstream>
 #include <string>
@@ -152,7 +153,7 @@ static ParsingStatus parse_headers(const std::string& read_buffer, size_t& read_
                     return request.status();
                 }
             }
-            request.set_status(PARSED);
+            request.set_status(BODY);
             return request.status();
         }
         // retrieve each line without \r\n
@@ -214,14 +215,44 @@ static ParsingStatus parse_body(const std::string& read_buffer, size_t& read_ind
     return request.status();
 }
 
-ParsingStatus parse(std::string& read_buffer, size_t& read_index, Request& request) {
+/**
+ * @brief Resolves which location config should be assigned to the given request, based on its
+ * target.
+ * It resolves in order, but the most precise location found will be set.
+ * For example, if the target of the request is /images, but there are / and /images locations in
+ * the configuration, the /images location will be choosen, even though / comes before
+ * alphabetically.
+ */
+static ParsingStatus resolve_location(const ConfigServer& config, Request& request) {
+    assert(request.status() == BODY);
+
+    const std::string& request_target = request.target();
+
+    for (LocationIterator l = config.location.begin(); l != config.location.end(); ++l) {
+        const std::string& location_name = l->first;
+        const size_t       location_length = location_name.length();
+
+        // If the target matches a location, even just as a prefix, then it's the right location
+        if (request_target.substr(0, location_length) == location_name) {
+            request.set_config(&l->second);
+        }
+    }
+
+    // TODO If no location was found, return an appropriate error
+
+    request.set_status(PARSED);
+    return request.status();
+}
+
+ParsingStatus parse(const ConfigServer& config, std::string& read_buffer, size_t& read_index,
+                    Request& request) {
     if (request.status() == EMPTY) parse_request_line(read_buffer, read_index, request);
 
     if (request.status() == REQUEST_LINE) parse_headers(read_buffer, read_index, request);
 
     if (request.status() == HEADERS) parse_body(read_buffer, read_index, request);
 
-    // TODO Isolate location config
+    if (request.status() == BODY) resolve_location(config, request);
 
     return request.status();
 }

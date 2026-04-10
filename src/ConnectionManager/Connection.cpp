@@ -106,7 +106,7 @@ void Connection::compact_read_buffer() {
 }
 
 ParsingStatus Connection::parse_request() {
-    ParsingStatus status = parse(_read_buffer, _read_index, _request);
+    ParsingStatus status = parse(*_config, _read_buffer, _read_index, _request);
     compact_read_buffer();
     return status;
 }
