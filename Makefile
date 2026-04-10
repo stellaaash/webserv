@@ -75,6 +75,6 @@ CONFIG		?=	config/1.conf
 
 test:			all
 				@printf "\n==============================================\n"
-				$(VALGRIND) $(VALFLAGS) ./$(NAME) $(CONFIG) | tee $(LOG)
+				$(VALGRIND) $(VALFLAGS) ./$(NAME) $(CONFIG) 2>&1 | tee $(LOG)
 
 .PHONY:			all clean fclean re debug test
