@@ -63,9 +63,11 @@ std::string Response::serialize() const {
     std::stringstream serialized;
 
     serialized << "HTTP/" << major_version() << "." << minor_version() << " " << code() << " "
-               << response_string();
+               << response_string() << "\r\n";
 
-    // TODO Add headers
+    for (HeaderIterator h = headers_begin(); h != headers_end(); ++h) {
+        serialized << h->first << ": " << h->second << "\r\n";
+    }
 
     serialized << "\r\n\r\n";
 

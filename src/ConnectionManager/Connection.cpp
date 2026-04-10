@@ -7,6 +7,7 @@
 #include <cerrno>
 #include <cstdio>
 #include <cstring>
+#include <iostream>
 
 #include "Logger.hpp"
 #include "Request.hpp"
@@ -175,7 +176,6 @@ void Connection::process_request() {
         _response.set_code(200);
         _response.set_response_string("OK");
         // TODO Set header, MIME types??
-        // TODO set content-length
     } else if (_request.method() == POST) {
         // TODO Store file or launch CGI
         _response.set_code(501);
@@ -188,6 +188,13 @@ void Connection::process_request() {
         _response.set_code(501);
         _response.set_response_string("Not Implemented");
     }
+
+    std::stringstream convert;
+    if (_response.body().empty() == false)
+        convert << _response.body().length();
+    else
+        convert << file_length(resource_path);
+    _response.set_header("Content-Length", convert.str());
 
     // TODO Fetch the error page if needed and configured
 
