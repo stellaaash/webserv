@@ -63,6 +63,17 @@ bool is_directory(const FilePath& path) {
 }
 
 /**
+ * @brief Returns the length of a file on disk.
+ */
+size_t file_length(const FilePath& path) {
+    struct stat file_stat;
+
+    if (stat(path.c_str(), &file_stat) == -1) perror("[file_length] - stat");
+
+    return static_cast<size_t>(file_stat.st_size);
+}
+
+/**
  * @brief Standardizes a file path.
  *
  * @description Removes a potential trailing slash, as well as processing .. or . tokens.

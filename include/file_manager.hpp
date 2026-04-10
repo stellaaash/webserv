@@ -3,6 +3,7 @@
 
 #include <sys/types.h>
 
+#include <cstddef>
 #include <map>
 #include <string>
 
@@ -18,6 +19,7 @@ enum Path_Type { FILE_PATH, DIR_PATH };
 
 bool     is_regular_file(const FilePath&);
 bool     is_directory(const FilePath&);
+size_t   file_length(const FilePath&);
 int      fetch_file(const FilePath&);
 FilePath standardize_path(const std::string&);
 bool     is_under_directory(const FilePath& path, const FilePath& directory);
