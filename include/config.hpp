@@ -22,6 +22,8 @@ enum HttpMethod { UNDEFINED, GET, POST, DELETE };
 typedef struct ConfigLocation {
     ConfigLocation();
 
+    std::string name;
+
     std::set<HttpMethod>            allowed_methods;
     bool                            autoindex;
     std::map<std::string, FilePath> cgi;  // Bind an extension to an interpreter

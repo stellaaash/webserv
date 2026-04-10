@@ -295,8 +295,10 @@ ConfigServer parse_server(TokenIterator* t, TokenIterator end) {
             } else if (directive == "location") {
                 if (tokens.size() != 3)
                     throw ParserError(tokens[0], "Wrong number of tokens in location directive");
-                config.location.insert(std::pair<std::string, ConfigLocation>(
-                    tokens[1].word, parse_location((t), end)));
+                ConfigLocation location = parse_location(t, end);
+                location.name = tokens[1].word;  // Have the name in the struct directly
+                config.location.insert(
+                    std::pair<std::string, ConfigLocation>(tokens[1].word, location));
             } else if (directive == "timeout") {
                 if (tokens.size() != 3)
                     throw ParserError(tokens[0], "Wrong number of tokens in timeout directive");
