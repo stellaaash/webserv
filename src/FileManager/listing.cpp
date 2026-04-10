@@ -14,7 +14,7 @@
 /**
  * @brief Gets the content of a directory, and returns them as a multimap of path to file type.
  */
-std::map<File_Path, Path_Type> get_dir_contents(const File_Path& directory) {
+std::map<FilePath, Path_Type> get_dir_contents(const FilePath& directory) {
     assert(is_directory(directory) && "File path is a directory");
 
     DIR* stream = opendir(directory.c_str());
@@ -23,14 +23,14 @@ std::map<File_Path, Path_Type> get_dir_contents(const File_Path& directory) {
         throw std::exception();
     }
 
-    struct dirent*                 result;
-    std::map<File_Path, Path_Type> entries;
+    struct dirent*                result;
+    std::map<FilePath, Path_Type> entries;
 
     // Set to 0 in order to know if readdir returning NULL is an error or just EOF
     errno = 0;
     result = readdir(stream);
     while (result != NULL) {
-        File_Path path = result->d_name;
+        FilePath  path = result->d_name;
         Path_Type type;
 
         switch (result->d_type) {
@@ -44,7 +44,7 @@ std::map<File_Path, Path_Type> get_dir_contents(const File_Path& directory) {
                 continue;
         }
 
-        entries.insert(std::pair<File_Path, Path_Type>(path, type));
+        entries.insert(std::pair<FilePath, Path_Type>(path, type));
         result = readdir(stream);
     }
     closedir(stream);
@@ -59,9 +59,9 @@ std::map<File_Path, Path_Type> get_dir_contents(const File_Path& directory) {
 /**
  * @brief Creates an HTML listing of a directory, containing links to all entries inside.
  */
-std::string create_listing(const File_Path& directory) {
-    std::map<File_Path, Path_Type> entries = get_dir_contents(directory);
-    std::stringstream              html_listing;
+std::string create_listing(const FilePath& directory) {
+    std::map<FilePath, Path_Type> entries = get_dir_contents(directory);
+    std::stringstream             html_listing;
 
     html_listing << "<html>\n";
     html_listing << "<head>\n";
@@ -70,7 +70,7 @@ std::string create_listing(const File_Path& directory) {
     html_listing << "<body>\n";
     html_listing << "<h1>Listing of " << directory << "</h1>\n";
     html_listing << "<ul>\n";
-    for (std::map<File_Path, Path_Type>::const_iterator e = entries.begin(); e != entries.end();
+    for (std::map<FilePath, Path_Type>::const_iterator e = entries.begin(); e != entries.end();
          ++e) {
         std::string path = e->first;
         if (e->second == DIR_PATH) path.append("/");

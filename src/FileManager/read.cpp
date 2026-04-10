@@ -12,7 +12,7 @@
  * @brief Checks that a file path is an actual path and not a folder or some other file type.
  * Also checks for read file access.
  */
-bool is_regular_file(const File_Path& path) {
+bool is_regular_file(const FilePath& path) {
     assert(path.empty() == false && "String contains an actual path");
 
     struct stat path_stat;
@@ -37,7 +37,7 @@ bool is_regular_file(const File_Path& path) {
 /**
  * @brief Checks that a file path is a directory with write access to it.
  */
-bool is_directory(const File_Path& path) {
+bool is_directory(const FilePath& path) {
     assert(path.empty() == false && "String contains an actual path");
 
     struct stat path_stat;
@@ -64,7 +64,7 @@ bool is_directory(const File_Path& path) {
  *
  * @description Removes a potential trailing slash.
  */
-File_Path standardize_path(const std::string& path) {
+FilePath standardize_path(const std::string& path) {
     assert(path.empty() == false && "Empty path");
 
     std::string standardized = path;
@@ -81,7 +81,7 @@ File_Path standardize_path(const std::string& path) {
  *
  * @return The file descriptor, or -1 if an error occurred.
  */
-int fetch_file(const File_Path& path) {
+int fetch_file(const FilePath& path) {
     int fd = open(path.c_str(), O_RDONLY);
 
     if (fd < 0) {
