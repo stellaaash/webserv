@@ -13,7 +13,7 @@ const size_t write_size = 1024;
 /**
  * @brief Creates a file in read-write mode, and returns its file descriptor.
  */
-int create_file(const File_Path& path) {
+int create_file(const FilePath& path) {
     int fd = open(path.c_str(), O_CREAT | O_WRONLY | O_TRUNC, 0600);
 
     if (fd < 0) return -1;
@@ -46,6 +46,6 @@ ssize_t append_file(int fd, const std::string& data) {
 /**
  * @brief Removes a file and returns the status of the `remove` function called.
  */
-int remove_file(const File_Path& path) {
+int remove_file(const FilePath& path) {
     return remove(path.c_str());
 }

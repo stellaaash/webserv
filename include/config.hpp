@@ -16,7 +16,6 @@
 #include "file_manager.hpp"
 
 typedef unsigned int HttpCode;
-typedef std::string  FilePath;
 
 enum HttpMethod { UNDEFINED, GET, POST, DELETE };
 
