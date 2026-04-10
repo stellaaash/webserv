@@ -7,6 +7,7 @@
 #include <sstream>
 
 #include "ConnectionManager.hpp"
+#include "Logger.hpp"
 #include "Request.hpp"
 #include "config.hpp"
 
@@ -80,23 +81,23 @@ static std::string hello_response() {
  * @brief Prints a request's status, as well as its body information and headers.
  */
 static void log_request(const Request& request) {
-    std::cout << "----- [REQUEST] -----\n";
-    std::cout << "Request Status:" << request.status() << "\n";
-    std::cout << "Method: " << request.method() << "\n";
-    std::cout << "Target: " << request.target() << "\n";
-    std::cout << "Body received: [" << request.body_received() << "]\n";
-    std::cout << "Is body spooled: [" << request.is_body_spooled() << "]\n";
+    Logger(LOG_DEBUG) << "----- [REQUEST] -----";
+    Logger(LOG_DEBUG) << "Request Status:" << request.status();
+    Logger(LOG_DEBUG) << "Method: " << request.method();
+    Logger(LOG_DEBUG) << "Target: " << request.target();
+    Logger(LOG_DEBUG) << "Body received: [" << request.body_received() << "]";
+    Logger(LOG_DEBUG) << "Is body spooled: [" << request.is_body_spooled() << "]";
     if (request.is_body_spooled()) {
-        std::cout << "Body path: " << request.body_path() << "\n";
+        Logger(LOG_DEBUG) << "Body path: " << request.body_path();
     } else {
-        std::cout << "Body size (RAM): " << request.body().size() << "\n";
+        Logger(LOG_DEBUG) << "Body size (RAM): " << request.body().size();
     }
-    std::cout << "----- [HEADERS] -----\n";
+    Logger(LOG_DEBUG) << "----- [HEADERS] -----";
     for (HttpMessage::HeaderIterator it = request.headers_begin(); it != request.headers_end();
          ++it) {
-        std::cout << it->first << ": " << it->second << "\n";
+        Logger(LOG_DEBUG) << it->first << ": " << it->second;
     }
-    std::cout << "----- [REQ END] -----" << "\n";
+    Logger(LOG_DEBUG) << "----- [REQ END] -----\n";
 }
 
 ConnectionHandler::ConnectionHandler(const ConfigServer* srv, int client_fd)
@@ -137,7 +138,7 @@ bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events
     (void)manager;
 
     if (events & (EPOLLERR | EPOLLHUP)) {
-        std::cerr << "[CONN " << _fd << "] Error: Wrong epoll event";
+        Logger(LOG_ERROR) << "[CONN " << _fd << "] Error: Wrong epoll event";
         return false;
     }
 

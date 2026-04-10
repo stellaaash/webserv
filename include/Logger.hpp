@@ -3,7 +3,7 @@
 
 #include <sstream>
 
-enum LogLevel { DEBUG_LOG, GENERAL_LOG, ERROR_LOG };
+enum LogLevel { LOG_DEBUG, LOG_GENERAL, LOG_ERROR };
 
 /**
  * Usage: Logger(DEBUG_LOG) << "string " << num << " string"

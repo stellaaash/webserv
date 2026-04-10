@@ -6,8 +6,8 @@
 #include <cassert>
 #include <cerrno>
 #include <cstring>
-#include <iostream>
 
+#include "Logger.hpp"
 #include "Request.hpp"
 #include "Response.hpp"
 #include "config.hpp"
@@ -48,7 +48,7 @@ ssize_t Connection::send_data() {
     if (n == 0)
         return 0;
     else if (n < 0) {
-        std::cerr << "[Connection::send_data] send: " << strerror(errno) << std::endl;
+        Logger(LOG_ERROR) << "[Connection::send_data] send: " << strerror(errno);
         return -1;
     }
 
@@ -74,11 +74,11 @@ ssize_t Connection::receive_data() {
             total += n;
         } else if (n == 0) {
             // closing client
-            std::cout << "[CONN " << _socket << "] client closed recv0" << std::endl;
+            Logger(LOG_GENERAL) << "[CONN " << _socket << "] client closed recv0";
             return 0;
         } else {
             if (errno == EAGAIN || errno == EWOULDBLOCK) break;  // nothing to read
-            std::cerr << "[Connection::receive_data] recv: " << std::strerror(errno) << std::endl;
+            Logger(LOG_ERROR) << "[Connection::receive_data] recv: " << std::strerror(errno);
             return -1;
         }
     }

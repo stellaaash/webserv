@@ -10,6 +10,7 @@
 #include <iostream>
 #include <sstream>
 
+#include "Logger.hpp"
 #include "config.hpp"
 #include "file_manager.hpp"
 
@@ -134,7 +135,7 @@ bool Request::open_temp_body_file() {
     if (_body_fd >= 0) return true;
 
     if (is_directory("tmp") == false) {
-        std::cerr << "[Request::open_temp_body_file] tmp directory missing\n";
+        Logger(LOG_ERROR) << "[Request::open_temp_body_file] tmp directory missing\n";
         return false;
     }
 
@@ -159,7 +160,7 @@ bool Request::open_temp_body_file() {
             return false;
         }
     }
-    std::cerr << "[open_temp_body_file] failed to create unique temp file" << std::endl;
+    Logger(LOG_ERROR) << "[open_temp_body_file] failed to create unique temp file";
     return false;
 }
 

@@ -13,6 +13,7 @@
 #include "ConfigParser.hpp"
 #include "ConnectionManager.hpp"
 #include "Listener.hpp"
+#include "Logger.hpp"
 #include "config.hpp"
 #include "file_manager.hpp"
 #include "socket_utils.hpp"
@@ -39,15 +40,15 @@ int main(int argc, char** argv) {
     try {
         config = parse_file(config_file);
     } catch (const ParserError& e) {
-        std::cerr << "[!] - " << e.what() << std::endl;
+        Logger(LOG_ERROR) << "[!] - " << e.what();
         return 3;
     }
     config_file.close();
 
     ConnectionManager manager;
     for (ServerIterator s = config.server.begin(); s != config.server.end(); ++s) {
-        const ConfigServer&  server_config = *s;
-        std::vector<int>     listen_fds;
+        const ConfigServer& server_config = *s;
+        std::vector<int>    listen_fds;
         try {
             listen_fds = make_listen_sockets(server_config);
         } catch (...) {
