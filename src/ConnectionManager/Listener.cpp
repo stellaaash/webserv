@@ -10,15 +10,24 @@
 #include "socket_utils.hpp"
 
 Listener::Listener(const ConfigServer* srv, int listen_fd) : _srv(srv), _fd(listen_fd) {}
+
 Listener::~Listener() {}
 
 int Listener::fd() const {
     return _fd;
 }
+
+/**
+ * @brief Returns the interests of a Listener instance, which are always incoming connections and
+ * nothing else.
+ */
 uint32_t Listener::interests() const {
     return EPOLLIN;
 }
 
+/**
+ * @brief Handles events for a listener, accepting all incoming connection attempts.
+ */
 bool Listener::handle_event(ConnectionManager& manager, uint32_t events) {
     if (events & (EPOLLERR | EPOLLHUP)) {
         Logger(LOG_ERROR) << "[LISTENER " << _fd << "] Error: Wrong epoll event";

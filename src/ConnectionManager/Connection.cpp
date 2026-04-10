@@ -135,7 +135,6 @@ void Connection::process_request() {
     _response.set_fd(fetch_file("html/index.html"));
     _response.set_version(1, 1);
     _response.set_code(200);
-    _response.append_body("Hewwo :3");
     return;
     // HARDCODING FOR NOW
 

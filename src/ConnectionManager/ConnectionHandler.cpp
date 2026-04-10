@@ -1,11 +1,13 @@
 #include "ConnectionHandler.hpp"
 
 #include <sys/epoll.h>
+#include <unistd.h>
 
 #include <cstdio>
 #include <iostream>
 #include <sstream>
 
+#include "Connection.hpp"
 #include "ConnectionManager.hpp"
 #include "Logger.hpp"
 #include "Request.hpp"
@@ -115,9 +117,6 @@ bool ConnectionHandler::is_timed_out() const {
  * In any case, if any error occurs, or if the data was fully sent or received, it closes the
  * connection by returning `false`. Returning `true` keeps the connection alive upstream.
  */
-// TODO Still now sure why we need the manager in this function?
-// In any case, having this function do something with the manager is really obfuscated, which is
-// bad and we should avoid
 bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events) {
     (void)manager;
 
@@ -150,19 +149,20 @@ bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events
         // request
 
         if (!_conn.has_pending_write() && r == PARSED) {
+            // TODO Don't send the headers at every pass, only the first time
             const Response& response = _conn.response();
             _conn.queue_write(response.serialize());
             if (response.body().empty() == false) {
                 _conn.queue_write(response.body());
+            } else {
+                char    buffer[SEND_SIZE];
+                ssize_t read_bytes = read(response.fd(), buffer, SEND_SIZE);
+                if (read_bytes < 0) perror("[handle_event] - read");
+                _conn.queue_write(std::string(buffer, static_cast<size_t>(read_bytes)));
             }
-            // TODO Send fd contents as body if present
         }
     }
-    if ((events & EPOLLOUT) && _conn.has_pending_write()) {
-        _conn.send_data();
-        // temp, close connection once all data was sent
-        if (!_conn.has_pending_write()) return false;
-    }
+    if ((events & EPOLLOUT) && _conn.has_pending_write()) _conn.send_data();
 
     return true;  // keeps connection
 }
