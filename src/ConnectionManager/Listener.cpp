@@ -4,10 +4,9 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-#include <iostream>
-
 #include "ConnectionHandler.hpp"
 #include "ConnectionManager.hpp"
+#include "Logger.hpp"
 #include "socket_utils.hpp"
 
 Listener::Listener(const ConfigServer* srv, int listen_fd) : _srv(srv), _fd(listen_fd) {}
@@ -22,7 +21,7 @@ uint32_t Listener::interests() const {
 
 bool Listener::handle_event(ConnectionManager& manager, uint32_t events) {
     if (events & (EPOLLERR | EPOLLHUP)) {
-        std::cerr << "[LISTENER " << _fd << "] Error: Wrong epoll event";
+        Logger(LOG_ERROR) << "[LISTENER " << _fd << "] Error: Wrong epoll event";
         return false;
     }
 
@@ -38,7 +37,7 @@ bool Listener::handle_event(ConnectionManager& manager, uint32_t events) {
             continue;
         }
 
-        std::cout << "[LISTENER] New client accepted fd=" << client_fd << std::endl;
+        Logger(LOG_GENERAL) << "[LISTENER] New client accepted fd=" << client_fd;
 
         manager.add(new ConnectionHandler(_srv, client_fd));
     }

@@ -17,6 +17,7 @@
 #include <vector>
 
 #include "ConfigParser.hpp"
+#include "Logger.hpp"
 #include "config.hpp"
 #include "config_lexer.hpp"
 #include "file_manager.hpp"
@@ -101,8 +102,8 @@ static void check_config(const Config& config) {
 
         for (LocationIterator l = s->location.begin(); l != s->location.end(); ++l) {
             if (l->second.allowed_methods.empty())
-                std::cerr << "[PARSING] - Location " << l->first << " is missing an allowed method."
-                          << std::endl;
+                Logger(LOG_ERROR) << "[PARSING] - Location " << l->first
+                                  << " is missing an allowed method.";
             for (CgiIterator j = l->second.cgi.begin(); j != l->second.cgi.end(); ++j) {
                 if (is_regular_file(j->second) == false) throw ParserError("Invalid cgi directive");
             }

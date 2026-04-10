@@ -6,8 +6,8 @@
 #include <cassert>
 #include <cerrno>
 #include <cstring>
-#include <iostream>
 
+#include "Logger.hpp"
 #include "Request.hpp"
 #include "Response.hpp"
 #include "config.hpp"
@@ -45,11 +45,10 @@ ssize_t Connection::send_data() {
     size_t chunk = remaining > SEND_SIZE ? SEND_SIZE : remaining;
 
     ssize_t n = send(_socket, _write_buffer.data() + _write_index, chunk, 0);
-    std::cout << "[CONN " << _socket << "] sent " << n << " bytes" << std::endl;
     if (n == 0)
         return 0;
     else if (n < 0) {
-        std::cerr << "[Connection::send_data] send: " << strerror(errno) << std::endl;
+        Logger(LOG_ERROR) << "[Connection::send_data] send: " << strerror(errno);
         return -1;
     }
 
@@ -61,7 +60,6 @@ ssize_t Connection::send_data() {
         _write_buffer.clear();
         _write_index = 0;
     }
-    std::cout << "[CONN " << _socket << "] write complete" << std::endl;
     return n;
 }
 
@@ -76,16 +74,16 @@ ssize_t Connection::receive_data() {
             total += n;
         } else if (n == 0) {
             // closing client
-            std::cout << "[CONN " << _socket << "] client closed recv0" << std::endl;
+            Logger(LOG_GENERAL) << "[CONN " << _socket << "] client closed recv0";
             return 0;
         } else {
             if (errno == EAGAIN || errno == EWOULDBLOCK) break;  // nothing to read
-            std::cerr << "[Connection::receive_data] recv: " << std::strerror(errno) << std::endl;
+            Logger(LOG_ERROR) << "[Connection::receive_data] recv: " << std::strerror(errno);
             return -1;
         }
     }
-    if (total > 0)
-        std::cout << "[CONN " << _socket << "] received " << total << " bytes" << std::endl;
+    // if (total > 0)
+    //     std::cout << "[CONN " << _socket << "] received " << total << " bytes" << std::endl;
 
     return total;
 }
