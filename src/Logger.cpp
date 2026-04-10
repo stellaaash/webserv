@@ -40,6 +40,12 @@ static void dispatch_log(LogLevel level, const std::string& msg) {
     if (level >= LOG_ERROR) write_log(get_error_file(), msg);
 }
 
+void logger_init() {
+    std::ofstream("log_debug.log", std::ios::trunc).close();
+    std::ofstream("log_general.log", std::ios::trunc).close();
+    std::ofstream("log_error.log", std::ios::trunc).close();
+}
+
 Logger::Logger(LogLevel level) : _level(level) {}
 
 Logger::~Logger() {

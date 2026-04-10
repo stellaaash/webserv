@@ -27,6 +27,7 @@ void clean_exit(int) {
 int main(int argc, char** argv) {
     if (argc != 2) return 1;
 
+    logger_init();
     signal(SIGINT, clean_exit);
 
     if (!is_regular_file(argv[1])) {

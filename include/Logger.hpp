@@ -24,4 +24,6 @@ private:
     std::ostringstream _oss;
 };
 
+void logger_init();
+
 #endif
