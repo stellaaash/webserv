@@ -88,8 +88,8 @@ static int check_listen(const Config& config) {
 
 static void check_config(const Config& config) {
     if (config.error_log.empty() == false) {
-        std::ofstream error_log(config.error_log.c_str());
-        if (!error_log) throw ParserError("Invalid error_log directive");
+        if (is_directory(config.error_log) == false)
+            throw ParserError("Invalid error_log directive, not a directory");
     }
 
     if (check_listen(config) != 0) throw ParserError("Duplicate listen directive");

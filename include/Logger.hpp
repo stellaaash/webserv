@@ -24,6 +24,6 @@ private:
     std::ostringstream _oss;
 };
 
-void logger_init();
+void logger_init(const std::string& log_dir);
 
 #endif
