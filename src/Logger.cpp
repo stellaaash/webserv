@@ -46,13 +46,14 @@ static void dispatch_log(LogLevel level, const std::string& msg) {
 }
 
 void logger_init(const std::string& log_dir) {
+    const std::string& log_directory = get_log_directory();
     if (log_dir.empty())
-        get_log_directory() = ".";
+        log_directory = ".";
     else
-        get_log_directory() = log_dir;
-    std::ofstream((get_log_directory() + "/log_debug.log").c_str(), std::ios::trunc).close();
-    std::ofstream((get_log_directory() + "/log_general.log").c_str(), std::ios::trunc).close();
-    std::ofstream((get_log_directory() + "/log_error.log").c_str(), std::ios::trunc).close();
+        log_directory = log_dir;
+    std::ofstream((log_directory + "/log_debug.log").c_str(), std::ios::trunc).close();
+    std::ofstream((log_directory + "/log_general.log").c_str(), std::ios::trunc).close();
+    std::ofstream((log_directory + "/log_error.log").c_str(), std::ios::trunc).close();
 }
 
 Logger::Logger(LogLevel level) : _level(level) {}
