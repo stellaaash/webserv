@@ -108,6 +108,46 @@ static ParsingStatus parse_request_line(const std::string& read_buffer, size_t& 
     return request.status();
 }
 
+static bool handle_content_length_header(Request& request) {
+    size_t content_length = 0;
+
+    for (HttpMessage::HeaderIterator it = request.headers_begin(); it != request.headers_end();
+         ++it) {
+        if (it->first == "Content-Length") {
+            if (!parse_content_length_value(it->second, content_length)) {
+                request.set_error_status(400);
+                request.set_status(ERROR);
+                return false;
+            }
+        }
+    }
+    request.set_content_length(content_length);
+
+    if (content_length > request.client_max_body_size()) {
+        request.set_error_status(413);
+        request.set_status(ERROR);
+        return false;
+    }
+    if (content_length > 0) {
+        request.set_status(HEADERS);
+        return false;
+    }
+    return true;
+}
+
+static bool is_header_unique(Request& request, const std::string& key) {
+    size_t count = 0;
+
+    for (HttpMessage::HeaderIterator it = request.headers_begin(); it != request.headers_end();
+         ++it) {
+        if (it->first == key) {
+            ++count;
+            if (count > 1) return false;
+        }
+    }
+    return true;
+}
+
 // TODO This function really needs an overhaul. It's long and hard to read
 static ParsingStatus parse_headers(const std::string& read_buffer, size_t& read_index,
                                    Request& request) {
@@ -122,37 +162,13 @@ static ParsingStatus parse_headers(const std::string& read_buffer, size_t& read_
         if (line_end == read_index) {
             read_index += 2;
 
-            size_t content_length_count = 0;
-            size_t content_length_value = 0;
-
-            for (HttpMessage::HeaderIterator it = request.headers_begin();
-                 it != request.headers_end(); ++it) {
-                if (it->first == "Content-Length") {
-                    ++content_length_count;
-                    if (content_length_count > 1) {
-                        request.set_error_status(400);
-                        request.set_status(ERROR);
-                        return request.status();
-                    }
-                    if (!parse_content_length_value(it->second, content_length_value)) {
-                        request.set_error_status(400);
-                        request.set_status(ERROR);
-                        return request.status();
-                    }
-                }
+            // Check for mandatory Host header, and if it is unique.
+            if (!request.has_header("Host") || !is_header_unique(request, "Host")) {
+                request.set_error_status(400);
+                request.set_status(ERROR);
+                return request.status();
             }
-            if (content_length_count == 1) {
-                request.set_content_length(content_length_value);
-                if (content_length_value > request.client_max_body_size()) {
-                    request.set_error_status(413);  // Payload too large
-                    request.set_status(ERROR);
-                    return request.status();
-                }
-                if (content_length_value > 0) {
-                    request.set_status(HEADERS);
-                    return request.status();
-                }
-            }
+            if (!handle_content_length_header(request)) return request.status();
             request.set_status(BODY);
             return request.status();
         }
