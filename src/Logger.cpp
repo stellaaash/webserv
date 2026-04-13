@@ -4,21 +4,26 @@
 #include <fstream>
 #include <string>
 
+static std::string& get_log_directory() {
+    static std::string log_dir;
+    return log_dir;
+}
+
 /**
  * @brief The functions Open and return the log files in "append" mode.
  */
 static std::ofstream& get_debug_file() {
-    static std::ofstream ofs("log_debug.log", std::ios::app);
+    static std::ofstream ofs((get_log_directory() + "/log_debug.log").c_str(), std::ios::app);
     return ofs;
 }
 
 static std::ofstream& get_general_file() {
-    static std::ofstream ofs("log_general.log", std::ios::app);
+    static std::ofstream ofs((get_log_directory() + "/log_general.log").c_str(), std::ios::app);
     return ofs;
 }
 
 static std::ofstream& get_error_file() {
-    static std::ofstream ofs("log_error.log", std::ios::app);
+    static std::ofstream ofs((get_log_directory() + "/log_error.log").c_str(), std::ios::app);
     return ofs;
 }
 
@@ -40,10 +45,15 @@ static void dispatch_log(LogLevel level, const std::string& msg) {
     if (level >= LOG_ERROR) write_log(get_error_file(), msg);
 }
 
-void logger_init() {
-    std::ofstream("log_debug.log", std::ios::trunc).close();
-    std::ofstream("log_general.log", std::ios::trunc).close();
-    std::ofstream("log_error.log", std::ios::trunc).close();
+void logger_init(const std::string& log_dir) {
+    const std::string& log_directory = get_log_directory();
+    if (log_dir.empty())
+        log_directory = ".";
+    else
+        log_directory = log_dir;
+    std::ofstream((log_directory + "/log_debug.log").c_str(), std::ios::trunc).close();
+    std::ofstream((log_directory + "/log_general.log").c_str(), std::ios::trunc).close();
+    std::ofstream((log_directory + "/log_error.log").c_str(), std::ios::trunc).close();
 }
 
 Logger::Logger(LogLevel level) : _level(level) {}

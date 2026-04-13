@@ -27,7 +27,6 @@ void clean_exit(int) {
 int main(int argc, char** argv) {
     if (argc != 2) return 1;
 
-    logger_init();
     signal(SIGINT, clean_exit);
 
     if (!is_regular_file(argv[1])) {
@@ -45,6 +44,8 @@ int main(int argc, char** argv) {
         return 3;
     }
     config_file.close();
+
+    logger_init(config.error_log);
 
     ConnectionManager manager;
     for (ServerIterator s = config.server.begin(); s != config.server.end(); ++s) {
