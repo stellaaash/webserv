@@ -33,19 +33,20 @@ CFILES		=	$(SRCDIR)/main.cpp \
 				$(SRCDIR)/FileManager/listing.cpp \
 				$(SRCDIR)/socket_utils.cpp \
 
-OBJS		=	$(CFILES:.cpp=.o)
-
 INCLDIR		=	include
+BUILDDIR	=	build
 IFILES		=
 
 VALGRIND	=	valgrind
 VALFLAGS	=	--leak-check=full --show-leak-kinds=all
 LOG			=	valgrind.log
 
+OBJS		=	$(CFILES:$(SRCDIR)/%.cpp=$(BUILDDIR)/%.o)
 
 all:			$(NAME)
 
-%.o:			%.cpp
+$(BUILDDIR)/%.o: $(SRCDIR)/%.cpp
+				@mkdir -p $(dir $@)
 				@printf "\rCompiling $<..."
 				@$(CXX) $(CXXFLAGS) -I$(INCLDIR) -c $< -o $@
 
@@ -59,8 +60,7 @@ $(NAME):		$(OBJS)
 
 clean:
 				@printf "\rCleaning object files"
-				@$(RM) $(RMFLAGS) $(OBJS)
-				@$(RM) $(RMFLAGS) $(OBJS:.o=.d)
+				@$(RM) $(RMFLAGS) -r $(BUILDDIR)
 				@printf "\rObject files cleaned.\n"
 
 fclean:			clean
