@@ -35,6 +35,10 @@ private:
 
     void shrink_read_buffer();
 
+    void process_get_request(const FilePath& resource_path);
+    void process_post_request();
+    void process_delete_request();
+
     const ConfigServer* _config;
 
     Request  _request;

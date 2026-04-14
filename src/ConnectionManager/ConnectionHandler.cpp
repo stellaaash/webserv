@@ -150,34 +150,36 @@ bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events
         if (n < 0) return false;
         if (n == 0) return false;  // temp to avoid infinite calls when closed by client
 
-        ParsingStatus r = _conn.parse_request();
-        if (r == ERROR) {
-            HttpCode code = _conn.request().error_status();
-            _conn.queue_write(error_response(code));
-            _conn.send_data();
-            return false;
+        if (_conn.request().status() != PARSED) {
+            ParsingStatus r = _conn.parse_request();
+            if (r == ERROR) {
+                HttpCode code = _conn.request().error_status();
+                _conn.queue_write(error_response(code));
+                _conn.send_data();
+                return false;
+            }
         }
-        // Stop here if the request hasn't been fully parsed
-        if (r != PARSED) return true;
+        // If the request has been fully parsed, we're ready to start processing
+        if (_conn.request().status() == PARSED) {
+            log_request(_conn.request());
 
-        log_request(_conn.request());
+            _conn.process_request();
 
-        _conn.process_request();
+            const Response& response = _conn.response();
+            log_response(response);
 
-        const Response& response = _conn.response();
-
-        log_response(response);
-
-        // TODO Will need to not do everything in one go to prevent blocking on processing the
-        // request
-        if (response.code() >= 400 && response.code() <= 599) {
-            _conn.queue_write(error_response(response.code()));
-        } else if (!_conn.has_pending_write() && r == PARSED) {
-            _conn.queue_write(response.serialize());
-            if (response.body().empty() == false) {
-                // TODO Generated bodies above SEND_SIZE will block the server
-                // This is because this queue_write occurs only when the request first gets parsed
-                _conn.queue_write(response.body());
+            // TODO Will need to not do everything in one go to prevent blocking on processing the
+            // request
+            if (response.code() >= 400 && response.code() <= 599) {
+                _conn.queue_write(error_response(response.code()));
+            } else if (!_conn.has_pending_write()) {
+                _conn.queue_write(response.serialize());
+                if (response.body().empty() == false) {
+                    // TODO Generated bodies above SEND_SIZE will block the server
+                    // This is because this queue_write occurs only when the request first gets
+                    // parsed
+                    _conn.queue_write(response.body());
+                }
             }
         }
     }

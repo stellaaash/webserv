@@ -32,6 +32,7 @@ CFILES		=	$(SRCDIR)/main.cpp \
 				$(SRCDIR)/FileManager/read.cpp \
 				$(SRCDIR)/FileManager/write.cpp \
 				$(SRCDIR)/FileManager/listing.cpp \
+				$(SRCDIR)/RequestProcessor/request_processor.cpp \
 				$(SRCDIR)/socket_utils.cpp \
 
 INCLDIR		=	include
