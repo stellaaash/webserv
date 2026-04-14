@@ -79,7 +79,7 @@ static void log_request(const Request& request) {
     } else {
         Logger(LOG_DEBUG) << "Body size (RAM): " << request.body().size();
     }
-    Logger(LOG_DEBUG) << "Request location config:" << request.config()->name;
+    Logger(LOG_DEBUG) << "Request location config: " << request.config()->name;
     Logger(LOG_DEBUG) << "----- [HEADERS] -----";
     for (HttpMessage::HeaderIterator it = request.headers_begin(); it != request.headers_end();
          ++it) {
@@ -140,12 +140,19 @@ bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events
             _conn.send_data();
             return false;
         }
-        if (r == PARSED) {
-            const Request& req = _conn.request();
-            log_request(req);
-        }
+        // Stop here if the request hasn't been fully parsed
+        if (r != PARSED) return true;
+
+        log_request(_conn.request());
 
         _conn.process_request();
+
+        std::clog << "----- [RESP BEGIN] -----" << std::endl;
+        std::clog << "Code: " << _conn.response().code() << std::endl;
+        std::clog << "Response String: " << _conn.response().response_string() << std::endl;
+        std::clog << "File Descriptor: " << _conn.response().fd() << std::endl;
+        std::clog << "Body length: " << _conn.response().body().length() << std::endl;
+        std::clog << "----- [RESP END] -----" << std::endl;
 
         const Response& response = _conn.response();
         // TODO Will need to not do everything in one go to prevent blocking on processing the

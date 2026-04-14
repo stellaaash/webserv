@@ -146,6 +146,13 @@ void Connection::process_request() {
         resource_path = config->root + "/" + relative_path;
     }
 
+    if (_request.config()->allowed_methods.find(_request.method()) ==
+        _request.config()->allowed_methods.end()) {
+        _response.set_code(405);
+        _response.set_response_string("Method Not Allowed");
+        return;
+    }
+
     std::cout << "[REPRO] - Fetching resource: " << resource_path << std::endl;
 
     // Fetch the resource or generate content
@@ -197,13 +204,6 @@ void Connection::process_request() {
     _response.set_header("Content-Length", convert.str());
 
     // TODO Fetch the error page if needed and configured
-
-    std::clog << "----- [RESP BEGIN] -----" << std::endl;
-    std::clog << "Code: " << _response.code() << std::endl;
-    std::clog << "Response String: " << _response.response_string() << std::endl;
-    std::clog << "File Descriptor: " << _response.fd() << std::endl;
-    std::clog << "Body length: " << _response.body().length() << std::endl;
-    std::clog << "----- [RESP END] -----" << std::endl;
 }
 
 void Connection::queue_write(const std::string& data) {
