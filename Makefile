@@ -9,6 +9,7 @@ CXXFLAGS	=	-Wall \
 				-MMD \
 				-MP \
 				-std=c++98 \
+				-O0 \
 				-g
 RM			=	rm
 RMFLAGS		=	-f
