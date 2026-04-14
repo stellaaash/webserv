@@ -75,7 +75,10 @@ static ParsingStatus parse_request_line(const std::string& read_buffer, size_t& 
     std::string        version;
     std::string        extra;
 
-    // Fills values seperated by spaces. If extra succeeds after, Error.
+    // FIXME If a client just doesn't send them all at the same time (let's say a reaaaaally slow
+    // one), the server 400s directly. It would be advisable to wait for the client to send more
+    // data before throwing them off
+    // Fills values seperated by spaces. If extra succeeds after, error.
     if (!(stream >> method >> target >> version) || (stream >> extra)) {
         request.set_status(ERROR);
         request.set_error_status(400);  // Bad request 400, too many/too few elements

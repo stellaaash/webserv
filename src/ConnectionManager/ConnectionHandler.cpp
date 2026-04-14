@@ -50,14 +50,12 @@ static std::string error_response(HttpCode code) {
             break;
     }
 
-    int code_int = static_cast<int>(code);
-
     std::ostringstream body_stream;
-    body_stream << code_int << " " << reason << "\n";
+    body_stream << code << " " << reason << "\n";
     std::string body = body_stream.str();
 
     std::ostringstream response;
-    response << "HTTP/1.1 " << code_int << " " << reason << "\r\n"
+    response << "HTTP/1.1 " << code << " " << reason << "\r\n"
              << "Content-Type: text/plain\r\n"
              << "Content-Length: " << body.size() << "\r\n"
              << "Connection: close\r\n"
@@ -178,7 +176,11 @@ bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events
     // We need to know if the serialized response string and headers were sent already, and then
     // (and only then) focus on the body. This will allow us to only send the serialized part
     // once, too
-    if (!_conn.has_pending_write()) {
+    // We'll also need a way to keep track of how many bytes we have sent, to be able to clear the
+    // Response Right now, telneting in and just inputting whitespace after a valid request just
+    // repeats the response already sent, but with a duplicate Content-Length, indicating that
+    // process_request is being called again, every time adding a new header to the multimap
+    if (request.status() == PARSED && !_conn.has_pending_write()) {
         // Add a chunk to send
         if (_conn.response().fd() >= 0) {
             char    buffer[SEND_SIZE];

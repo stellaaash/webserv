@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 
+#include "Logger.hpp"
 #include "file_manager.hpp"
 
 /**
@@ -20,13 +21,8 @@ bool is_regular_file(const FilePath& path) {
 
     struct stat path_stat;
     memset(&path_stat, 0, sizeof(path_stat));
-    if (stat(path.c_str(), &path_stat) != 0) {
-        perror("[is_regular_file] - stat");
-        return false;
-    }
-    if (!S_ISREG(path_stat.st_mode)) {
-        return false;
-    }
+    if (stat(path.c_str(), &path_stat) != 0) return false;
+    if (!S_ISREG(path_stat.st_mode)) return false;
 
     int access_status = access(path.c_str(), R_OK);
     if (access_status != 0) {
@@ -45,13 +41,8 @@ bool is_directory(const FilePath& path) {
 
     struct stat path_stat;
     memset(&path_stat, 0, sizeof(path_stat));
-    if (stat(path.c_str(), &path_stat) != 0) {
-        perror("[is_regular_file] - stat");
-        return false;
-    }
-    if (!S_ISDIR(path_stat.st_mode)) {
-        return false;
-    }
+    if (stat(path.c_str(), &path_stat) != 0) return false;
+    if (!S_ISDIR(path_stat.st_mode)) return false;
 
     int access_status = access(path.c_str(), W_OK);
     if (access_status != 0) {
@@ -70,6 +61,7 @@ size_t file_length(const FilePath& path) {
 
     if (stat(path.c_str(), &file_stat) == -1) perror("[file_length] - stat");
 
+    Logger(LOG_DEBUG) << path << " is of size " << file_stat.st_size;
     return static_cast<size_t>(file_stat.st_size);
 }
 
