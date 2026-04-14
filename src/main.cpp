@@ -30,7 +30,7 @@ int main(int argc, char** argv) {
     signal(SIGINT, clean_exit);
 
     if (!is_regular_file(argv[1])) {
-        std::clog << "[!] - Failed to open configuration file." << std::endl;
+        std::cerr << "[!] - Failed to open configuration file." << std::endl;
         return 2;
     }
 
@@ -40,7 +40,7 @@ int main(int argc, char** argv) {
     try {
         config = parse_file(config_file);
     } catch (const ParserError& e) {
-        Logger(LOG_ERROR) << "[!] - " << e.what();
+        std::cerr << "[!] - " << e.what() << std::endl;
         return 3;
     }
     config_file.close();

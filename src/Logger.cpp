@@ -45,8 +45,12 @@ static void dispatch_log(LogLevel level, const std::string& msg) {
     if (level >= LOG_ERROR) write_log(get_error_file(), msg);
 }
 
+/**
+ * @brief This function prepares the log directory and also removes previously present log files
+ * there.
+ */
 void logger_init(const std::string& log_dir) {
-    const std::string& log_directory = get_log_directory();
+    std::string& log_directory = get_log_directory();
     if (log_dir.empty())
         log_directory = ".";
     else
