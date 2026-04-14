@@ -39,6 +39,15 @@ static void write_log(std::ofstream& ofs, const std::string& msg) {
     ofs << "[" << get_timestamp() << "] " << msg << std::endl;
 }
 
+/**
+ * @brief Writes to the right file according to the LogLevel.
+ *
+ * @description LogLevels work in this way: the lowest level of detail is LOG_ERROR, which only
+ * contains errors. Then you add more general log messages with LOG_GENERAL, and, finally, the
+ * highest amount of detail in LOG_DEBUG. This structure is echoed in the files created by the
+ * Logger system: one file for errors, one file for errors AND general logs, and finally one debug
+ * file containing everything.
+ */
 static void dispatch_log(LogLevel level, const std::string& msg) {
     if (level >= LOG_DEBUG) write_log(get_debug_file(), msg);
     if (level >= LOG_GENERAL) write_log(get_general_file(), msg);
