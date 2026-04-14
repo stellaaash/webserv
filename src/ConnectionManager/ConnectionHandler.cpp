@@ -88,6 +88,23 @@ static void log_request(const Request& request) {
     Logger(LOG_DEBUG) << "----- [REQ END] -----\n";
 }
 
+/**
+ * @brief Prints a response's status, as well as its body information and headers.
+ */
+static void log_response(const Response& response) {
+    Logger(LOG_DEBUG) << "----- [RESPONSE] -----";
+    Logger(LOG_DEBUG) << "Code: " << response.code();
+    Logger(LOG_DEBUG) << "Response String: " << response.response_string();
+    Logger(LOG_DEBUG) << "File Descriptor: " << response.fd();
+    Logger(LOG_DEBUG) << "Body length: " << response.body().length();
+    Logger(LOG_DEBUG) << "----- [HEADERS] -----";
+    for (HttpMessage::HeaderIterator it = response.headers_begin(); it != response.headers_end();
+         ++it) {
+        Logger(LOG_DEBUG) << it->first << ": " << it->second;
+    }
+    Logger(LOG_DEBUG) << "----- [RESP END] -----\n";
+}
+
 ConnectionHandler::ConnectionHandler(const ConfigServer* srv, int client_fd)
     : _fd(client_fd),
       _conn(srv, client_fd),
@@ -149,30 +166,30 @@ bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events
 
         const Response& response = _conn.response();
 
-        std::clog << "----- [RESP BEGIN] -----" << std::endl;
-        std::clog << "Code: " << response.code() << std::endl;
-        std::clog << "Response String: " << response.response_string() << std::endl;
-        std::clog << "File Descriptor: " << response.fd() << std::endl;
-        std::clog << "Body length: " << response.body().length() << std::endl;
-        std::clog << "----- [RESP END] -----" << std::endl;
+        log_response(response);
 
         // TODO Will need to not do everything in one go to prevent blocking on processing the
         // request
         if (response.code() >= 400 && response.code() <= 599) {
             _conn.queue_write(error_response(response.code()));
         } else if (!_conn.has_pending_write() && r == PARSED) {
-            // TODO Don't send the headers at every pass, only the first time
             _conn.queue_write(response.serialize());
             if (response.body().empty() == false) {
+                // TODO Generated bodies above SEND_SIZE will block the server
+                // This is because this queue_write occurs only when the request first gets parsed
                 _conn.queue_write(response.body());
-            } else {
-                char    buffer[SEND_SIZE];
-                ssize_t read_bytes = read(response.fd(), buffer, SEND_SIZE);
-                if (read_bytes < 0) perror("[handle_event] - read");
-                _conn.queue_write(std::string(buffer, static_cast<size_t>(read_bytes)));
             }
         }
     }
+
+    // Add a chunk to send
+    if (_conn.response().fd() >= 0) {
+        char    buffer[SEND_SIZE];
+        ssize_t read_bytes = read(_conn.response().fd(), buffer, SEND_SIZE);
+        if (read_bytes < 0) perror("[handle_event] - read");
+        _conn.queue_write(std::string(buffer, static_cast<size_t>(read_bytes)));
+    }
+
     if ((events & EPOLLOUT) && _conn.has_pending_write()) _conn.send_data();
 
     return true;  // keeps connection

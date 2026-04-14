@@ -139,7 +139,7 @@ void Connection::process_request() {
 
     // The relative path is the path from the root of the location to the resource
     relative_path = _request.target().substr(config->name.length(), _request.target().npos);
-    std::cout << "[!] - Relative path: " << relative_path << std::endl;
+    Logger(LOG_DEBUG) << "[!] - Relative path: " << relative_path;
 
     // Isolate the resource needed
     if (relative_path.empty() && !config->index.empty()) {
@@ -155,7 +155,7 @@ void Connection::process_request() {
         return;
     }
 
-    std::cout << "[REPRO] - Fetching resource: " << resource_path << std::endl;
+    Logger(LOG_DEBUG) << "[REPRO] - Fetching resource: " << resource_path;
 
     // Fetch the resource or generate content
     if (is_directory(resource_path) == true) {
@@ -203,6 +203,9 @@ void Connection::process_request() {
         convert << _response.body().length();
     else
         convert << file_length(resource_path);
+    // FIXME This line (and potentially others) are being called at every call of process_request,
+    // and shouldn't be (this one in particular results in multiple Content-Length headers being
+    // added to the request)
     _response.set_header("Content-Length", convert.str());
 
     // TODO Fetch the error page if needed and configured

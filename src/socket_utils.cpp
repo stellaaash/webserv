@@ -9,6 +9,7 @@
 #include <iostream>
 #include <vector>
 
+#include "Logger.hpp"
 #include "config.hpp"
 
 int set_nonblocking(int fd) {
@@ -55,8 +56,8 @@ std::vector<int> make_listen_sockets(const ConfigServer& config) {
 
         char ip_buffer[INET_ADDRSTRLEN];
         inet_ntop(AF_INET, &address.sin_addr, ip_buffer, INET_ADDRSTRLEN);
-        std::clog << "[make_listen_sockets] - Created fd " << fd << " to listen at " << ip_buffer
-                  << " on port " << ntohs(address.sin_port) << std::endl;
+        Logger(LOG_DEBUG) << "[make_listen_sockets] - Created fd " << fd << " to listen at "
+                          << ip_buffer << " on port " << ntohs(address.sin_port);
 
         fds.push_back(fd);
     }
