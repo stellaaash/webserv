@@ -48,8 +48,6 @@ std::vector<Token> lex_config(std::ifstream& file_stream) {
             // If the character isn't part of a word, then we've reached the end of the last one
             token.type = WORD;
             tokens.push_back(token);
-            std::clog << "[!] - Extracted token " << token.word << " of type " << token.type
-                      << std::endl;
             token.word.erase();
         }
 
@@ -71,8 +69,6 @@ std::vector<Token> lex_config(std::ifstream& file_stream) {
                 --braces;
             }
             tokens.push_back(token);
-            std::clog << "[!] - Extracted token " << token.word << " of type " << token.type
-                      << std::endl;
             token.word.erase();
         }
     }

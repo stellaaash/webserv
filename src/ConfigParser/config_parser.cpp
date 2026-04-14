@@ -183,11 +183,6 @@ static std::vector<Token> parse_line(TokenIterator* t) {
     tokens.push_back(**t);
     ++(*t);
 
-    std::clog << "[!] - Parsed line: ";
-    for (std::vector<Token>::const_iterator i = tokens.begin(); i != tokens.end(); ++i)
-        std::clog << (*i).word << " ";
-    std::clog << std::endl;
-
     return tokens;
 }
 
