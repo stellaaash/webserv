@@ -147,14 +147,15 @@ bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events
 
         _conn.process_request();
 
+        const Response& response = _conn.response();
+
         std::clog << "----- [RESP BEGIN] -----" << std::endl;
-        std::clog << "Code: " << _conn.response().code() << std::endl;
-        std::clog << "Response String: " << _conn.response().response_string() << std::endl;
-        std::clog << "File Descriptor: " << _conn.response().fd() << std::endl;
-        std::clog << "Body length: " << _conn.response().body().length() << std::endl;
+        std::clog << "Code: " << response.code() << std::endl;
+        std::clog << "Response String: " << response.response_string() << std::endl;
+        std::clog << "File Descriptor: " << response.fd() << std::endl;
+        std::clog << "Body length: " << response.body().length() << std::endl;
         std::clog << "----- [RESP END] -----" << std::endl;
 
-        const Response& response = _conn.response();
         // TODO Will need to not do everything in one go to prevent blocking on processing the
         // request
         if (response.code() >= 400 && response.code() <= 599) {

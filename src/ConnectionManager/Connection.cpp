@@ -125,6 +125,8 @@ ParsingStatus Connection::parse_request() {
  * @description The Response object will either contain a valid file descriptor to read from, or a
  * filled body string containing the generated content.
  */
+// TODO Move processing related functions to a dedicated file
+// Technically, Connection::process_request could be in a separate file as well
 // TODO: Return status of the processing
 void Connection::process_request() {
     const ConfigLocation* const config = _request.config();
@@ -163,7 +165,7 @@ void Connection::process_request() {
             _response.set_response_string("OK");
         } else
             _response.set_code(404);
-    } else if (_request.method() == GET) {
+    } else if (_request.method() == GET) {  // TODO One function per method
         int fd = fetch_file(resource_path);
         if (fd < 0) {
             perror("[process_request] - fetch_file");

@@ -69,7 +69,7 @@ std::string Response::serialize() const {
         serialized << h->first << ": " << h->second << "\r\n";
     }
 
-    serialized << "\r\n\r\n";
+    serialized << "\r\n";
 
     return serialized.str();
 }
