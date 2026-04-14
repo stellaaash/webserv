@@ -21,6 +21,9 @@ static std::string error_response(HttpCode code) {
         case 400:
             reason = "Bad Request";
             break;
+        case 404:
+            reason = "Not Found";
+            break;
         case 405:
             reason = "Method Not Allowed";
             break;
@@ -144,6 +147,9 @@ bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events
         return false;
     }
 
+    const Request&  request = _conn.request();
+    const Response& response = _conn.response();
+
     if (events & EPOLLIN) {
         ssize_t n = _conn.receive_data();
 
@@ -153,46 +159,45 @@ bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events
         if (_conn.request().status() != PARSED) {
             ParsingStatus r = _conn.parse_request();
             if (r == ERROR) {
-                HttpCode code = _conn.request().error_status();
+                HttpCode code = request.error_status();
                 _conn.queue_write(error_response(code));
                 _conn.send_data();
                 return false;
             }
         }
         // If the request has been fully parsed, we're ready to start processing
-        if (_conn.request().status() == PARSED) {
-            log_request(_conn.request());
-
+        if (request.status() == PARSED) {
+            log_request(request);
             _conn.process_request();
-
-            const Response& response = _conn.response();
             log_response(response);
+        }
+    }
 
-            // TODO Will need to not do everything in one go to prevent blocking on processing the
-            // request
-            if (response.code() >= 400 && response.code() <= 599) {
-                _conn.queue_write(error_response(response.code()));
-            } else if (!_conn.has_pending_write()) {
-                _conn.queue_write(response.serialize());
-                if (response.body().empty() == false) {
-                    // TODO Generated bodies above SEND_SIZE will block the server
-                    // This is because this queue_write occurs only when the request first gets
-                    // parsed
-                    _conn.queue_write(response.body());
-                }
+    // TODO Don't send an error response multiple times!
+    // Honestly this entire logic needs to be rewritten around statuses
+    // We need to know if the serialized response string and headers were sent already, and then
+    // (and only then) focus on the body. This will allow us to only send the serialized part
+    // once, too
+    if (!_conn.has_pending_write()) {
+        // Add a chunk to send
+        if (_conn.response().fd() >= 0) {
+            char    buffer[SEND_SIZE];
+            ssize_t read_bytes = read(response.fd(), buffer, SEND_SIZE);
+            if (read_bytes < 0) perror("[handle_event] - read");
+            _conn.queue_write(std::string(buffer, static_cast<size_t>(read_bytes)));
+        } else if (response.code() >= 400 && response.code() <= 599) {
+            _conn.queue_write(error_response(response.code()));
+        } else {
+            _conn.queue_write(response.serialize());
+            if (response.body().empty() == false) {
+                _conn.queue_write(response.body());
             }
         }
     }
 
-    // Add a chunk to send
-    if (_conn.response().fd() >= 0) {
-        char    buffer[SEND_SIZE];
-        ssize_t read_bytes = read(_conn.response().fd(), buffer, SEND_SIZE);
-        if (read_bytes < 0) perror("[handle_event] - read");
-        _conn.queue_write(std::string(buffer, static_cast<size_t>(read_bytes)));
+    if (_conn.has_pending_write() && events & EPOLLOUT) {
+        _conn.send_data();
     }
-
-    if ((events & EPOLLOUT) && _conn.has_pending_write()) _conn.send_data();
 
     return true;  // keeps connection
 }

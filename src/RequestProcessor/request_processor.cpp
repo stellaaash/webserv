@@ -22,6 +22,9 @@ void Connection::process_get_request(const FilePath& resource_path) {
             _response.set_code(404);
         }
         return;
+    } else if (!is_regular_file(resource_path)) {
+        _response.set_code(404);
+        return;
     }
 
     int fd = fetch_file(resource_path);
@@ -48,13 +51,11 @@ void Connection::process_get_request(const FilePath& resource_path) {
 void Connection::process_post_request() {
     // TODO Add file or launch CGI
     _response.set_code(501);
-    _response.set_response_string("Not Implemented");
 }
 
 void Connection::process_delete_request() {
     // TODO Remove file
     _response.set_code(501);
-    _response.set_response_string("Not Implemented");
 }
 
 /**
@@ -87,7 +88,6 @@ void Connection::process_request() {
     if (_request.config()->allowed_methods.find(_request.method()) ==
         _request.config()->allowed_methods.end()) {
         _response.set_code(405);
-        _response.set_response_string("Method Not Allowed");
         return;
     }
 
@@ -101,8 +101,8 @@ void Connection::process_request() {
         process_delete_request();
     } else {
         _response.set_code(501);
-        _response.set_response_string("Not Implemented");
     }
+    if (_response.code() >= 400 && _response.code() <= 599) return;
 
     std::stringstream length;
     if (_response.body().empty() == false)
