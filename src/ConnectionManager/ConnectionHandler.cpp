@@ -12,9 +12,10 @@
 #include "ConnectionManager.hpp"
 #include "Logger.hpp"
 #include "Request.hpp"
+#include "Response.hpp"
 #include "config.hpp"
 
-static std::string error_response(HttpCode code) {
+std::string error_response(HttpCode code) {
     std::string reason;
 
     switch (code) {
@@ -120,7 +121,7 @@ int ConnectionHandler::fd() const {
 
 uint32_t ConnectionHandler::interests() const {
     // EPOLLOUT only when something must be sent back, else stay ready to listen
-    if (_conn.has_pending_write())
+    if (_conn.has_pending_write() || _conn.response().status() != RS_EMPTY)
         return EPOLLIN | EPOLLOUT;
     else
         return EPOLLIN;
@@ -149,16 +150,18 @@ bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events
     const Response& response = _conn.response();
 
     if (events & EPOLLIN) {
+        Logger(LOG_DEBUG) << "[CONN " << _fd << "] Received data";
         ssize_t n = _conn.receive_data();
 
-        if (n < 0) return false;
-        if (n == 0) return false;  // temp to avoid infinite calls when closed by client
+        if (n <= 0) return false;
 
         if (_conn.request().status() != PARSED) {
             ParsingStatus r = _conn.parse_request();
             if (r == ERROR) {
                 HttpCode code = request.error_status();
-                _conn.queue_write(error_response(code));
+                _conn.queue_write(
+                    error_response(code));  // TODO Reconsider whether error_response is a good call
+                                            // or if even those erros should go through RS_ERROR
                 _conn.send_data();
                 return false;
             }
@@ -168,8 +171,8 @@ bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events
             log_request(request);
             _conn.process_request();
             log_response(response);
-            if (_conn.response().code() >= 400 && _conn.response().code() <= 599) {
-                _conn.queue_write(error_response(_conn.response().code()));
+            if (response.status() == RS_ERROR) {
+                _conn.queue_write(error_response(response.code()));
                 _conn.send_data();
                 return false;  // TODO We should only close connections when we can't determine the
                                // end of a request
@@ -177,36 +180,19 @@ bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events
         }
     }
 
-    // TODO Don't send an error response multiple times!
-    // Honestly this entire logic needs to be rewritten around statuses
-    // We need to know if the serialized response string and headers were sent already, and then
-    // (and only then) focus on the body. This will allow us to only send the serialized part
-    // once, too
-    // We'll also need a way to keep track of how many bytes we have sent, to be able to clear the
-    // Response
-    // Right now, telneting in and just inputting whitespace after a valid request just
-    // repeats the response already sent, but with a duplicate Content-Length, indicating that
-    // process_request is being called again, every time adding a new header to the multimap
     if (request.status() == PARSED && !_conn.has_pending_write()) {
-        _conn.queue_write(response.serialize());
-        if (_conn.response().fd() >= 0) {
-            char    buffer[SEND_SIZE];
-            ssize_t read_bytes = read(response.fd(), buffer, SEND_SIZE);
-            if (read_bytes < 0) perror("[handle_event] - read");
-            _conn.queue_write(std::string(buffer, static_cast<size_t>(read_bytes)));
-        } else if (response.code() >= 400 && response.code() <= 599) {
-            _conn.queue_write(error_response(response.code()));
-        } else {
-            if (response.body().empty() == false) {
-                _conn.queue_write(response.body());
-            }
+        if (response.status() == RS_EMPTY)
+            _conn.append_head();
+        else if (response.status() == RS_HEAD) {
+            _conn.append_body_chunk();
         }
     }
 
     if (_conn.has_pending_write() && events & EPOLLOUT) {
+        Logger(LOG_DEBUG) << "[CONN " << _fd << "] Sent data";
         _conn.send_data();
     }
-    if (_conn.bytes_sent() == _conn.total_bytes()) {
+    if (_conn.bytes_sent() == _conn.total_bytes() && response.status() == RS_SENT) {
         // Reset Request and Response once everything was sent to the client
         _conn.reset_request();
         _conn.reset_response();

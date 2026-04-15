@@ -27,6 +27,8 @@ public:
     ssize_t       receive_data();
     ParsingStatus parse_request();
     void          process_request();
+    void          append_head();
+    void          append_body_chunk();
 
     void set_config(const ConfigServer* const);
     void queue_write(const std::string& data);

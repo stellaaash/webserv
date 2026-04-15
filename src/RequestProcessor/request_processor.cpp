@@ -10,6 +10,7 @@
 
 // TODO Note to self: if this architecture works out (request processor as part of Connection),
 // standardize it with the Request Parser, too
+// IT'S NOT WORKING OUT THIS IS SO UGLY AND INCOMPREHENSIBLE I HATE IT
 
 void Connection::process_get_request(const FilePath& resource_path) {
     // Fetch the resource or generate content
@@ -20,10 +21,12 @@ void Connection::process_get_request(const FilePath& resource_path) {
             _response.set_response_string("OK");
         } else {
             _response.set_code(404);
+            _response.set_status(RS_ERROR);
         }
         return;
     } else if (!is_regular_file(resource_path)) {
         _response.set_code(404);
+        _response.set_status(RS_ERROR);
         return;
     }
 
@@ -39,6 +42,7 @@ void Connection::process_get_request(const FilePath& resource_path) {
             _response.set_code(400);
         } else
             _response.set_code(500);
+        _response.set_status(RS_ERROR);
         return;
     }
     // TODO Throw or return error page (we could technically throw a Response)
@@ -52,11 +56,13 @@ void Connection::process_get_request(const FilePath& resource_path) {
 void Connection::process_post_request() {
     // TODO Add file or launch CGI
     _response.set_code(501);
+    _response.set_status(RS_ERROR);
 }
 
 void Connection::process_delete_request() {
     // TODO Remove file
     _response.set_code(501);
+    _response.set_status(RS_ERROR);
 }
 
 /**
@@ -65,7 +71,6 @@ void Connection::process_delete_request() {
  * @description The Response object will either contain a valid file descriptor to read from, or
  * a filled body string containing the generated content.
  */
-// TODO: Return status of the processing
 void Connection::process_request() {
     const ConfigLocation* const config = _request.config();
     FilePath                    resource_path;
@@ -89,6 +94,7 @@ void Connection::process_request() {
     if (_request.config()->allowed_methods.find(_request.method()) ==
         _request.config()->allowed_methods.end()) {
         _response.set_code(405);
+        _response.set_status(RS_ERROR);
         return;
     }
 
@@ -102,17 +108,15 @@ void Connection::process_request() {
         process_delete_request();
     } else {
         _response.set_code(501);
+        _response.set_status(RS_ERROR);
     }
-    if (_response.code() >= 400 && _response.code() <= 599) return;
+    if (_response.status() == RS_ERROR) return;
 
     std::stringstream length;
     if (_response.body().empty() == false)
         length << _response.body().length();
     else
         length << file_length(resource_path);
-    // FIXME This line (and potentially others) are being called at every call of process_request,
-    // and shouldn't be (this one in particular results in multiple Content-Length headers being
-    // added to the request)
     _response.set_header("Content-Length", length.str());
 
     // TODO Fetch the error page if needed and configured

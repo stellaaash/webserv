@@ -29,4 +29,6 @@ private:
     ConnectionHandler& operator=(const ConnectionHandler&);
 };
 
+std::string error_response(HttpCode code);
+
 #endif
