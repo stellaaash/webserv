@@ -68,6 +68,7 @@ std::string create_listing(const FilePath& directory) {
     html_listing << "<title>" << directory << "</title>\n";
     html_listing << "</head>\n";
     html_listing << "<body>\n";
+    // FIXME We shouldn't leak the entire path of the directory since the root of the filesystem
     html_listing << "<h1>Listing of " << directory << "</h1>\n";
     html_listing << "<ul>\n";
     for (std::map<FilePath, Path_Type>::const_iterator e = entries.begin(); e != entries.end();
@@ -75,6 +76,7 @@ std::string create_listing(const FilePath& directory) {
         std::string path = e->first;
         if (e->second == DIR_PATH) path.append("/");
 
+        // FIXME Links are broken (relative to the webserv cwd, not the current folder)
         html_listing << "<li><a href=\"" << e->first << "\">" << path << "</a></li>\n";
     }
     html_listing << "</ul>\n";

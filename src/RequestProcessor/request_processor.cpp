@@ -34,9 +34,10 @@ void Connection::process_get_request(const FilePath& resource_path) {
             _response.set_code(403);
         else if (errno == ENOENT)
             _response.set_code(404);
-        else if (errno == EINVAL || errno == ENAMETOOLONG)
+        else if (errno == EINVAL || errno == ENAMETOOLONG) {
+            Logger(LOG_DEBUG) << "Bad request - invalid resource path";
             _response.set_code(400);
-        else
+        } else
             _response.set_code(500);
         return;
     }

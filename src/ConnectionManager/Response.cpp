@@ -58,7 +58,7 @@ void Response::set_response_string(const std::string& response_string) {
  * socket directly.
  */
 std::string Response::serialize() const {
-    assert(_response_string.empty() == false && "Response ready");
+    assert(_code != 0 && "Response ready");
 
     std::stringstream serialized;
 

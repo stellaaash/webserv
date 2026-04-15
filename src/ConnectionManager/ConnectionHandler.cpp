@@ -134,8 +134,8 @@ bool ConnectionHandler::is_timed_out() const {
  * @brief This functions handles an event happening over a connection; either data arrived or is
  * ready to be sent.
  *
- * In any case, if any error occurs, or if the data was fully sent or received, it closes the
- * connection by returning `false`. Returning `true` keeps the connection alive upstream.
+ * @brief `true` to signify to keep the connection, `false` if the connection needs to be closed
+ * because of an unrecoverable error.
  */
 bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events) {
     (void)manager;
@@ -168,6 +168,12 @@ bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events
             log_request(request);
             _conn.process_request();
             log_response(response);
+            if (_conn.response().code() >= 400 && _conn.response().code() <= 599) {
+                _conn.queue_write(error_response(_conn.response().code()));
+                _conn.send_data();
+                return false;  // TODO We should only close connections when we can't determine the
+                               // end of a request
+            }
         }
     }
 

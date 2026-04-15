@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 
+#include "Logger.hpp"
 #include "Request.hpp"
 
 static std::string trim(const std::string& s) {
@@ -82,6 +83,7 @@ static ParsingStatus parse_request_line(const std::string& read_buffer, size_t& 
     if (!(stream >> method >> target >> version) || (stream >> extra)) {
         request.set_status(ERROR);
         request.set_error_status(400);  // Bad request 400, too many/too few elements
+        Logger(LOG_DEBUG) << "Bad request - too many / too few elements";
         return request.status();
     }
     if (method == "GET")
@@ -119,6 +121,7 @@ static bool handle_content_length_header(Request& request) {
         if (it->first == "Content-Length") {
             if (!parse_content_length_value(it->second, content_length)) {
                 request.set_error_status(400);
+                Logger(LOG_DEBUG) << "Bad request - invalid Content-Length value";
                 request.set_status(ERROR);
                 return false;
             }
@@ -168,6 +171,7 @@ static ParsingStatus parse_headers(const std::string& read_buffer, size_t& read_
             // Check for mandatory Host header, and if it is unique.
             if (!request.has_header("Host") || !is_header_unique(request, "Host")) {
                 request.set_error_status(400);
+                Logger(LOG_DEBUG) << "Bad request - missing or duplicate Host header";
                 request.set_status(ERROR);
                 return request.status();
             }
@@ -181,6 +185,7 @@ static ParsingStatus parse_headers(const std::string& read_buffer, size_t& read_
         if (colon == std::string::npos) {
             request.set_status(ERROR);
             request.set_error_status(400);
+            Logger(LOG_DEBUG) << "Bad request - missing colon in header";
             return request.status();  // Error
         }
 
@@ -211,6 +216,7 @@ static ParsingStatus parse_body(const std::string& read_buffer, size_t& read_ind
 
     if (received > expected) {
         request.set_error_status(400);
+        Logger(LOG_DEBUG) << "Bad request - body received exceeds Content-Length";
         request.set_status(ERROR);
         return request.status();
     }
