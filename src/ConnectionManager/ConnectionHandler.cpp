@@ -177,11 +177,12 @@ bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events
     // (and only then) focus on the body. This will allow us to only send the serialized part
     // once, too
     // We'll also need a way to keep track of how many bytes we have sent, to be able to clear the
-    // Response Right now, telneting in and just inputting whitespace after a valid request just
+    // Response
+    // Right now, telneting in and just inputting whitespace after a valid request just
     // repeats the response already sent, but with a duplicate Content-Length, indicating that
     // process_request is being called again, every time adding a new header to the multimap
     if (request.status() == PARSED && !_conn.has_pending_write()) {
-        // Add a chunk to send
+        _conn.queue_write(response.serialize());
         if (_conn.response().fd() >= 0) {
             char    buffer[SEND_SIZE];
             ssize_t read_bytes = read(response.fd(), buffer, SEND_SIZE);
@@ -190,7 +191,6 @@ bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events
         } else if (response.code() >= 400 && response.code() <= 599) {
             _conn.queue_write(error_response(response.code()));
         } else {
-            _conn.queue_write(response.serialize());
             if (response.body().empty() == false) {
                 _conn.queue_write(response.body());
             }
@@ -199,6 +199,11 @@ bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events
 
     if (_conn.has_pending_write() && events & EPOLLOUT) {
         _conn.send_data();
+    }
+    if (_conn.bytes_sent() == _conn.total_bytes()) {
+        // Reset Request and Response once everything was sent to the client
+        _conn.reset_request();
+        _conn.reset_response();
     }
 
     return true;  // keeps connection

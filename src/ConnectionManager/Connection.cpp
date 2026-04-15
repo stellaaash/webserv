@@ -7,13 +7,11 @@
 #include <cerrno>
 #include <cstdio>
 #include <cstring>
-#include <iostream>
 
 #include "Logger.hpp"
 #include "Request.hpp"
 #include "Response.hpp"
 #include "config.hpp"
-#include "file_manager.hpp"
 
 Connection::Connection(const ConfigServer* const config, int socket)
     : _config(config),
@@ -23,13 +21,31 @@ Connection::Connection(const ConfigServer* const config, int socket)
       _read_buffer(),
       _read_index(0),
       _write_buffer(),
-      _write_index(0) {
+      _write_index(0),
+      _bytes_sent(0),
+      _total_bytes(0) {
     assert(config && "ConfigServer pointer");
     assert(socket > 2 && "Valid Socket Number");
     _request.set_client_max_body_size(_config->client_max_body_size);
 }
 
 Connection::~Connection() {}
+
+/**
+ * @brief Start fresh on a new request.
+ */
+void Connection::reset_request() {
+    _request = Request();
+}
+
+/**
+ * @brief Start fresh on a new response, and reset the sent/total bytes values.
+ */
+void Connection::reset_response() {
+    _response = Response();
+    _bytes_sent = 0;
+    _total_bytes = 0;
+}
 
 const Request& Connection::request() const {
     return _request;
@@ -60,6 +76,7 @@ ssize_t Connection::send_data() {
     }
     // update write index with real bytes sent (can be lower than chunk)
     _write_index += static_cast<size_t>(n);
+    _bytes_sent += static_cast<size_t>(n);
 
     // cleanup
     if (_write_index >= _write_buffer.size()) {
@@ -119,7 +136,14 @@ ParsingStatus Connection::parse_request() {
     return status;
 }
 
+void Connection::set_config(const ConfigServer* const config) {
+    assert(config && "ConfigServer pointer");
+
+    _config = config;
+}
+
 void Connection::queue_write(const std::string& data) {
+    _total_bytes += data.size();
     _write_buffer += data;
 }
 
@@ -127,8 +151,10 @@ bool Connection::has_pending_write() const {
     return _write_index < _write_buffer.size();
 }
 
-void Connection::set_config(const ConfigServer* const config) {
-    assert(config && "ConfigServer pointer");
+size_t Connection::bytes_sent() const {
+    return _bytes_sent;
+}
 
-    _config = config;
+size_t Connection::total_bytes() const {
+    return _total_bytes;
 }

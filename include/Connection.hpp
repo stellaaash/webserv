@@ -20,6 +20,9 @@ public:
     const Request&  request() const;
     const Response& response() const;
 
+    void reset_request();
+    void reset_response();
+
     ssize_t       send_data();
     ssize_t       receive_data();
     ParsingStatus parse_request();
@@ -28,6 +31,9 @@ public:
     void set_config(const ConfigServer* const);
     void queue_write(const std::string& data);
     bool has_pending_write() const;
+
+    size_t bytes_sent() const;
+    size_t total_bytes() const;
 
 private:
     Connection(const Connection&);
@@ -50,6 +56,10 @@ private:
     size_t      _read_index;
     std::string _write_buffer;
     size_t      _write_index;
+
+    // Keep track of how much of the response and its body have been sent
+    size_t _bytes_sent;
+    size_t _total_bytes;
 };
 
 #endif

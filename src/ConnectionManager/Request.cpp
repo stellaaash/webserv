@@ -48,6 +48,40 @@ Request::Request(const ConfigLocation* const config, HttpMethod method)
     assert(config && "Config_Location pointer");
 }
 
+Request::Request(const Request& other)
+    : HttpMessage(other),
+      _config(other._config),
+      _target(other._target),
+      _content_length(other._content_length),
+      _client_max_body_size(other._client_max_body_size),
+      _body_received(other._body_received),
+      _method(other._method),
+      _status(other._status),
+      _error_status(other._error_status),
+      _spool_threshold(other._spool_threshold),
+      _is_body_spooled(other._is_body_spooled),
+      _body_fd(other._body_fd),
+      _body_path(other._body_path) {}
+
+const Request& Request::operator=(const Request& other) {
+    if (this == &other) return *this;
+
+    _config = other._config;
+    _target = other._target;
+    _content_length = other._content_length;
+    _client_max_body_size = other._client_max_body_size;
+    _body_received = other._body_received;
+    _method = other._method;
+    _status = other._status;
+    _error_status = other._error_status;
+    _spool_threshold = other._spool_threshold;
+    _is_body_spooled = other._is_body_spooled;
+    _body_fd = other._body_fd;
+    _body_path = other._body_path;
+
+    return *this;
+}
+
 Request::~Request() {
     if (_body_fd >= 0) {
         cleanup_temp_file();
