@@ -25,6 +25,8 @@ public:
     RequestStatus parse_request();
 
     void set_config(const ConfigServer* const);
+    void set_request(const Request&);
+    void set_response(const Response&);
     void queue_write(const std::string& data);
     bool has_pending_write() const;
 
