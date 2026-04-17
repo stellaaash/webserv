@@ -4,11 +4,9 @@
 #include <cstddef>
 #include <string>
 
+#include "ConfigParser.hpp"
 #include "HttpMessage.hpp"
 #include "config.hpp"
-
-// TODO Move ParsingStatus to a parsing.hpp header once parsing is done
-enum ParsingStatus { EMPTY, REQUEST_LINE, HEADERS, BODY, PARSED, ERROR };
 
 /**
  * @brief Represents a request issued by an active connection.

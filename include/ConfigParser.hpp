@@ -7,6 +7,8 @@
 #include "config.hpp"
 #include "config_lexer.hpp"
 
+enum ParsingStatus { EMPTY, REQUEST_LINE, HEADERS, BODY, PARSED, ERROR };
+
 class ParserError : public std::exception {
 public:
     ParserError(const std::string& error);
