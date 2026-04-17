@@ -63,6 +63,4 @@ private:
     std::string _body_path;
 };
 
-RequestStatus parse(const ConfigServer&, std::string& read_buffer, size_t& read_index, Request&);
-
 #endif

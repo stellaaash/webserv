@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 
+#include "Connection.hpp"
 #include "Request.hpp"
 
 static std::string trim(const std::string& s) {
@@ -276,4 +277,10 @@ RequestStatus parse(const ConfigServer& config, std::string& read_buffer, size_t
     if (request.status() == REQ_BODY) resolve_location(config, request);
 
     return request.status();
+}
+
+RequestStatus Connection::parse_request() {
+    RequestStatus status = parse(*_config, _read_buffer, _read_index, _request);
+    compact_read_buffer();
+    return status;
 }

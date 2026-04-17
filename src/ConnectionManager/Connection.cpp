@@ -103,12 +103,6 @@ void Connection::compact_read_buffer() {
     }
 }
 
-RequestStatus Connection::parse_request() {
-    RequestStatus status = parse(*_config, _read_buffer, _read_index, _request);
-    compact_read_buffer();
-    return status;
-}
-
 void Connection::set_config(const ConfigServer* const config) {
     assert(config && "ConfigServer pointer");
 
