@@ -36,6 +36,11 @@ private:
 
     void compact_read_buffer();
 
+    RequestStatus parse_request_line();
+    RequestStatus parse_headers();
+    RequestStatus parse_body();
+    RequestStatus resolve_location();
+
     const ConfigServer* _config;
 
     Request  _request;
