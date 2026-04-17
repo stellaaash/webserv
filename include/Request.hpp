@@ -4,9 +4,10 @@
 #include <cstddef>
 #include <string>
 
-#include "ConfigParser.hpp"
 #include "HttpMessage.hpp"
 #include "config.hpp"
+
+enum RequestStatus { RS_EMPTY, RS_REQUEST_LINE, RS_HEADERS, RS_BODY, RS_PARSED, RS_ERROR };
 
 /**
  * @brief Represents a request issued by an active connection.
