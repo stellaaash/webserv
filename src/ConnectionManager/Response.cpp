@@ -19,6 +19,8 @@ Response::Response(const Response& other)
 const Response& Response::operator=(const Response& other) {
     if (this == &other) return *this;
 
+    HttpMessage::operator=(other);
+
     _code = other._code;
     _response_string = other._response_string;
     _status = other._status;

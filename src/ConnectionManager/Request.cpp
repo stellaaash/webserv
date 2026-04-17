@@ -49,7 +49,8 @@ Request::Request(const ConfigLocation* const config, HttpMethod method)
 }
 
 Request::Request(const Request& other)
-    : _config(other._config),
+    : HttpMessage(other),
+      _config(other._config),
       _target(other._target),
       _content_length(other._content_length),
       _client_max_body_size(other._client_max_body_size),
@@ -64,6 +65,8 @@ Request::Request(const Request& other)
 
 const Request& Request::operator=(const Request& other) {
     if (this == &other) return *this;
+
+    HttpMessage::operator=(other);
 
     _config = other._config;
     _target = other._target;
