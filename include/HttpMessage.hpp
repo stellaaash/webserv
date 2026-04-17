@@ -17,6 +17,7 @@ public:
     int                major_version() const;
     int                minor_version() const;
     HeaderIterator     header(const std::string&) const;
+    size_t             header_count(const std::string&) const;
     HeaderIterator     headers_end() const;
     HeaderIterator     headers_begin() const;
     bool               has_header(const std::string&) const;
