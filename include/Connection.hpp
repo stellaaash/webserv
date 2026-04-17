@@ -22,7 +22,7 @@ public:
 
     ssize_t       send_data();
     ssize_t       receive_data();
-    ParsingStatus parse_request();
+    RequestStatus parse_request();
 
     void set_config(const ConfigServer* const);
     void queue_write(const std::string& data);

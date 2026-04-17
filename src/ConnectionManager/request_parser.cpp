@@ -59,9 +59,9 @@ static bool parse_content_length_value(const std::string& value, size_t& out) {
     return true;
 }
 
-static ParsingStatus parse_request_line(const std::string& read_buffer, size_t& read_index,
+static RequestStatus parse_request_line(const std::string& read_buffer, size_t& read_index,
                                         Request& request) {
-    assert(request.status() == EMPTY);
+    assert(request.status() == RS_EMPTY);
 
     std::string::size_type line_end = read_buffer.find("\r\n", read_index);
     if (line_end == std::string::npos) return request.status();
@@ -77,7 +77,7 @@ static ParsingStatus parse_request_line(const std::string& read_buffer, size_t& 
 
     // Fills values seperated by spaces. If extra succeeds after, Error.
     if (!(stream >> method >> target >> version) || (stream >> extra)) {
-        request.set_status(ERROR);
+        request.set_status(RS_ERROR);
         request.set_error_status(400);  // Bad request 400, too many/too few elements
         return request.status();
     }
@@ -88,7 +88,7 @@ static ParsingStatus parse_request_line(const std::string& read_buffer, size_t& 
     else if (method == "DELETE")
         request.set_method(DELETE);
     else {
-        request.set_status(ERROR);
+        request.set_status(RS_ERROR);
         request.set_error_status(501);  // Not implemented
         request.set_method(UNDEFINED);
     }
@@ -96,14 +96,14 @@ static ParsingStatus parse_request_line(const std::string& read_buffer, size_t& 
     request.set_target(target);
 
     if (version != "HTTP/1.1") {
-        request.set_status(ERROR);
+        request.set_status(RS_ERROR);
         request.set_error_status(505);  // HTTP version unsupported
         return request.status();
     }
     request.set_version(1, 1);
 
     read_index = line_end + 2;  // skip \r\n
-    request.set_status(REQUEST_LINE);
+    request.set_status(RS_REQUEST_LINE);
 
     return request.status();
 }
@@ -116,7 +116,7 @@ static bool handle_content_length_header(Request& request) {
         if (it->first == "Content-Length") {
             if (!parse_content_length_value(it->second, content_length)) {
                 request.set_error_status(400);
-                request.set_status(ERROR);
+                request.set_status(RS_ERROR);
                 return false;
             }
         }
@@ -125,11 +125,11 @@ static bool handle_content_length_header(Request& request) {
 
     if (content_length > request.client_max_body_size()) {
         request.set_error_status(413);
-        request.set_status(ERROR);
+        request.set_status(RS_ERROR);
         return false;
     }
     if (content_length > 0) {
-        request.set_status(HEADERS);
+        request.set_status(RS_HEADERS);
         return false;
     }
     return true;
@@ -149,9 +149,9 @@ static bool is_header_unique(Request& request, const std::string& key) {
 }
 
 // TODO This function really needs an overhaul. It's long and hard to read
-static ParsingStatus parse_headers(const std::string& read_buffer, size_t& read_index,
+static RequestStatus parse_headers(const std::string& read_buffer, size_t& read_index,
                                    Request& request) {
-    assert(request.status() == REQUEST_LINE);
+    assert(request.status() == RS_REQUEST_LINE);
 
     while (true) {
         // Find \r\n, will return npos if not found. Means it didn't finish parsing headers
@@ -165,18 +165,18 @@ static ParsingStatus parse_headers(const std::string& read_buffer, size_t& read_
             // Check for mandatory Host header, and if it is unique.
             if (!request.has_header("Host") || !is_header_unique(request, "Host")) {
                 request.set_error_status(400);
-                request.set_status(ERROR);
+                request.set_status(RS_ERROR);
                 return request.status();
             }
             if (!handle_content_length_header(request)) return request.status();
-            request.set_status(BODY);
+            request.set_status(RS_BODY);
             return request.status();
         }
         // retrieve each line without \r\n
         std::string            line = read_buffer.substr(read_index, line_end - read_index);
         std::string::size_type colon = line.find(':');
         if (colon == std::string::npos) {
-            request.set_status(ERROR);
+            request.set_status(RS_ERROR);
             request.set_error_status(400);
             return request.status();  // Error
         }
@@ -199,16 +199,16 @@ static ParsingStatus parse_headers(const std::string& read_buffer, size_t& read_
     }
 }
 
-static ParsingStatus parse_body(const std::string& read_buffer, size_t& read_index,
+static RequestStatus parse_body(const std::string& read_buffer, size_t& read_index,
                                 Request& request) {
-    assert(request.status() == HEADERS);
+    assert(request.status() == RS_HEADERS);
 
     size_t expected = request.content_length();
     size_t received = request.body_received();
 
     if (received > expected) {
         request.set_error_status(400);
-        request.set_status(ERROR);
+        request.set_status(RS_ERROR);
         return request.status();
     }
 
@@ -220,13 +220,13 @@ static ParsingStatus parse_body(const std::string& read_buffer, size_t& read_ind
 
     if (!request.append_body_chunk(read_buffer.data() + read_index, chunk)) {
         request.set_error_status(500);
-        request.set_status(ERROR);
+        request.set_status(RS_ERROR);
         return request.status();
     }
 
     read_index += chunk;
 
-    if (request.body_received() == expected) request.set_status(BODY);
+    if (request.body_received() == expected) request.set_status(RS_BODY);
 
     return request.status();
 }
@@ -239,8 +239,8 @@ static ParsingStatus parse_body(const std::string& read_buffer, size_t& read_ind
  * the configuration, the /images location will be choosen, even though / comes before
  * alphabetically.
  */
-static ParsingStatus resolve_location(const ConfigServer& config, Request& request) {
-    assert(request.status() == BODY);
+static RequestStatus resolve_location(const ConfigServer& config, Request& request) {
+    assert(request.status() == RS_BODY);
 
     const std::string& request_target = request.target();
     bool               matched = false;
@@ -258,22 +258,22 @@ static ParsingStatus resolve_location(const ConfigServer& config, Request& reque
 
     if (!matched) {
         request.set_error_status(404);
-        request.set_status(ERROR);
+        request.set_status(RS_ERROR);
     } else {
-        request.set_status(PARSED);
+        request.set_status(RS_PARSED);
     }
     return request.status();
 }
 
-ParsingStatus parse(const ConfigServer& config, std::string& read_buffer, size_t& read_index,
+RequestStatus parse(const ConfigServer& config, std::string& read_buffer, size_t& read_index,
                     Request& request) {
-    if (request.status() == EMPTY) parse_request_line(read_buffer, read_index, request);
+    if (request.status() == RS_EMPTY) parse_request_line(read_buffer, read_index, request);
 
-    if (request.status() == REQUEST_LINE) parse_headers(read_buffer, read_index, request);
+    if (request.status() == RS_REQUEST_LINE) parse_headers(read_buffer, read_index, request);
 
-    if (request.status() == HEADERS) parse_body(read_buffer, read_index, request);
+    if (request.status() == RS_HEADERS) parse_body(read_buffer, read_index, request);
 
-    if (request.status() == BODY) resolve_location(config, request);
+    if (request.status() == RS_BODY) resolve_location(config, request);
 
     return request.status();
 }

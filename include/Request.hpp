@@ -18,7 +18,7 @@ public:
     ~Request();
 
     HttpMethod         method() const;
-    ParsingStatus      status() const;
+    RequestStatus      status() const;
     const std::string& target() const;
     size_t             content_length() const;
     size_t             client_max_body_size() const;
@@ -30,7 +30,7 @@ public:
 
     void set_config(const ConfigLocation* const);
     void set_method(HttpMethod);
-    void set_status(ParsingStatus);
+    void set_status(RequestStatus);
     void set_target(const std::string&);
     void set_content_length(size_t);
     void set_client_max_body_size(size_t);
@@ -53,7 +53,7 @@ private:
     size_t        _client_max_body_size;
     size_t        _body_received;
     HttpMethod    _method;
-    ParsingStatus _status;
+    RequestStatus _status;
     HttpCode      _error_status;
 
     // Large bodies, over 64Kb
@@ -63,6 +63,6 @@ private:
     std::string _body_path;
 };
 
-ParsingStatus parse(const ConfigServer&, std::string& read_buffer, size_t& read_index, Request&);
+RequestStatus parse(const ConfigServer&, std::string& read_buffer, size_t& read_index, Request&);
 
 #endif
