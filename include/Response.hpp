@@ -36,4 +36,6 @@ private:
     ResponseStatus _status;
 };
 
+Response error_response(HttpCode code);
+
 #endif

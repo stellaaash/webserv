@@ -109,16 +109,24 @@ RequestStatus Connection::parse_request() {
     return status;
 }
 
+void Connection::set_config(const ConfigServer* const config) {
+    assert(config && "ConfigServer pointer");
+
+    _config = config;
+}
+
+void Connection::set_request(const Request& request) {
+    _request = request;
+}
+
+void Connection::set_response(const Response& response) {
+    _response = response;
+}
+
 void Connection::queue_write(const std::string& data) {
     _write_buffer += data;
 }
 
 bool Connection::has_pending_write() const {
     return _write_index < _write_buffer.size();
-}
-
-void Connection::set_config(const ConfigServer* const config) {
-    assert(config && "ConfigServer pointer");
-
-    _config = config;
 }

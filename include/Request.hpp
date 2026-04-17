@@ -15,6 +15,8 @@ enum RequestStatus { REQ_EMPTY, REQ_REQUEST_LINE, REQ_HEADERS, REQ_BODY, REQ_PAR
 class Request : public HttpMessage {
 public:
     Request();
+    Request(const Request&);
+    const Request& operator=(const Request&);
     Request(const ConfigLocation* const, HttpMethod);
     ~Request();
 
@@ -40,9 +42,6 @@ public:
     bool append_body_chunk(const char* data, size_t len);
 
 private:
-    Request(const Request&);
-    const Request& operator=(const Request&);
-
     bool open_temp_body_file();
     bool flush_memory_body_to_file();
     void cleanup_temp_file();
