@@ -58,14 +58,20 @@ void Response::set_status(ResponseStatus status) {
  * directly.
  */
 std::string Response::serialize() const {
-    assert(_response_string.empty() == false && "Response ready");
+    assert(_code != 0 && "Response ready");
 
-    std::string serialized;
+    std::stringstream serialized;
 
-    // TODO append the http code first
-    serialized.append(_response_string);
+    serialized << "HTTP/" << major_version() << "." << minor_version() << " " << code() << " "
+               << response_string() << "\r\n";
 
-    return serialized;
+    for (HeaderIterator h = headers_begin(); h != headers_end(); ++h) {
+        serialized << h->first << ": " << h->second << "\r\n";
+    }
+
+    serialized << "\r\n";
+
+    return serialized.str();
 }
 
 /**
