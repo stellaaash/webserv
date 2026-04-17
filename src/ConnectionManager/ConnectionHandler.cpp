@@ -146,18 +146,18 @@ bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events
         if (n == 0) return false;  // temp to avoid infinite calls when closed by client
 
         RequestStatus r = _conn.parse_request();
-        if (r == RS_ERROR) {
+        if (r == REQ_ERROR) {
             HttpCode code = _conn.request().error_status();
             _conn.queue_write(error_response(code));
             _conn.send_data();
             return false;
         }
-        if (r == RS_PARSED) {
+        if (r == REQ_PARSED) {
             const Request& req = _conn.request();
             log_request(req);
         }
 
-        if (!_conn.has_pending_write() && r == RS_PARSED) {
+        if (!_conn.has_pending_write() && r == REQ_PARSED) {
             _conn.queue_write(hello_response());
         }
     }

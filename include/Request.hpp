@@ -7,7 +7,7 @@
 #include "HttpMessage.hpp"
 #include "config.hpp"
 
-enum RequestStatus { RS_EMPTY, RS_REQUEST_LINE, RS_HEADERS, RS_BODY, RS_PARSED, RS_ERROR };
+enum RequestStatus { REQ_EMPTY, REQ_REQUEST_LINE, REQ_HEADERS, REQ_BODY, REQ_PARSED, REQ_ERROR };
 
 /**
  * @brief Represents a request issued by an active connection.
