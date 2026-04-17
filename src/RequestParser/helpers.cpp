@@ -3,7 +3,6 @@
 #include <string>
 #include <vector>
 
-#include "HttpMessage.hpp"
 #include "Request.hpp"
 
 /**
@@ -64,15 +63,11 @@ bool parse_content_length_value(const std::string& value, size_t& out) {
 bool handle_content_length_header(Request& request) {
     size_t content_length = 0;
 
-    for (HttpMessage::HeaderIterator it = request.headers_begin(); it != request.headers_end();
-         ++it) {
-        if (it->first == "Content-Length") {
-            if (!parse_content_length_value(it->second, content_length)) {
-                request.set_error_status(400);
-                request.set_status(REQ_ERROR);
-                return false;
-            }
-        }
+    if (request.has_header("Content-Length") &&
+        !parse_content_length_value(request.header("Content-Length")->second, content_length)) {
+        request.set_error_status(400);
+        request.set_status(REQ_ERROR);
+        return false;
     }
     request.set_content_length(content_length);
 
