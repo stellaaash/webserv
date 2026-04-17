@@ -131,9 +131,6 @@ bool ConnectionHandler::is_timed_out() const {
  * In any case, if any error occurs, or if the data was fully sent or received, it closes the
  * connection by returning `false`. Returning `true` keeps the connection alive upstream.
  */
-// TODO Still now sure why we need the manager in this function?
-// In any case, having this function do something with the manager is really obfuscated, which is
-// bad and we should avoid
 bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events) {
     (void)manager;
 
@@ -148,22 +145,20 @@ bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events
         if (n < 0) return false;
         if (n == 0) return false;  // temp to avoid infinite calls when closed by client
 
-        ParsingStatus r = _conn.parse_request();
-        if (r == ERROR) {
-            HttpCode code = _conn.request().error_status();
-            _conn.queue_write(error_response(code));
-            _conn.send_data();
-            return false;
-        }
-        if (r == PARSED) {
-            const Request& req = _conn.request();
-            log_request(req);
-        }
+        RequestStatus status = _conn.parse_request();
+        log_request(_conn.request());
 
-        if (!_conn.has_pending_write() && r == PARSED) {
-            _conn.queue_write(hello_response());
+        // Add data to send depending on state
+        if (!_conn.has_pending_write()) {
+            if (status == REQ_PARSED) {
+                _conn.queue_write(hello_response());
+            } else if (status == REQ_ERROR) {
+                HttpCode code = _conn.request().error_status();
+                _conn.queue_write(error_response(code));
+            }
         }
     }
+    // Send data
     if ((events & EPOLLOUT) && _conn.has_pending_write()) {
         _conn.send_data();
         // temp, close connection once all data was sent

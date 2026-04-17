@@ -25,7 +25,7 @@ Request::Request()
       _client_max_body_size(0),
       _body_received(0),
       _method(UNDEFINED),
-      _status(EMPTY),
+      _status(REQ_EMPTY),
       _error_status(0),
       _spool_threshold(REQUEST_BODY_SPOOL_THRESHOLD),
       _is_body_spooled(false),
@@ -39,7 +39,7 @@ Request::Request(const ConfigLocation* const config, HttpMethod method)
       _client_max_body_size(0),
       _body_received(0),
       _method(method),
-      _status(EMPTY),
+      _status(REQ_EMPTY),
       _error_status(0),
       _spool_threshold(REQUEST_BODY_SPOOL_THRESHOLD),
       _is_body_spooled(false),
@@ -58,7 +58,7 @@ HttpMethod Request::method() const {
     return _method;
 }
 
-ParsingStatus Request::status() const {
+RequestStatus Request::status() const {
     return _status;
 }
 
@@ -104,8 +104,8 @@ void Request::set_method(HttpMethod method) {
     _method = method;
 }
 
-void Request::set_status(ParsingStatus status) {
-    if (status == ERROR) {
+void Request::set_status(RequestStatus status) {
+    if (status == REQ_ERROR) {
         _status = status;
         return;
     }

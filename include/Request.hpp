@@ -7,8 +7,7 @@
 #include "HttpMessage.hpp"
 #include "config.hpp"
 
-// TODO Move ParsingStatus to a parsing.hpp header once parsing is done
-enum ParsingStatus { EMPTY, REQUEST_LINE, HEADERS, BODY, PARSED, ERROR };
+enum RequestStatus { REQ_EMPTY, REQ_REQUEST_LINE, REQ_HEADERS, REQ_BODY, REQ_PARSED, REQ_ERROR };
 
 /**
  * @brief Represents a request issued by an active connection.
@@ -20,7 +19,7 @@ public:
     ~Request();
 
     HttpMethod         method() const;
-    ParsingStatus      status() const;
+    RequestStatus      status() const;
     const std::string& target() const;
     size_t             content_length() const;
     size_t             client_max_body_size() const;
@@ -32,7 +31,7 @@ public:
 
     void set_config(const ConfigLocation* const);
     void set_method(HttpMethod);
-    void set_status(ParsingStatus);
+    void set_status(RequestStatus);
     void set_target(const std::string&);
     void set_content_length(size_t);
     void set_client_max_body_size(size_t);
@@ -55,7 +54,7 @@ private:
     size_t        _client_max_body_size;
     size_t        _body_received;
     HttpMethod    _method;
-    ParsingStatus _status;
+    RequestStatus _status;
     HttpCode      _error_status;
 
     // Large bodies, over 64Kb
@@ -65,6 +64,6 @@ private:
     std::string _body_path;
 };
 
-ParsingStatus parse(const ConfigServer&, std::string& read_buffer, size_t& read_index, Request&);
+RequestStatus parse(const ConfigServer&, std::string& read_buffer, size_t& read_index, Request&);
 
 #endif

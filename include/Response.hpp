@@ -6,6 +6,13 @@
 #include "HttpMessage.hpp"
 #include "config.hpp"
 
+/**
+ * @brief This status signifies what has been appended to the write_buffer of the connection, in
+ * effect what has been sent to the client already. We need to keep track of this to only send the
+ * response line and headers (RES_HEAD) once, and only after that the body.
+ */
+enum ResponseStatus { RES_EMPTY, RES_HEAD, RES_SENT, RES_ERROR };
+
 class Response : public HttpMessage {
 public:
     Response();
@@ -15,15 +22,18 @@ public:
 
     HttpCode           code() const;
     const std::string& response_string() const;
+    ResponseStatus     status() const;
 
     void set_code(HttpCode);
     void set_response_string(const std::string&);
+    void set_status(ResponseStatus);
 
     std::string serialize() const;
 
 private:
-    HttpCode    _code;
-    std::string _response_string;
+    HttpCode       _code;
+    std::string    _response_string;
+    ResponseStatus _status;
 };
 
 #endif
