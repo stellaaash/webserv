@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <cstdlib>
+#include <sstream>
 #include <string>
 
 #include "HttpMessage.hpp"
@@ -65,4 +66,48 @@ std::string Response::serialize() const {
     serialized.append(_response_string);
 
     return serialized;
+}
+
+/**
+ * @brief Converts an HTTP status code into an appropriate reason string.
+ */
+static std::string code_to_string(HttpCode code) {
+    switch (code) {
+        case 400:
+            return "Bad Request";
+        case 405:
+            return "Method Not Allowed";
+        case 411:
+            return "Length Required";
+        case 413:
+            return "Payload Too Large";
+        case 414:
+            return "URI Too Long";
+        case 431:
+            return "Request Header Fields Too Large";
+        case 501:
+            return "Not Implemented";
+        case 505:
+            return "HTTP Version Not Supported";
+        default:
+            return "Error";
+    }
+}
+
+std::string error_response(HttpCode code) {
+    std::string reason = code_to_string(code);
+
+    std::ostringstream body_stream;
+    body_stream << code << " " << reason << "\n";
+    std::string body = body_stream.str();
+
+    std::ostringstream response;
+    response << "HTTP/1.1 " << code << " " << reason << "\r\n"
+             << "Content-Type: text/plain\r\n"
+             << "Content-Length: " << body.size() << "\r\n"
+             << "Connection: close\r\n"
+             << "\r\n"
+             << body;
+
+    return response.str();
 }

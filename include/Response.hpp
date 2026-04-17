@@ -36,4 +36,6 @@ private:
     ResponseStatus _status;
 };
 
+std::string error_response(HttpCode code);
+
 #endif

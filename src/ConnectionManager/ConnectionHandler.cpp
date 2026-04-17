@@ -11,56 +11,6 @@
 #include "Request.hpp"
 #include "config.hpp"
 
-static std::string error_response(HttpCode code) {
-    std::string reason;
-
-    switch (code) {
-        case 400:
-            reason = "Bad Request";
-            break;
-        case 405:
-            reason = "Method Not Allowed";
-            break;
-        case 411:
-            reason = "Length Required";
-            break;
-        case 413:
-            reason = "Payload Too Large";
-            break;
-        case 414:
-            reason = "URI Too Long";
-            break;
-        case 431:
-            reason = "Request Header Fields Too Large";
-            break;
-        case 501:
-            reason = "Not Implemented";
-            break;
-        case 505:
-            reason = "HTTP Version Not Supported";
-            break;
-        default:
-            reason = "Error";
-            break;
-    }
-
-    int code_int = static_cast<int>(code);
-
-    std::ostringstream body_stream;
-    body_stream << code_int << " " << reason << "\n";
-    std::string body = body_stream.str();
-
-    std::ostringstream response;
-    response << "HTTP/1.1 " << code_int << " " << reason << "\r\n"
-             << "Content-Type: text/plain\r\n"
-             << "Content-Length: " << body.size() << "\r\n"
-             << "Connection: close\r\n"
-             << "\r\n"
-             << body;
-
-    return response.str();
-}
-
 static std::string hello_response() {
     const std::string body = "Hello\n";
 
@@ -154,7 +104,7 @@ bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events
                 _conn.queue_write(hello_response());
             } else if (status == REQ_ERROR) {
                 HttpCode code = _conn.request().error_status();
-                _conn.queue_write(error_response(code));
+                _conn.queue_write(error_response(code));  // TODO Create real Response object
             }
         }
     }
