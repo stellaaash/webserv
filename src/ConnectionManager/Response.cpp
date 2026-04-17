@@ -102,20 +102,23 @@ static std::string code_to_string(HttpCode code) {
     }
 }
 
-std::string error_response(HttpCode code) {
-    std::string reason = code_to_string(code);
+/**
+ * @brief Creates a Response object representing an error.
+ */
+Response error_response(HttpCode code) {
+    Response result;
 
-    std::ostringstream body_stream;
-    body_stream << code << " " << reason << "\n";
-    std::string body = body_stream.str();
+    result.set_version(1, 1);
+    result.set_code(code);
+    result.set_response_string(code_to_string(code));
+    result.append_body(result.response_string());
+    result.set_status(RES_ERROR);
 
-    std::ostringstream response;
-    response << "HTTP/1.1 " << code << " " << reason << "\r\n"
-             << "Content-Type: text/plain\r\n"
-             << "Content-Length: " << body.size() << "\r\n"
-             << "Connection: close\r\n"
-             << "\r\n"
-             << body;
+    result.set_header("Content-Type", "text/plain");
+    std::stringstream stream;
+    stream << result.body().size();
+    result.set_header("Content-Length", stream.str());
+    result.set_header("Connection", "close");  // TODO Don't always close on errors
 
-    return response.str();
+    return result;
 }

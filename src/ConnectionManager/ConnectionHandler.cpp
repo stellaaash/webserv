@@ -104,7 +104,10 @@ bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events
                 _conn.queue_write(hello_response());
             } else if (status == REQ_ERROR) {
                 HttpCode code = _conn.request().error_status();
-                _conn.queue_write(error_response(code));  // TODO Create real Response object
+                _conn.set_response(error_response(code));
+                // TODO Temporary, will have to be swapped with RePro logic
+                _conn.queue_write(_conn.response().serialize());
+                _conn.queue_write(_conn.response().body());
             }
         }
     }
