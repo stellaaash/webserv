@@ -57,7 +57,6 @@ RequestStatus Connection::parse_request_line() {
     return _request.status();
 }
 
-// TODO This function really needs an overhaul. It's long and hard to read
 RequestStatus Connection::parse_headers() {
     assert(_request.status() == REQ_REQUEST_LINE);
 
@@ -66,20 +65,8 @@ RequestStatus Connection::parse_headers() {
         std::string::size_type line_end = _read_buffer.find("\r\n", _read_index);
         if (line_end == std::string::npos) return _request.status();
 
-        // Empty line, end of headers. Set index after \r\n
-        if (line_end == _read_index) {
-            _read_index += 2;
-
-            // Check for mandatory Host header, and if it is unique.
-            if (!_request.has_header("Host") || !is_header_unique(_request, "Host")) {
-                _request.set_error_status(400);
-                _request.set_status(REQ_ERROR);
-                return _request.status();
-            }
-            if (!handle_content_length_header(_request)) return _request.status();
-            _request.set_status(REQ_BODY);
-            return _request.status();
-        }
+        // Empty line, end of headers.
+        if (line_end == _read_index) break;
         // retrieve each line without \r\n
         std::string            line = _read_buffer.substr(_read_index, line_end - _read_index);
         std::string::size_type colon = line.find(':');
@@ -89,22 +76,37 @@ RequestStatus Connection::parse_headers() {
             return _request.status();  // Error
         }
 
-        std::string key = trim(line.substr(0, colon));
-        std::string value = trim(line.substr(colon + 1));
+        std::vector<std::string> parsed_values;
+        std::string              key = trim(line.substr(0, colon));
+        std::string              value = trim(line.substr(colon + 1));
         // Not all headers must be split
-        std::vector<std::string> values;
         if (key == "Set-Cookie")
-            values.push_back(value);
+            parsed_values.push_back(value);
         else
-            values = split_header_values(value);
+            parsed_values = split_header_values(value);
 
-        if (values.empty()) {
+        if (parsed_values.empty()) {
             _request.set_header(key, "");
         } else {
-            for (size_t i = 0; i < values.size(); ++i) _request.set_header(key, values[i]);
+            for (size_t i = 0; i < parsed_values.size(); ++i)
+                _request.set_header(key, parsed_values[i]);
         }
         _read_index = line_end + 2;  // skip \r\n
     }
+
+    // Set index after \r\n
+    _read_index += 2;
+
+    // Check for mandatory Host header, and if it is unique.
+    if (!_request.has_header("Host") || !is_header_unique(_request, "Host")) {
+        _request.set_error_status(400);
+        _request.set_status(REQ_ERROR);
+        return _request.status();
+    }
+
+    if (!handle_content_length_header(_request)) return _request.status();
+    _request.set_status(REQ_BODY);
+    return _request.status();
 }
 
 RequestStatus Connection::parse_body() {

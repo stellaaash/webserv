@@ -19,6 +19,11 @@ std::string trim(const std::string& s) {
     return s.substr(start, end - start + 1);
 }
 
+/**
+ * @brief When receiving HTTP headers with multiple values separated by commas, this function will
+ * split those values into individual strings to append to the headers multimap of the Request
+ * object.
+ */
 std::vector<std::string> split_header_values(const std::string& value) {
     std::vector<std::string> result;
     size_t                   start = 0;
