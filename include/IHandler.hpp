@@ -12,7 +12,7 @@ public:
     virtual int      fd() const = 0;
     virtual uint32_t interests() const = 0;
 
-    // ConnectionManager deletes on false return (epoll DEL + close + delete)
+    // ConnectionManager deletes on this function returning false (epoll DEL + close + delete)
     virtual bool handle_event(ConnectionManager& manager, uint32_t events) = 0;
 
     virtual bool is_timed_out() const;

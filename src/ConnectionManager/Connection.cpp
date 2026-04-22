@@ -82,8 +82,6 @@ ssize_t Connection::receive_data() {
             return -1;
         }
     }
-    // if (total > 0)
-    //     std::cout << "[CONN " << _socket << "] received " << total << " bytes" << std::endl;
 
     return total;
 }

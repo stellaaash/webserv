@@ -83,40 +83,39 @@ bool ConnectionHandler::is_timed_out() const {
  */
 bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events) {
     (void)manager;
+    const Request&  request = _conn.request();
+    const Response& response = _conn.response();
 
     if (events & (EPOLLERR | EPOLLHUP)) {
         Logger(LOG_ERROR) << "[CONN " << _fd << "] Error: Wrong epoll event";
         return false;
     }
 
+    // FIXME For some reason the connection is closed without a message when only sending the
+    // request line over telnet/netcat
     if (events & EPOLLIN) {
         ssize_t n = _conn.receive_data();
+        if (n <= 0) return false;
 
-        if (n < 0) return false;
-        if (n == 0) return false;  // temp to avoid infinite calls when closed by client
+        _conn.parse_request();
+    }
 
-        RequestStatus status = _conn.parse_request();
-        log_request(_conn.request());
-
-        // Add data to send depending on state
-        if (!_conn.has_pending_write()) {
-            if (status == REQ_PARSED) {
-                _conn.queue_write(hello_response());
-            } else if (status == REQ_ERROR) {
-                HttpCode code = _conn.request().error_status();
-                _conn.set_response(error_response(code));
-                // TODO Temporary, will have to be swapped with RePro logic
-                _conn.queue_write(_conn.response().serialize());
-                _conn.queue_write(_conn.response().body());
-            }
+    // Add data to send depending on state
+    if (!_conn.has_pending_write()) {
+        if (request.status() == REQ_PARSED) {
+            log_request(request);
+            _conn.queue_write(hello_response());
+        } else if (request.status() == REQ_ERROR) {
+            log_request(request);
+            HttpCode code = request.error_status();
+            _conn.set_response(error_response(code));
+            // TODO Temporary, will have to be swapped with RePro logic
+            _conn.queue_write(response.serialize());
+            _conn.queue_write(response.body());
         }
     }
-    // Send data
-    if ((events & EPOLLOUT) && _conn.has_pending_write()) {
-        _conn.send_data();
-        // temp, close connection once all data was sent
-        if (!_conn.has_pending_write()) return false;
-    }
 
-    return true;  // keeps connection
+    if (events & EPOLLOUT && _conn.has_pending_write()) _conn.send_data();
+
+    return true;
 }

@@ -86,12 +86,10 @@ void ConnectionManager::run() {
             continue;
         }
 
-        // Commented to avoid spamming console/logs
-        // std::cout << "[EPOLL] woke up with " << fds << " events" << std::endl;
-
         for (int i = 0; i < fds; ++i) {
-            IHandler* h = (IHandler*)events[i].data.ptr;
-            // Keep or delete connection
+            IHandler* h = static_cast<IHandler*>(events[i].data.ptr);
+            Logger(LOG_GENERAL) << "[EPOLL] fd=" << h->fd() << " events=" << events[i].events;
+            // Keep or delete connection or listener
             bool keep = h->handle_event(*this, events[i].events);
             if (!keep) {
                 del(h);
