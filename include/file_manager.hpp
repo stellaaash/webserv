@@ -33,5 +33,6 @@ std::string                   create_listing(const FilePath&);
 std::string resolve_path(const FilePath& relative_path, const std::string& root);
 
 std::vector<std::string> split(const std::string& s, char delimiter);
+bool                     is_under_directory(const FilePath& path, const FilePath& directory);
 
 #endif  // FILEMANAGER_HPP
