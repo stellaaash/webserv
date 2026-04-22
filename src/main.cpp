@@ -6,6 +6,7 @@
 
 #include <csignal>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <fstream>
 #include <iostream>
@@ -20,6 +21,8 @@
 
 volatile sig_atomic_t g_stop = 0;
 
+FilePath working_directory;
+
 void clean_exit(int) {
     g_stop = 1;
 }
@@ -28,6 +31,11 @@ int main(int argc, char** argv) {
     if (argc != 2) return 1;
 
     signal(SIGINT, clean_exit);
+
+    // TODO Replace forbidden getcwd with our own function
+    char* cwd = getcwd(NULL, 0);
+    working_directory = cwd;
+    free(cwd);
 
     if (!is_regular_file(argv[1])) {
         std::cerr << "[!] - Failed to open configuration file." << std::endl;
