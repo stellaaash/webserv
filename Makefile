@@ -27,9 +27,10 @@ CFILES		=	$(SRCDIR)/main.cpp \
 				$(SRCDIR)/ConnectionManager/Listener.cpp \
 				$(SRCDIR)/ConnectionManager/Request.cpp \
 				$(SRCDIR)/ConnectionManager/Response.cpp \
+				$(SRCDIR)/FileManager/helpers.cpp \
+				$(SRCDIR)/FileManager/listing.cpp \
 				$(SRCDIR)/FileManager/read.cpp \
 				$(SRCDIR)/FileManager/write.cpp \
-				$(SRCDIR)/FileManager/listing.cpp \
 				$(SRCDIR)/RequestParser/request_parser.cpp \
 				$(SRCDIR)/RequestParser/helpers.cpp \
 				$(SRCDIR)/socket_utils.cpp \

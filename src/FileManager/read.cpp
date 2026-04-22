@@ -5,6 +5,9 @@
 #include <cassert>
 #include <cstdio>
 #include <cstring>
+#include <stack>
+#include <string>
+#include <vector>
 
 #include "file_manager.hpp"
 
@@ -64,15 +67,35 @@ bool is_directory(const FilePath& path) {
  *
  * @description Removes a potential trailing slash.
  */
+// TODO Need to standardize to absolute paths.
 FilePath standardize_path(const std::string& path) {
     assert(path.empty() == false && "Empty path");
 
-    std::string standardized = path;
+    // First split on /
+    std::vector<std::string> split_tokens = split(path, '/');
 
-    if (standardized.at(standardized.size() - 1) == '/') {
-        standardized.erase(standardized.size() - 1, standardized.size());
+    std::stack<std::string> s;
+    for (size_t index = 0; index < split_tokens.size(); ++index) {
+        if (split_tokens[index] == ".")
+            ;
+        else if (split_tokens[index] == "..") {
+            if (s.empty() == false) s.pop();
+        } else {
+            s.push(split_tokens[index]);
+        }
     }
 
+    // Finally concatenate into a full, absolute path
+    FilePath standardized;
+    while (s.empty() == false) {
+        std::string token = s.top();
+        token.insert(0, "/");
+        standardized.insert(0, token);
+
+        s.pop();
+    }
+
+    if (path[0] != '/') standardized.insert(0, working_directory);
     return standardized;
 }
 
