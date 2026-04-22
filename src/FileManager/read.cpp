@@ -67,7 +67,6 @@ bool is_directory(const FilePath& path) {
  *
  * @description Removes a potential trailing slash.
  */
-// TODO Need to standardize to absolute paths.
 FilePath standardize_path(const std::string& path) {
     assert(path.empty() == false && "Empty path");
 
