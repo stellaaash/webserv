@@ -59,6 +59,8 @@ std::map<FilePath, Path_Type> get_dir_contents(const FilePath& directory) {
 /**
  * @brief Creates an HTML listing of a directory, containing links to all entries inside.
  */
+// FIXME This is very broken (links aren't correct, and we shdouln't link the absolute path of
+// directories)
 std::string create_listing(const FilePath& directory) {
     std::map<FilePath, Path_Type> entries = get_dir_contents(directory);
     std::stringstream             html_listing;
