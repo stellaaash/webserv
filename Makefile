@@ -30,6 +30,7 @@ CFILES		=	$(SRCDIR)/main.cpp \
 				$(SRCDIR)/FileManager/helpers.cpp \
 				$(SRCDIR)/FileManager/listing.cpp \
 				$(SRCDIR)/FileManager/read.cpp \
+				$(SRCDIR)/FileManager/resolve.cpp \
 				$(SRCDIR)/FileManager/write.cpp \
 				$(SRCDIR)/RequestParser/request_parser.cpp \
 				$(SRCDIR)/RequestParser/helpers.cpp \
