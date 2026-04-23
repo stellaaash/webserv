@@ -124,7 +124,7 @@ bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events
 
     // Add data to send depending on state
     if (!_conn.has_pending_write()) {
-        if (response.status() == RES_READY) {
+        if (request.status() == REQ_PROCESSED) {
             _conn.queue_write(hello_response());  // Replace with actual response when it's ready
         } else if (request.status() == REQ_ERROR) {
             log_request(request);

@@ -1,8 +1,8 @@
 #include "Connection.hpp"
+#include "Request.hpp"
 #include "Response.hpp"
 
-// TODO Move to dedicated request_processor.cpp
 ResponseStatus Connection::process_request() {
-    _response.set_status(RES_READY);
+    _request.set_status(REQ_PROCESSED);
     return _response.status();
 }
