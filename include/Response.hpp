@@ -23,10 +23,12 @@ public:
     HttpCode           code() const;
     const std::string& response_string() const;
     ResponseStatus     status() const;
+    int                fd() const;
 
     void set_code(HttpCode);
     void set_response_string(const std::string&);
     void set_status(ResponseStatus);
+    void set_fd(int);
 
     std::string serialize() const;
 
@@ -34,6 +36,7 @@ private:
     HttpCode       _code;
     std::string    _response_string;
     ResponseStatus _status;
+    int            _fd;
 };
 
 Response error_response(HttpCode code);

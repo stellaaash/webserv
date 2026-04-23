@@ -8,13 +8,16 @@
 #include "HttpMessage.hpp"
 #include "config.hpp"
 
-Response::Response() : _code(0), _response_string(), _status(RES_EMPTY) {}
+Response::Response() : _code(0), _response_string(), _status(RES_EMPTY), _fd(-1) {
+    set_version(1, 1);
+}
 
 Response::Response(const Response& other)
     : HttpMessage(other),
       _code(other._code),
       _response_string(other._response_string),
-      _status(other._status) {}
+      _status(other._status),
+      _fd(other._fd) {}
 
 const Response& Response::operator=(const Response& other) {
     if (this == &other) return *this;
@@ -24,6 +27,7 @@ const Response& Response::operator=(const Response& other) {
     _code = other._code;
     _response_string = other._response_string;
     _status = other._status;
+    _fd = other._fd;
 
     return *this;
 }
@@ -42,6 +46,10 @@ ResponseStatus Response::status() const {
     return _status;
 }
 
+int Response::fd() const {
+    return _fd;
+}
+
 void Response::set_code(HttpCode code) {
     assert(code >= 100 && code <= 599 && "Correct HTTP Code");
     _code = code;
@@ -53,6 +61,10 @@ void Response::set_response_string(const std::string& response_string) {
 
 void Response::set_status(ResponseStatus status) {
     _status = status;
+}
+
+void Response::set_fd(int fd) {
+    _fd = fd;
 }
 
 /**
