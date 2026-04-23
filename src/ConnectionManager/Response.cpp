@@ -113,6 +113,8 @@ Response error_response(HttpCode code) {
     result.set_version(1, 1);
     result.set_code(code);
     result.set_response_string(code_to_string(code));
+    result.append_body(result.response_string());
+    result.append_body("\r\n");
     result.set_status(RES_ERROR);
 
     result.set_header("Content-Type", "text/plain");
@@ -120,9 +122,6 @@ Response error_response(HttpCode code) {
     stream << result.body().size();
     result.set_header("Content-Length", stream.str());
     result.set_header("Connection", "close");  // TODO Don't always close on errors
-
-    result.append_body(result.response_string());
-    result.append_body("\r\n");
 
     return result;
 }
