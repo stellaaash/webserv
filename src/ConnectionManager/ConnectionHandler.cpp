@@ -3,30 +3,12 @@
 #include <sys/epoll.h>
 
 #include <cstdio>
-#include <iostream>
-#include <sstream>
 
 #include "ConnectionManager.hpp"
 #include "Logger.hpp"
 #include "Request.hpp"
 #include "Response.hpp"
 #include "config.hpp"
-
-static std::string hello_response() {
-    const std::string body = "Hello\n";
-
-    std::ostringstream oss;
-    oss << body.size();
-
-    return "HTTP/1.1 200 OK\r\n"
-           "Content-Type: text/plain\r\n"
-           "Content-Length: " +
-           oss.str() +
-           "\r\n"
-           "Connection: keep-alive\r\n"
-           "\r\n" +
-           body;
-}
 
 /**
  * @brief Prints a request's status, as well as its body information and headers.
@@ -36,6 +18,8 @@ static void log_request(const Request& request) {
     Logger(LOG_DEBUG) << "Request Status:" << request.status();
     Logger(LOG_DEBUG) << "Method: " << request.method();
     Logger(LOG_DEBUG) << "Target: " << request.target();
+    // TODO Once the named location PR is merged
+    // Logger(LOG_DEBUG) << "Matched location: " << request.config().name;
     Logger(LOG_DEBUG) << "Body received: [" << request.body_received() << "]";
     Logger(LOG_DEBUG) << "Is body spooled: [" << request.is_body_spooled() << "]";
     if (request.is_body_spooled()) {
@@ -49,6 +33,23 @@ static void log_request(const Request& request) {
         Logger(LOG_DEBUG) << it->first << ": " << it->second;
     }
     Logger(LOG_DEBUG) << "----- [REQ END] -----\n";
+}
+
+/**
+ * @brief Prints a response's status, as well as its body information and headers.
+ */
+static void log_response(const Response& response) {
+    Logger(LOG_DEBUG) << "----- [RESPONSE] -----";
+    Logger(LOG_DEBUG) << "Code: " << response.code();
+    Logger(LOG_DEBUG) << "Response String: " << response.response_string();
+    Logger(LOG_DEBUG) << "File Descriptor: " << response.fd();
+    Logger(LOG_DEBUG) << "Body length: " << response.body().length();
+    Logger(LOG_DEBUG) << "----- [HEADERS] -----";
+    for (HttpMessage::HeaderIterator it = response.headers_begin(); it != response.headers_end();
+         ++it) {
+        Logger(LOG_DEBUG) << it->first << ": " << it->second;
+    }
+    Logger(LOG_DEBUG) << "----- [RESP END] -----\n";
 }
 
 ConnectionHandler::ConnectionHandler(const ConfigServer* srv, int client_fd)
@@ -120,12 +121,14 @@ bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events
     if (request.status() == REQ_PARSED) {
         log_request(request);
         _conn.process_request();
+        log_response(response);
     }
 
     // Add data to send depending on state
     if (!_conn.has_pending_write()) {
         if (request.status() == REQ_PROCESSED) {
-            _conn.queue_write(hello_response());  // Replace with actual response when it's ready
+            _conn.queue_write(response.serialize());
+            _conn.queue_write(response.body());
         } else if (request.status() == REQ_ERROR) {
             log_request(request);
             HttpCode code = request.error_status();
@@ -141,6 +144,8 @@ bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events
     }
 
     if (events & EPOLLOUT && _conn.has_pending_write()) _conn.send_data();
+
+    // FIXME Reset request and response once the response has been fully sent
 
     return true;
 }

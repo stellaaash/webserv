@@ -35,6 +35,10 @@ private:
     Connection(const Connection&);
     Connection& operator=(const Connection&);
 
+    ResponseStatus process_get_request(const FilePath&);
+    ResponseStatus process_post_request(const FilePath&);
+    ResponseStatus process_delete_request(const FilePath&);
+
     void compact_read_buffer();
 
     RequestStatus parse_request_line();
