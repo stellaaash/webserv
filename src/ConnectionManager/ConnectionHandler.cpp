@@ -117,15 +117,23 @@ bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events
         _conn.parse_request();
     }
 
+    if (request.status() == REQ_PARSED) {
+        log_request(request);
+        _conn.process_request();
+    }
+
     // Add data to send depending on state
     if (!_conn.has_pending_write()) {
-        if (request.status() == REQ_PARSED) {
-            log_request(request);
-            _conn.queue_write(hello_response());
+        if (response.status() == RES_READY) {
+            _conn.queue_write(hello_response());  // Replace with actual response when it's ready
         } else if (request.status() == REQ_ERROR) {
             log_request(request);
             HttpCode code = request.error_status();
             _conn.set_response(error_response(code));
+            // TODO Temporary, will have to be swapped with RePro logic
+            _conn.queue_write(response.serialize());
+            _conn.queue_write(response.body());
+        } else if (response.status() == RES_ERROR) {
             // TODO Temporary, will have to be swapped with RePro logic
             _conn.queue_write(response.serialize());
             _conn.queue_write(response.body());

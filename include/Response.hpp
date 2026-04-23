@@ -11,7 +11,7 @@
  * effect what has been sent to the client already. We need to keep track of this to only send the
  * response line and headers (RES_HEAD) once, and only after that the body.
  */
-enum ResponseStatus { RES_EMPTY, RES_HEAD, RES_SENT, RES_ERROR };
+enum ResponseStatus { RES_EMPTY, RES_HEAD, RES_READY, RES_ERROR };
 
 class Response : public HttpMessage {
 public:

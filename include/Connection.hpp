@@ -20,9 +20,10 @@ public:
     const Request&  request() const;
     const Response& response() const;
 
-    ssize_t       send_data();
-    ssize_t       receive_data();
-    RequestStatus parse_request();
+    ssize_t        send_data();
+    ssize_t        receive_data();
+    RequestStatus  parse_request();
+    ResponseStatus process_request();
 
     void set_config(const ConfigServer* const);
     void set_request(const Request&);
