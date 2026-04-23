@@ -7,6 +7,7 @@
 #include <cstdio>
 #include <cstring>
 
+#include "ConnectionHandler.hpp"
 #include "Logger.hpp"
 #include "signal_state.hpp"
 
@@ -103,7 +104,8 @@ void ConnectionManager::run() {
 
             if (h->is_timed_out()) {
                 Logger(LOG_GENERAL) << "[TIMEOUT] fd=" << h->fd();
-                ++it;
+                dynamic_cast<ConnectionHandler*>(h)->timeout_connection();
+                ++it;  // Increment before erasing the iterator
                 del(h);
             } else {
                 ++it;

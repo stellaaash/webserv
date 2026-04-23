@@ -9,6 +9,7 @@
 #include "ConnectionManager.hpp"
 #include "Logger.hpp"
 #include "Request.hpp"
+#include "Response.hpp"
 #include "config.hpp"
 
 static std::string hello_response() {
@@ -70,8 +71,26 @@ uint32_t ConnectionHandler::interests() const {
         return EPOLLIN;
 }
 
+/**
+ * @brief Checks whether a connection has been timed out or not.
+ * This is directly based on the `timeout` directive in the server configuration.
+ * If this is set to 0 (as is the default), any incoming data that isn't immediately parsed to a
+ * full request will result in a connection close.
+ */
 bool ConnectionHandler::is_timed_out() const {
     return (std::time(NULL) - _last_activity) > _timeout;
+}
+
+/**
+ * @brief After a conneciton has timed out, this member function will generate and send a 408 error
+ * response before the Connection Manager closes the connection outright.
+ */
+void ConnectionHandler::timeout_connection() {
+    Logger(LOG_DEBUG) << "[!] - Timing connection out!";
+    _conn.set_response(error_response(408));
+    _conn.queue_write(_conn.response().serialize());
+    _conn.queue_write(_conn.response().body());
+    _conn.send_data();
 }
 
 /**
@@ -91,8 +110,6 @@ bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events
         return false;
     }
 
-    // FIXME For some reason the connection is closed without a message when only sending the
-    // request line over telnet/netcat
     if (events & EPOLLIN) {
         ssize_t n = _conn.receive_data();
         if (n <= 0) return false;

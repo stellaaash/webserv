@@ -85,6 +85,8 @@ static std::string code_to_string(HttpCode code) {
             return "Bad Request";
         case 405:
             return "Method Not Allowed";
+        case 408:
+            return "Connection timeout";
         case 411:
             return "Length Required";
         case 413:
