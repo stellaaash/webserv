@@ -122,9 +122,3 @@ void Connection::queue_write(const std::string& data) {
 bool Connection::has_pending_write() const {
     return _write_index < _write_buffer.size();
 }
-
-// TODO Move to dedicated request_processor.cpp
-ResponseStatus Connection::process_request() {
-    _response.set_status(RES_READY);
-    return _response.status();
-}
