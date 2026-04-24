@@ -9,6 +9,7 @@
 #include "ConnectionManager.hpp"
 #include "Logger.hpp"
 #include "Request.hpp"
+#include "Response.hpp"
 #include "config.hpp"
 
 static std::string hello_response() {
@@ -70,8 +71,26 @@ uint32_t ConnectionHandler::interests() const {
         return EPOLLIN;
 }
 
+/**
+ * @brief Checks whether a connection has been timed out or not.
+ * This is directly based on the `timeout` directive in the server configuration.
+ * If this is set to 0 (as is the default), any incoming data that isn't immediately parsed to a
+ * full request will result in a connection close.
+ */
 bool ConnectionHandler::is_timed_out() const {
     return (std::time(NULL) - _last_activity) > _timeout;
+}
+
+/**
+ * @brief After a conneciton has timed out, this member function will generate and send a 408 error
+ * response before the Connection Manager closes the connection outright.
+ */
+void ConnectionHandler::timeout_connection() {
+    Logger(LOG_DEBUG) << "[!] - Timing connection out!";
+    _conn.set_response(error_response(408));
+    _conn.queue_write(_conn.response().serialize());
+    _conn.queue_write(_conn.response().body());
+    _conn.send_data();
 }
 
 /**
@@ -83,6 +102,8 @@ bool ConnectionHandler::is_timed_out() const {
  */
 bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events) {
     (void)manager;
+    const Request&  request = _conn.request();
+    const Response& response = _conn.response();
 
     if (events & (EPOLLERR | EPOLLHUP)) {
         Logger(LOG_ERROR) << "[CONN " << _fd << "] Error: Wrong epoll event";
@@ -91,32 +112,27 @@ bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events
 
     if (events & EPOLLIN) {
         ssize_t n = _conn.receive_data();
+        if (n <= 0) return false;
 
-        if (n < 0) return false;
-        if (n == 0) return false;  // temp to avoid infinite calls when closed by client
+        _conn.parse_request();
+    }
 
-        RequestStatus status = _conn.parse_request();
-        log_request(_conn.request());
-
-        // Add data to send depending on state
-        if (!_conn.has_pending_write()) {
-            if (status == REQ_PARSED) {
-                _conn.queue_write(hello_response());
-            } else if (status == REQ_ERROR) {
-                HttpCode code = _conn.request().error_status();
-                _conn.set_response(error_response(code));
-                // TODO Temporary, will have to be swapped with RePro logic
-                _conn.queue_write(_conn.response().serialize());
-                _conn.queue_write(_conn.response().body());
-            }
+    // Add data to send depending on state
+    if (!_conn.has_pending_write()) {
+        if (request.status() == REQ_PARSED) {
+            log_request(request);
+            _conn.queue_write(hello_response());
+        } else if (request.status() == REQ_ERROR) {
+            log_request(request);
+            HttpCode code = request.error_status();
+            _conn.set_response(error_response(code));
+            // TODO Temporary, will have to be swapped with RePro logic
+            _conn.queue_write(response.serialize());
+            _conn.queue_write(response.body());
         }
     }
-    // Send data
-    if ((events & EPOLLOUT) && _conn.has_pending_write()) {
-        _conn.send_data();
-        // temp, close connection once all data was sent
-        if (!_conn.has_pending_write()) return false;
-    }
 
-    return true;  // keeps connection
+    if (events & EPOLLOUT && _conn.has_pending_write()) _conn.send_data();
+
+    return true;
 }

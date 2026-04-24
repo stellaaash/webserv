@@ -16,8 +16,10 @@ public:
 
     virtual int      fd() const;
     virtual uint32_t interests() const;
-    virtual bool     handle_event(ConnectionManager& manager, uint32_t events);
     virtual bool     is_timed_out() const;
+
+    void         timeout_connection();
+    virtual bool handle_event(ConnectionManager& manager, uint32_t events);
 
 private:
     int         _fd;

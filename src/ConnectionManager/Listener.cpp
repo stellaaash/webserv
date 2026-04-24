@@ -10,11 +10,13 @@
 #include "socket_utils.hpp"
 
 Listener::Listener(const ConfigServer* srv, int listen_fd) : _srv(srv), _fd(listen_fd) {}
+
 Listener::~Listener() {}
 
 int Listener::fd() const {
     return _fd;
 }
+
 uint32_t Listener::interests() const {
     return EPOLLIN;
 }

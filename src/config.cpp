@@ -10,6 +10,6 @@ ConfigLocation::ConfigLocation()
     : allowed_methods(), autoindex(false), cgi(), index(), redirect(), root(), upload_store() {}
 
 ConfigServer::ConfigServer()
-    : client_max_body_size(0), error_page(), listen(), location(), timeout(0) {}
+    : client_max_body_size(0), error_page(), listen(), location(), timeout(10) {}
 
 Config::Config() : error_log(), server() {}
