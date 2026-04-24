@@ -183,6 +183,6 @@ RequestStatus Connection::parse_request() {
 
     if (_request.status() == REQ_BODY) resolve_location();
 
-    compact_read_buffer();
+    shrink_read_buffer();
     return _request.status();
 }

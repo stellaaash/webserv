@@ -18,8 +18,7 @@ static void log_request(const Request& request) {
     Logger(LOG_DEBUG) << "Request Status:" << request.status();
     Logger(LOG_DEBUG) << "Method: " << request.method();
     Logger(LOG_DEBUG) << "Target: " << request.target();
-    // TODO Once the named location PR is merged
-    // Logger(LOG_DEBUG) << "Matched location: " << request.config().name;
+    Logger(LOG_DEBUG) << "Matched location: " << request.config().name;
     Logger(LOG_DEBUG) << "Body received: [" << request.body_received() << "]";
     Logger(LOG_DEBUG) << "Is body spooled: [" << request.is_body_spooled() << "]";
     if (request.is_body_spooled()) {
@@ -131,8 +130,8 @@ bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events
     // Send the response once it is ready
     if (!_conn.has_pending_write()) {
         if (request.status() == REQ_PROCESSED || request.status() == REQ_ERROR) {
-            _conn.queue_write(response.serialize());
-            _conn.queue_write(response.body());
+            _conn.append_head();
+            _conn.append_body_chunk();
         }
     }
 

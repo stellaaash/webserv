@@ -86,7 +86,7 @@ ssize_t Connection::receive_data() {
     return total;
 }
 
-void Connection::compact_read_buffer() {
+void Connection::shrink_read_buffer() {
     if (_read_index == 0) return;
 
     if (_read_index >= _read_buffer.size()) {
