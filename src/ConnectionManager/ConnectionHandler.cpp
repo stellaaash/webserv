@@ -111,33 +111,26 @@ bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events
         return false;
     }
 
+    // Parse request on incoming data
     if (events & EPOLLIN) {
         ssize_t n = _conn.receive_data();
         if (n <= 0) return false;
 
         _conn.parse_request();
+        if (request.status() == REQ_PARSED || request.status() == REQ_ERROR) log_request(request);
     }
 
+    // If request has been fully parsed, process it
     if (request.status() == REQ_PARSED) {
-        log_request(request);
         _conn.process_request();
         log_response(response);
+    } else if (request.status() == REQ_ERROR) {
+        _conn.set_response(error_response(request.error_status()));
     }
 
-    // Add data to send depending on state
+    // Send the response once it is ready
     if (!_conn.has_pending_write()) {
-        if (request.status() == REQ_PROCESSED) {
-            _conn.queue_write(response.serialize());
-            _conn.queue_write(response.body());
-        } else if (request.status() == REQ_ERROR) {
-            log_request(request);
-            HttpCode code = request.error_status();
-            _conn.set_response(error_response(code));
-            // TODO Temporary, will have to be swapped with RePro logic
-            _conn.queue_write(response.serialize());
-            _conn.queue_write(response.body());
-        } else if (response.status() == RES_ERROR) {
-            // TODO Temporary, will have to be swapped with RePro logic
+        if (request.status() == REQ_PROCESSED || request.status() == REQ_ERROR) {
             _conn.queue_write(response.serialize());
             _conn.queue_write(response.body());
         }

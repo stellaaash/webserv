@@ -95,6 +95,8 @@ static std::string code_to_string(HttpCode code) {
     switch (code) {
         case 400:
             return "Bad Request";
+        case 404:
+            return "Not Found";
         case 405:
             return "Method Not Allowed";
         case 408:

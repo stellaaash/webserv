@@ -5,17 +5,15 @@
 #include "Logger.hpp"
 #include "Response.hpp"
 #include "config.hpp"
+#include "file_manager.hpp"
 
 ResponseStatus Connection::process_get_request(const FilePath& resource_path) {
     // Fetch the resource or generate content
     if (is_directory(resource_path) == true) {
         if (_request.config().autoindex == true) {
-            _response.append_body(create_listing(_request.config().root));
+            _response.append_body(create_listing(resource_path));
             _response.set_code(200);
             _response.set_response_string("OK");
-            std::stringstream stream;
-            stream << _response.body().size();
-            _response.set_header("Content-Length", stream.str());
         } else {
             _response = error_response(404);
         }
@@ -39,12 +37,19 @@ ResponseStatus Connection::process_get_request(const FilePath& resource_path) {
         return _response.status();
     }
 
-    _response.set_fd(fd);
+    // _response.set_fd(fd);
+    _response.append_body("Hewwo :3");  // TODO Temporary, need to implement reading from fds
     _response.set_code(200);
     _response.set_response_string("OK");
-    // TODO Temporary -- will be replaced with fd reading and body sending
-    _response.set_header("Content-Length", "7");
-    _response.append_body("Hello\r\n");
+    std::stringstream stream;
+    if (_response.body().empty() == false) {
+        stream << _response.body().size();
+    } else if (_response.fd() >= 0) {
+        stream << file_length(resource_path);
+    } else {
+        stream << 0;  // If no body is present and no file is to be read, the body is empty
+    }
+    _response.set_header("Content-Length", stream.str());
     // TODO Set headers, MIME types??
 
     return _response.status();

@@ -46,6 +46,10 @@ private:
     RequestStatus parse_body();
     RequestStatus resolve_location();
 
+    ResponseStatus process_get_request(const FilePath&);
+    ResponseStatus process_post_request(const FilePath&);
+    ResponseStatus process_delete_request(const FilePath&);
+
     const ConfigServer* _config;
 
     Request  _request;
