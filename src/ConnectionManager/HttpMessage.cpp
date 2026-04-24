@@ -42,17 +42,8 @@ HttpMessage::HeaderIterator HttpMessage::header(const std::string& header_name) 
     return _headers.lower_bound(header_name);
 }
 
-void HttpMessage::set_version(int major_version, int minor_version) {
-    _major_version = major_version;
-    _minor_version = minor_version;
-}
-
-void HttpMessage::set_header(const std::string& name, const std::string& value) {
-    _headers.insert(std::pair<std::string, std::string>(name, value));
-}
-
-void HttpMessage::append_body(const std::string& data) {
-    _body.append(data);
+size_t HttpMessage::header_count(const std::string& header_name) const {
+    return _headers.count(header_name);
 }
 
 bool HttpMessage::has_header(const std::string& header_name) const {
@@ -65,4 +56,16 @@ HttpMessage::HeaderIterator HttpMessage::headers_begin() const {
 
 HttpMessage::HeaderIterator HttpMessage::headers_end() const {
     return _headers.end();
+}
+void HttpMessage::set_version(int major_version, int minor_version) {
+    _major_version = major_version;
+    _minor_version = minor_version;
+}
+
+void HttpMessage::set_header(const std::string& name, const std::string& value) {
+    _headers.insert(std::pair<std::string, std::string>(name, value));
+}
+
+void HttpMessage::append_body(const std::string& data) {
+    _body.append(data);
 }

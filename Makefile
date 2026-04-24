@@ -26,11 +26,12 @@ CFILES		=	$(SRCDIR)/main.cpp \
 				$(SRCDIR)/ConnectionManager/IHandler.cpp \
 				$(SRCDIR)/ConnectionManager/Listener.cpp \
 				$(SRCDIR)/ConnectionManager/Request.cpp \
-				$(SRCDIR)/ConnectionManager/request_parser.cpp \
 				$(SRCDIR)/ConnectionManager/Response.cpp \
 				$(SRCDIR)/FileManager/read.cpp \
 				$(SRCDIR)/FileManager/write.cpp \
 				$(SRCDIR)/FileManager/listing.cpp \
+				$(SRCDIR)/RequestParser/request_parser.cpp \
+				$(SRCDIR)/RequestParser/helpers.cpp \
 				$(SRCDIR)/socket_utils.cpp \
 
 INCLDIR		=	include
