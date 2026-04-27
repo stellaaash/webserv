@@ -26,7 +26,7 @@ ResponseStatus Connection::process_get_request(const FilePath& resource_path) {
     }
 
     // Fetch file on disk
-    if (_response.status() != RES_ERROR && _response.body().empty() == true) {
+    if (_response.is_error() == false && _response.body().empty() == true) {
         int fd = fetch_file(path);
         if (fd < 0) {
             Logger(LOG_ERROR) << "[process_request] - fetch_file" << strerror(errno);

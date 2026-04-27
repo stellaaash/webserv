@@ -30,7 +30,6 @@ void Connection::queue_body_chunk() {
         if (read_bytes < 0) {
             perror("[handle_event] - read");
             _response.set_code(500);
-            _response.set_status(RES_ERROR);
             return;
         } else if (read_bytes < SEND_SIZE) {
             Logger(LOG_DEBUG) << "[!] - Response sent!";

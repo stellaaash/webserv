@@ -11,7 +11,7 @@
  * effect what has been sent to the client already. We need to keep track of this to only send the
  * response line and headers (RES_HEAD) once, and only after that the body.
  */
-enum ResponseStatus { RES_EMPTY, RES_HEAD, RES_SENT, RES_ERROR };
+enum ResponseStatus { RES_EMPTY, RES_HEAD, RES_SENT };
 
 class Response : public HttpMessage {
 public:
@@ -24,6 +24,7 @@ public:
     const std::string& response_string() const;
     ResponseStatus     status() const;
     int                fd() const;
+    bool               is_error() const;
 
     void set_code(HttpCode);
     void set_response_string(const std::string&);

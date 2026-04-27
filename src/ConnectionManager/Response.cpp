@@ -50,6 +50,14 @@ int Response::fd() const {
     return _fd;
 }
 
+/**
+ * @brief Checks whether the Reponse has an HTTP status code denoting an error.
+ * Such statuses must be between 400 and 599 inclusive.
+ */
+bool Response::is_error() const {
+    return (_code >= 400 && _code <= 599);
+}
+
 void Response::set_code(HttpCode code) {
     assert(code >= 100 && code <= 599 && "Correct HTTP Code");
     _code = code;
@@ -129,7 +137,6 @@ Response error_response(HttpCode code) {
     result.set_response_string(code_to_string(code));
     result.append_body(result.response_string());
     result.append_body("\r\n");
-    result.set_status(RES_ERROR);
 
     result.set_header("Content-Type", "text/plain");
     std::stringstream stream;
