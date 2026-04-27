@@ -24,8 +24,8 @@ public:
     ssize_t        receive_data();
     RequestStatus  parse_request();
     ResponseStatus process_request();
-    void           append_head();
-    void           append_body_chunk();
+    void           queue_head();
+    void           queue_body_chunk();
 
     void set_config(const ConfigServer* const);
     void set_request(const Request&);

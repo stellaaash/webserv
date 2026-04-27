@@ -130,14 +130,19 @@ bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events
     // Send the response once it is ready
     if (!_conn.has_pending_write()) {
         if (request.status() == REQ_PROCESSED || request.status() == REQ_ERROR) {
-            _conn.append_head();
-            _conn.append_body_chunk();
+            _conn.queue_head();
+            _conn.queue_body_chunk();
         }
     }
 
-    if (events & EPOLLOUT && _conn.has_pending_write()) _conn.send_data();
+    if (_conn.has_pending_write()) _conn.send_data();
 
-    // FIXME Reset request and response once the response has been fully sent
+    // Reset request and response objects once everything was sent
+    if (response.status() == RES_SENT && _conn.has_pending_write() == false) {
+        _conn.set_request(Request());
+        _conn.set_response(Response());
+        Logger(LOG_DEBUG) << "[!] - Reset request and response objects";
+    }
 
     return true;
 }
