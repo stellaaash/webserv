@@ -1,5 +1,7 @@
 #include "Response.hpp"
 
+#include <unistd.h>
+
 #include <cassert>
 #include <cstdlib>
 #include <sstream>
@@ -8,13 +10,17 @@
 #include "HttpMessage.hpp"
 #include "config.hpp"
 
-Response::Response() : _code(0), _response_string(), _status(RES_EMPTY) {}
+Response::Response() : HttpMessage(), _code(0), _response_string(), _status(RES_EMPTY), _fd(-1) {
+    set_version(1, 1);
+}
 
 Response::Response(const Response& other)
     : HttpMessage(other),
       _code(other._code),
       _response_string(other._response_string),
-      _status(other._status) {}
+      _status(other._status) {
+    _fd = dup(other.fd());
+}
 
 const Response& Response::operator=(const Response& other) {
     if (this == &other) return *this;
@@ -24,11 +30,16 @@ const Response& Response::operator=(const Response& other) {
     _code = other._code;
     _response_string = other._response_string;
     _status = other._status;
+    
+    if (_fd >= 0) close(_fd);
+    _fd = dup(other.fd());
 
     return *this;
 }
 
-Response::~Response() {}
+Response::~Response() {
+    if (_fd >= 0) close(_fd);
+}
 
 HttpCode Response::code() const {
     return _code;
@@ -42,6 +53,18 @@ ResponseStatus Response::status() const {
     return _status;
 }
 
+int Response::fd() const {
+    return _fd;
+}
+
+/**
+ * @brief Checks whether the Reponse has an HTTP status code denoting an error.
+ * Such statuses must be between 400 and 599 inclusive.
+ */
+bool Response::is_error() const {
+    return (_code >= 400 && _code <= 599);
+}
+
 void Response::set_code(HttpCode code) {
     assert(code >= 100 && code <= 599 && "Correct HTTP Code");
     _code = code;
@@ -53,6 +76,10 @@ void Response::set_response_string(const std::string& response_string) {
 
 void Response::set_status(ResponseStatus status) {
     _status = status;
+}
+
+void Response::set_fd(int fd) {
+    _fd = fd;
 }
 
 /**
@@ -83,6 +110,8 @@ static std::string code_to_string(HttpCode code) {
     switch (code) {
         case 400:
             return "Bad Request";
+        case 404:
+            return "Not Found";
         case 405:
             return "Method Not Allowed";
         case 408:
@@ -113,16 +142,14 @@ Response error_response(HttpCode code) {
     result.set_version(1, 1);
     result.set_code(code);
     result.set_response_string(code_to_string(code));
-    result.set_status(RES_ERROR);
+    result.append_body(result.response_string());
+    result.append_body("\r\n");
 
     result.set_header("Content-Type", "text/plain");
     std::stringstream stream;
     stream << result.body().size();
     result.set_header("Content-Length", stream.str());
     result.set_header("Connection", "close");  // TODO Don't always close on errors
-
-    result.append_body(result.response_string());
-    result.append_body("\r\n");
 
     return result;
 }

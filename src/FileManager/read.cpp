@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 
+#include "Logger.hpp"
 #include "file_manager.hpp"
 
 /**
@@ -63,6 +64,34 @@ bool is_directory(const FilePath& path) {
 }
 
 /**
+ * @brief Returns the length of a file on disk.
+ */
+size_t file_length(const FilePath& path) {
+    struct stat file_stat;
+
+    if (stat(path.c_str(), &file_stat) == -1) perror("[file_length] - stat");
+
+    Logger(LOG_DEBUG) << path << " is of size " << file_stat.st_size;
+    return static_cast<size_t>(file_stat.st_size);
+}
+
+/**
+ * @brief Gets a file descriptor for a give file path.
+ *
+ * @return The file descriptor, or -1 if an error occurred.
+ */
+int fetch_file(const FilePath& path) {
+    int fd = open(path.c_str(), O_RDONLY);
+
+    if (fd < 0) {
+        perror("[fetch_file] - open");
+        return -1;
+    }
+
+    return fd;
+}
+
+/**
  * @brief Standardizes a file path.
  *
  * @description Removes a potential trailing slash.
@@ -96,20 +125,4 @@ FilePath standardize_path(const std::string& path) {
 
     if (path[0] != '/') standardized.insert(0, working_directory);
     return standardized;
-}
-
-/**
- * @brief Gets a file descriptor for a give file path.
- *
- * @return The file descriptor, or -1 if an error occurred.
- */
-int fetch_file(const FilePath& path) {
-    int fd = open(path.c_str(), O_RDONLY);
-
-    if (fd < 0) {
-        perror("[fetch_file] - open");
-        return -1;
-    }
-
-    return fd;
 }

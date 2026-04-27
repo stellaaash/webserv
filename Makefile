@@ -34,6 +34,8 @@ CFILES		=	$(SRCDIR)/main.cpp \
 				$(SRCDIR)/FileManager/write.cpp \
 				$(SRCDIR)/RequestParser/request_parser.cpp \
 				$(SRCDIR)/RequestParser/helpers.cpp \
+				$(SRCDIR)/RequestProcessor/request_processor.cpp \
+				$(SRCDIR)/RequestProcessor/send.cpp \
 				$(SRCDIR)/socket_utils.cpp \
 
 INCLDIR		=	include
@@ -41,7 +43,7 @@ BUILDDIR	=	build
 IFILES		=
 
 VALGRIND	=	valgrind
-VALFLAGS	=	--leak-check=full --show-leak-kinds=all
+VALFLAGS	=	--leak-check=full --show-leak-kinds=all --track-fds=yes
 LOG			=	valgrind.log
 
 OBJS		=	$(CFILES:$(SRCDIR)/%.cpp=$(BUILDDIR)/%.o)

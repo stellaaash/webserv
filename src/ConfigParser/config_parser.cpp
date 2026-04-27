@@ -106,8 +106,6 @@ static void check_config(const Config& config) {
             for (CgiIterator j = l->second.cgi.begin(); j != l->second.cgi.end(); ++j) {
                 if (is_regular_file(j->second) == false) throw ParserError("Invalid cgi directive");
             }
-            if (l->second.index.empty() == false && is_regular_file(l->second.index) == false)
-                throw ParserError("Invalid index directive");
             for (ErrorPageIterator r = l->second.redirect.begin(); r != l->second.redirect.end();
                  ++r) {
                 // Redirection have to use a 3XX code
@@ -363,8 +361,7 @@ ConfigLocation parse_location(TokenIterator* t, TokenIterator end) {
             } else if (directive == "index") {
                 if (tokens.size() < 3)
                     throw ParserError(tokens[0], "Wrong number of tokens in index directive");
-                // FIXME What happens when config.root isn't set yet?
-                config.index = config.root + "/" + tokens[1].word;
+                config.index = tokens[1].word;
             } else if (directive == "redirect") {
                 if (tokens.size() != 4)
                     throw ParserError(tokens[0], "Wrong number of tokens in redirect directive");

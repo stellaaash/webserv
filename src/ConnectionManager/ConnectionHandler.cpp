@@ -3,30 +3,12 @@
 #include <sys/epoll.h>
 
 #include <cstdio>
-#include <iostream>
-#include <sstream>
 
 #include "ConnectionManager.hpp"
 #include "Logger.hpp"
 #include "Request.hpp"
 #include "Response.hpp"
 #include "config.hpp"
-
-static std::string hello_response() {
-    const std::string body = "Hello\n";
-
-    std::ostringstream oss;
-    oss << body.size();
-
-    return "HTTP/1.1 200 OK\r\n"
-           "Content-Type: text/plain\r\n"
-           "Content-Length: " +
-           oss.str() +
-           "\r\n"
-           "Connection: keep-alive\r\n"
-           "\r\n" +
-           body;
-}
 
 /**
  * @brief Prints a request's status, as well as its body information and headers.
@@ -36,6 +18,7 @@ static void log_request(const Request& request) {
     Logger(LOG_DEBUG) << "Request Status:" << request.status();
     Logger(LOG_DEBUG) << "Method: " << request.method();
     Logger(LOG_DEBUG) << "Target: " << request.target();
+    Logger(LOG_DEBUG) << "Matched location: " << request.config().name;
     Logger(LOG_DEBUG) << "Body received: [" << request.body_received() << "]";
     Logger(LOG_DEBUG) << "Is body spooled: [" << request.is_body_spooled() << "]";
     if (request.is_body_spooled()) {
@@ -49,6 +32,23 @@ static void log_request(const Request& request) {
         Logger(LOG_DEBUG) << it->first << ": " << it->second;
     }
     Logger(LOG_DEBUG) << "----- [REQ END] -----\n";
+}
+
+/**
+ * @brief Prints a response's status, as well as its body information and headers.
+ */
+static void log_response(const Response& response) {
+    Logger(LOG_DEBUG) << "----- [RESPONSE] -----";
+    Logger(LOG_DEBUG) << "Code: " << response.code();
+    Logger(LOG_DEBUG) << "Response String: " << response.response_string();
+    Logger(LOG_DEBUG) << "File Descriptor: " << response.fd();
+    Logger(LOG_DEBUG) << "Body length: " << response.body().length();
+    Logger(LOG_DEBUG) << "----- [HEADERS] -----";
+    for (HttpMessage::HeaderIterator it = response.headers_begin(); it != response.headers_end();
+         ++it) {
+        Logger(LOG_DEBUG) << it->first << ": " << it->second;
+    }
+    Logger(LOG_DEBUG) << "----- [RESP END] -----\n";
 }
 
 ConnectionHandler::ConnectionHandler(const ConfigServer* srv, int client_fd)
@@ -65,7 +65,7 @@ int ConnectionHandler::fd() const {
 
 uint32_t ConnectionHandler::interests() const {
     // EPOLLOUT only when something must be sent back, else stay ready to listen
-    if (_conn.has_pending_write())
+    if (_conn.response().status() != RES_EMPTY)
         return EPOLLIN | EPOLLOUT;
     else
         return EPOLLIN;
@@ -104,35 +104,46 @@ bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events
     (void)manager;
     const Request&  request = _conn.request();
     const Response& response = _conn.response();
+    Logger(LOG_DEBUG) << "[!] - Response status: " << response.status();
 
     if (events & (EPOLLERR | EPOLLHUP)) {
         Logger(LOG_ERROR) << "[CONN " << _fd << "] Error: Wrong epoll event";
         return false;
     }
 
+    // Parse request on incoming data
     if (events & EPOLLIN) {
         ssize_t n = _conn.receive_data();
         if (n <= 0) return false;
 
         _conn.parse_request();
+        if (request.status() == REQ_PARSED || request.status() == REQ_ERROR) log_request(request);
     }
 
-    // Add data to send depending on state
+    // If request has been fully parsed, process it
+    if (request.status() == REQ_PARSED) {
+        _conn.process_request();
+        log_response(response);
+    } else if (request.status() == REQ_ERROR) {
+        _conn.set_response(error_response(request.error_status()));
+    }
+
+    // Send the response once it is ready
     if (!_conn.has_pending_write()) {
-        if (request.status() == REQ_PARSED) {
-            log_request(request);
-            _conn.queue_write(hello_response());
-        } else if (request.status() == REQ_ERROR) {
-            log_request(request);
-            HttpCode code = request.error_status();
-            _conn.set_response(error_response(code));
-            // TODO Temporary, will have to be swapped with RePro logic
-            _conn.queue_write(response.serialize());
-            _conn.queue_write(response.body());
+        if (request.status() == REQ_PROCESSED || request.status() == REQ_ERROR) {
+            if (response.status() == RES_EMPTY) _conn.queue_head();
+            if (response.status() == RES_HEAD) _conn.queue_body_chunk();
         }
     }
 
-    if (events & EPOLLOUT && _conn.has_pending_write()) _conn.send_data();
+    if (_conn.has_pending_write()) _conn.send_data();
+
+    // Reset request and response objects once everything was sent
+    if (response.status() == RES_SENT && _conn.has_pending_write() == false) {
+        _conn.set_request(Request());
+        _conn.set_response(Response());
+        Logger(LOG_DEBUG) << "[!] - Reset request and response objects";
+    }
 
     return true;
 }

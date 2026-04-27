@@ -20,6 +20,7 @@ enum Path_Type { FILE_PATH, DIR_PATH };
 
 bool     is_regular_file(const FilePath&);
 bool     is_directory(const FilePath&);
+size_t   file_length(const FilePath& path);
 int      fetch_file(const FilePath&);
 FilePath standardize_path(const std::string&);
 

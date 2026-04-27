@@ -7,7 +7,15 @@
 #include "HttpMessage.hpp"
 #include "config.hpp"
 
-enum RequestStatus { REQ_EMPTY, REQ_REQUEST_LINE, REQ_HEADERS, REQ_BODY, REQ_PARSED, REQ_ERROR };
+enum RequestStatus {
+    REQ_EMPTY,         // Nothing received yet
+    REQ_REQUEST_LINE,  // Received request line
+    REQ_HEADERS,       // Received headers
+    REQ_BODY,          // Received the full body
+    REQ_PARSED,        // Ready to be processed
+    REQ_PROCESSED,     // Fully processed, Response created
+    REQ_ERROR          // Error during parsing
+};
 
 /**
  * @brief Represents a request issued by an active connection.
@@ -20,13 +28,14 @@ public:
     Request(const ConfigLocation* const, HttpMethod);
     ~Request();
 
-    HttpMethod         method() const;
-    RequestStatus      status() const;
-    const std::string& target() const;
-    size_t             content_length() const;
-    size_t             client_max_body_size() const;
-    size_t             body_received() const;
-    HttpCode           error_status() const;
+    const ConfigLocation& config() const;
+    HttpMethod            method() const;
+    RequestStatus         status() const;
+    const std::string&    target() const;
+    size_t                content_length() const;
+    size_t                client_max_body_size() const;
+    size_t                body_received() const;
+    HttpCode              error_status() const;
 
     bool               is_body_spooled() const;
     const std::string& body_path() const;
