@@ -39,8 +39,7 @@ ResponseStatus Connection::process_get_request(const FilePath& resource_path) {
             } else
                 _response = error_response(500);
         } else {
-            // _response.set_fd(fd); // TODO Temporary, will be added once we can read from fds
-            _response.append_body("Yayyyyyy!!");
+            _response.set_fd(fd);
             _response.set_code(200);
             _response.set_response_string("OK");
         }
