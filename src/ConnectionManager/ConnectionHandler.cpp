@@ -65,7 +65,7 @@ int ConnectionHandler::fd() const {
 
 uint32_t ConnectionHandler::interests() const {
     // EPOLLOUT only when something must be sent back, else stay ready to listen
-    if (_conn.has_pending_write())
+    if (_conn.response().status() != RES_EMPTY)
         return EPOLLIN | EPOLLOUT;
     else
         return EPOLLIN;
@@ -104,6 +104,7 @@ bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events
     (void)manager;
     const Request&  request = _conn.request();
     const Response& response = _conn.response();
+    Logger(LOG_DEBUG) << "[!] - Response status: " << response.status();
 
     if (events & (EPOLLERR | EPOLLHUP)) {
         Logger(LOG_ERROR) << "[CONN " << _fd << "] Error: Wrong epoll event";
@@ -130,8 +131,8 @@ bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events
     // Send the response once it is ready
     if (!_conn.has_pending_write()) {
         if (request.status() == REQ_PROCESSED || request.status() == REQ_ERROR) {
-            _conn.queue_head();
-            _conn.queue_body_chunk();
+            if (response.status() == RES_EMPTY) _conn.queue_head();
+            if (response.status() == RES_HEAD) _conn.queue_body_chunk();
         }
     }
 
