@@ -77,6 +77,7 @@ ssize_t Connection::receive_data() {
             Logger(LOG_GENERAL) << "[CONN " << _socket << "] client closed recv0";
             return 0;
         } else {
+            // FIXME checking errno after a read/write is forbidden
             if (errno == EAGAIN || errno == EWOULDBLOCK) break;  // nothing to read
             Logger(LOG_ERROR) << "[Connection::receive_data] recv: " << std::strerror(errno);
             return -1;
