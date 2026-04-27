@@ -43,7 +43,7 @@ BUILDDIR	=	build
 IFILES		=
 
 VALGRIND	=	valgrind
-VALFLAGS	=	--leak-check=full --show-leak-kinds=all
+VALFLAGS	=	--leak-check=full --show-leak-kinds=all --track-fds=yes
 LOG			=	valgrind.log
 
 OBJS		=	$(CFILES:$(SRCDIR)/%.cpp=$(BUILDDIR)/%.o)

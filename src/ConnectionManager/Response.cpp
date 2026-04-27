@@ -1,5 +1,7 @@
 #include "Response.hpp"
 
+#include <unistd.h>
+
 #include <cassert>
 #include <cstdlib>
 #include <sstream>
@@ -8,7 +10,7 @@
 #include "HttpMessage.hpp"
 #include "config.hpp"
 
-Response::Response() : _code(0), _response_string(), _status(RES_EMPTY), _fd(-1) {
+Response::Response() : HttpMessage(), _code(0), _response_string(), _status(RES_EMPTY), _fd(-1) {
     set_version(1, 1);
 }
 
@@ -16,8 +18,9 @@ Response::Response(const Response& other)
     : HttpMessage(other),
       _code(other._code),
       _response_string(other._response_string),
-      _status(other._status),
-      _fd(other._fd) {}
+      _status(other._status) {
+    _fd = dup(other.fd());
+}
 
 const Response& Response::operator=(const Response& other) {
     if (this == &other) return *this;
@@ -27,12 +30,16 @@ const Response& Response::operator=(const Response& other) {
     _code = other._code;
     _response_string = other._response_string;
     _status = other._status;
-    _fd = other._fd;
+    
+    if (_fd >= 0) close(_fd);
+    _fd = dup(other.fd());
 
     return *this;
 }
 
-Response::~Response() {}
+Response::~Response() {
+    if (_fd >= 0) close(_fd);
+}
 
 HttpCode Response::code() const {
     return _code;
