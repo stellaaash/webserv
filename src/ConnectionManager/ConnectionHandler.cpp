@@ -88,7 +88,7 @@ bool ConnectionHandler::is_timed_out() const {
  */
 void ConnectionHandler::timeout_connection() {
     Logger(LOG_DEBUG) << "[!] - Timing connection out!";
-    _conn.set_response(error_response(408));
+    _conn.set_response(error_response(408, true));
     _conn.queue_write(_conn.response().serialize());
     _conn.queue_write(_conn.response().body());
     _conn.send_data();
@@ -126,7 +126,7 @@ bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events
         _conn.process_request();
         log_response(response);
     } else if (request.status() == REQ_ERROR) {
-        _conn.set_response(error_response(request.error_status()));
+        _conn.set_response(error_response(request.error_status(), true));
     }
 
     // Send the response once it is ready

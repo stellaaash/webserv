@@ -30,7 +30,7 @@ const Response& Response::operator=(const Response& other) {
     _code = other._code;
     _response_string = other._response_string;
     _status = other._status;
-    
+
     if (_fd >= 0) close(_fd);
     _fd = dup(other.fd());
 
@@ -136,7 +136,7 @@ static std::string code_to_string(HttpCode code) {
 /**
  * @brief Creates a Response object representing an error.
  */
-Response error_response(HttpCode code) {
+Response error_response(HttpCode code, bool close) {
     Response result;
 
     result.set_version(1, 1);
@@ -149,7 +149,9 @@ Response error_response(HttpCode code) {
     std::stringstream stream;
     stream << result.body().size();
     result.set_header("Content-Length", stream.str());
-    result.set_header("Connection", "close");  // TODO Don't always close on errors
-
+    if (close == true)
+        result.set_header("Connection", "close");
+    else
+        result.set_header("Connection", "keep-alive");
     return result;
 }

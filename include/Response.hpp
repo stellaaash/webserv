@@ -40,6 +40,6 @@ private:
     int            _fd;
 };
 
-Response error_response(HttpCode code);
+Response error_response(HttpCode, bool close);
 
 #endif
