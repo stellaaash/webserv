@@ -29,7 +29,7 @@ ssize_t append_file(int, const std::string&);
 int     remove_file(const FilePath&);
 
 std::map<FilePath, Path_Type> get_dir_contents(const FilePath&);
-std::string                   create_listing(const FilePath&);
+std::string                   create_listing(const FilePath&, const std::string& target);
 
 std::string resolve_path(const FilePath& relative_path, const std::string& root);
 bool        is_under_directory(const FilePath& path, const FilePath& directory);
