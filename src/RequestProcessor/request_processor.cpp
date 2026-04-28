@@ -13,7 +13,7 @@ ResponseStatus Connection::process_get_request(const FilePath& resource_path) {
     if (is_directory(path) == true) {
         if (_request.config()->index.empty() == false) {
             // Resource to fetch becomes the index file, not the folder itself
-            path = resource_path + "/" + _request.config().index;
+            path = resource_path + "/" + _request.config()->index;
         } else if (_request.config()->autoindex == true) {
             _response.append_body(create_listing(path, _request.target()));
             _response.set_code(200);
