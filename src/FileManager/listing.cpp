@@ -59,25 +59,27 @@ std::map<FilePath, Path_Type> get_dir_contents(const FilePath& directory) {
 /**
  * @brief Creates an HTML listing of a directory, containing links to all entries inside.
  */
-// FIXME This is very broken (links aren't correct, and we shdouln't link the absolute path of
-// directories)
-std::string create_listing(const FilePath& directory) {
+std::string create_listing(const FilePath& directory, const std::string& target) {
     std::map<FilePath, Path_Type> entries = get_dir_contents(directory);
     std::stringstream             html_listing;
 
     html_listing << "<html>\n";
     html_listing << "<head>\n";
-    html_listing << "<title>" << directory << "</title>\n";
+    html_listing << "<title>" << target << "</title>\n";
     html_listing << "</head>\n";
     html_listing << "<body>\n";
-    html_listing << "<h1>Listing of " << directory << "</h1>\n";
+    html_listing << "<h1>Listing of " << target << "</h1>\n";
     html_listing << "<ul>\n";
     for (std::map<FilePath, Path_Type>::const_iterator e = entries.begin(); e != entries.end();
          ++e) {
         std::string path = e->first;
         if (e->second == DIR_PATH) path.append("/");
 
-        html_listing << "<li><a href=\"" << e->first << "\">" << path << "</a></li>\n";
+        if (e->first == ".")
+            html_listing << "<li><a href=\"" << target << "\">" << path << "</a></li>\n";
+        else
+            html_listing << "<li><a href=\"" << target << "/" << e->first << "\">" << path
+                         << "</a></li>\n";
     }
     html_listing << "</ul>\n";
     html_listing << "</body>\n";
