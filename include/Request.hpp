@@ -28,7 +28,7 @@ public:
     Request(const ConfigLocation* const, HttpMethod);
     ~Request();
 
-    const ConfigLocation& config() const;
+    const ConfigLocation* config() const;
     HttpMethod            method() const;
     RequestStatus         status() const;
     const std::string&    target() const;

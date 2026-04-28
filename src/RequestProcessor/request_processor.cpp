@@ -11,10 +11,10 @@ ResponseStatus Connection::process_get_request(const FilePath& resource_path) {
     FilePath path = resource_path;
 
     if (is_directory(path) == true) {
-        if (_request.config().index.empty() == false) {
+        if (_request.config()->index.empty() == false) {
             // Resource to fetch becomes the index file, not the folder itself
-            path = resource_path + "/" + _request.config().index;
-        } else if (_request.config().autoindex == true) {
+            path = resource_path + "/" + _request.config()->index;
+        } else if (_request.config()->autoindex == true) {
             _response.append_body(create_listing(path));
             _response.set_code(200);
             _response.set_response_string("OK");
@@ -62,10 +62,10 @@ ResponseStatus Connection::process_get_request(const FilePath& resource_path) {
 }
 
 ResponseStatus Connection::process_request() {
-    std::string relative_path = _request.target().substr(_request.config().name.length());
+    std::string relative_path = _request.target().substr(_request.config()->name.length());
     if (relative_path[0] == '/')  // If we still have a slash at the beginning, remove it
         relative_path.erase(0, relative_path.find_first_not_of('/'));
-    FilePath resource_path = resolve_path(relative_path, _request.config().root);
+    FilePath resource_path = resolve_path(relative_path, _request.config()->root);
 
     switch (_request.method()) {
         case GET:

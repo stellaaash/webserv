@@ -18,7 +18,7 @@ static void log_request(const Request& request) {
     Logger(LOG_DEBUG) << "Request Status:" << request.status();
     Logger(LOG_DEBUG) << "Method: " << request.method();
     Logger(LOG_DEBUG) << "Target: " << request.target();
-    Logger(LOG_DEBUG) << "Matched location: " << request.config().name;
+    if (request.config()) Logger(LOG_DEBUG) << "Matched location: " << request.config()->name;
     Logger(LOG_DEBUG) << "Body received: [" << request.body_received() << "]";
     Logger(LOG_DEBUG) << "Is body spooled: [" << request.is_body_spooled() << "]";
     if (request.is_body_spooled()) {
