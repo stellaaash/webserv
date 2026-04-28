@@ -1,3 +1,5 @@
+#include "config_parser.hpp"
+
 #include <netdb.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
@@ -15,7 +17,6 @@
 #include <utility>
 #include <vector>
 
-#include "ConfigParser.hpp"
 #include "Logger.hpp"
 #include "config.hpp"
 #include "config_lexer.hpp"

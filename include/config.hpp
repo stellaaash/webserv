@@ -37,6 +37,8 @@ typedef struct ConfigLocation {
 typedef struct ConfigServer {
     ConfigServer();
 
+    // Parsed directly from mime.types - extension to possible MIME type
+    std::map<std::string, std::string>    mime_types;
     size_t                                client_max_body_size;
     std::map<HttpCode, std::string>       error_page;  // Error code to URI
     std::vector<struct sockaddr_in>       listen;

@@ -11,11 +11,11 @@
 #include <fstream>
 #include <iostream>
 
-#include "ConfigParser.hpp"
 #include "ConnectionManager.hpp"
 #include "Listener.hpp"
 #include "Logger.hpp"
 #include "config.hpp"
+#include "config_parser.hpp"
 #include "file_manager.hpp"
 #include "socket_utils.hpp"
 

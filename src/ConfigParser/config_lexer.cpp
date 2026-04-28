@@ -7,7 +7,7 @@
 #include <limits>
 #include <vector>
 
-#include "ConfigParser.hpp"
+#include "config_parser.hpp"
 
 /**
  * @brief Determines whether a character has a special meaning.
