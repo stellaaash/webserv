@@ -5,6 +5,7 @@
 #include <cstdio>
 
 #include "ConnectionManager.hpp"
+#include "HttpMessage.hpp"
 #include "Logger.hpp"
 #include "Request.hpp"
 #include "Response.hpp"
@@ -18,7 +19,7 @@ static void log_request(const Request& request) {
     Logger(LOG_DEBUG) << "Request Status:" << request.status();
     Logger(LOG_DEBUG) << "Method: " << request.method();
     Logger(LOG_DEBUG) << "Target: " << request.target();
-    Logger(LOG_DEBUG) << "Matched location: " << request.config().name;
+    if (request.config()) Logger(LOG_DEBUG) << "Matched location: " << request.config()->name;
     Logger(LOG_DEBUG) << "Body received: [" << request.body_received() << "]";
     Logger(LOG_DEBUG) << "Is body spooled: [" << request.is_body_spooled() << "]";
     if (request.is_body_spooled()) {
@@ -87,7 +88,7 @@ bool ConnectionHandler::is_timed_out() const {
  */
 void ConnectionHandler::timeout_connection() {
     Logger(LOG_DEBUG) << "[!] - Timing connection out!";
-    _conn.set_response(error_response(408));
+    _conn.set_response(error_response(408, true));
     _conn.queue_write(_conn.response().serialize());
     _conn.queue_write(_conn.response().body());
     _conn.send_data();
@@ -125,7 +126,7 @@ bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events
         _conn.process_request();
         log_response(response);
     } else if (request.status() == REQ_ERROR) {
-        _conn.set_response(error_response(request.error_status()));
+        _conn.set_response(error_response(request.error_status(), true));
     }
 
     // Send the response once it is ready
@@ -140,9 +141,15 @@ bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events
 
     // Reset request and response objects once everything was sent
     if (response.status() == RES_SENT && _conn.has_pending_write() == false) {
+        bool                        must_close = false;
+        HttpMessage::HeaderIterator connection = response.header("Connection");
+        if (connection != response.headers_end() && connection->second == "close")
+            must_close = true;  // If "Connection: close", close connection after sending
+
         _conn.set_request(Request());
         _conn.set_response(Response());
         Logger(LOG_DEBUG) << "[!] - Reset request and response objects";
+        if (must_close) return false;
     }
 
     return true;

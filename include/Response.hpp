@@ -44,6 +44,6 @@ private:
     size_t         _body_bytes_sent;
 };
 
-Response error_response(HttpCode code);
+Response error_response(HttpCode, bool close);
 
 #endif
