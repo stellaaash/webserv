@@ -10,7 +10,13 @@
 #include "HttpMessage.hpp"
 #include "config.hpp"
 
-Response::Response() : HttpMessage(), _code(0), _response_string(), _status(RES_EMPTY), _fd(-1) {
+Response::Response()
+    : HttpMessage(),
+      _code(0),
+      _response_string(),
+      _status(RES_EMPTY),
+      _fd(-1),
+      _body_bytes_sent(0) {
     set_version(1, 1);
 }
 
@@ -18,7 +24,8 @@ Response::Response(const Response& other)
     : HttpMessage(other),
       _code(other._code),
       _response_string(other._response_string),
-      _status(other._status) {
+      _status(other._status),
+      _body_bytes_sent(other._body_bytes_sent) {
     _fd = dup(other.fd());
 }
 
@@ -30,7 +37,8 @@ const Response& Response::operator=(const Response& other) {
     _code = other._code;
     _response_string = other._response_string;
     _status = other._status;
-    
+    _body_bytes_sent = other._body_bytes_sent;
+
     if (_fd >= 0) close(_fd);
     _fd = dup(other.fd());
 
@@ -57,6 +65,10 @@ int Response::fd() const {
     return _fd;
 }
 
+size_t Response::body_bytes_sent() const {
+    return _body_bytes_sent;
+}
+
 /**
  * @brief Checks whether the Reponse has an HTTP status code denoting an error.
  * Such statuses must be between 400 and 599 inclusive.
@@ -80,6 +92,10 @@ void Response::set_status(ResponseStatus status) {
 
 void Response::set_fd(int fd) {
     _fd = fd;
+}
+
+void Response::set_body_bytes_sent(size_t body_bytes_sent) {
+    _body_bytes_sent = body_bytes_sent;
 }
 
 /**
