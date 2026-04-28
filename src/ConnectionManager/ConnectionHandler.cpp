@@ -5,6 +5,7 @@
 #include <cstdio>
 
 #include "ConnectionManager.hpp"
+#include "HttpMessage.hpp"
 #include "Logger.hpp"
 #include "Request.hpp"
 #include "Response.hpp"
@@ -140,9 +141,15 @@ bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events
 
     // Reset request and response objects once everything was sent
     if (response.status() == RES_SENT && _conn.has_pending_write() == false) {
+        bool                        must_close = false;
+        HttpMessage::HeaderIterator connection = response.header("Connection");
+        if (connection != response.headers_end() && connection->second == "close")
+            must_close = true;  // If "Connection: close", close connection after sending
+
         _conn.set_request(Request());
         _conn.set_response(Response());
         Logger(LOG_DEBUG) << "[!] - Reset request and response objects";
+        if (must_close) return false;
     }
 
     return true;
