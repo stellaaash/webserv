@@ -37,8 +37,14 @@ void Connection::queue_body_chunk() {
         }
         queue_write(std::string(buffer, static_cast<size_t>(read_bytes)));
     } else if (_response.body().empty() == false) {
-        queue_write(_response.body());  // TODO Don't send body in one chunk
+        const size_t start_bytes = _response.body_bytes_sent();
+        const size_t remaining_bytes = _response.body().size() - start_bytes;
+        const size_t chunk_size = SEND_SIZE < remaining_bytes ? SEND_SIZE : remaining_bytes;
+
+        queue_write(_response.body().substr(start_bytes, chunk_size));
+        _response.set_body_bytes_sent(start_bytes + chunk_size);
         Logger(LOG_DEBUG) << "[!] - Response sent!";
-        _response.set_status(RES_SENT);
+        if (_response.body().length() == _response.body_bytes_sent())
+            _response.set_status(RES_SENT);
     }
 }

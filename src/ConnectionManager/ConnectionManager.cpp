@@ -92,7 +92,7 @@ void ConnectionManager::run() {
             Logger(LOG_GENERAL) << "[EPOLL] fd=" << h->fd() << " events=" << events[i].events;
             // Keep or delete connection or listener
             bool keep = h->handle_event(*this, events[i].events);
-            if (!keep) {
+            if (keep == false) {
                 del(h);
             } else {
                 // if interests() changed. IN/OUT

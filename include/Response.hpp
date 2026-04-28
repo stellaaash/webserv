@@ -1,6 +1,7 @@
 #ifndef RESPONSE_HPP
 #define RESPONSE_HPP
 
+#include <cstddef>
 #include <string>
 
 #include "HttpMessage.hpp"
@@ -24,12 +25,14 @@ public:
     const std::string& response_string() const;
     ResponseStatus     status() const;
     int                fd() const;
+    size_t             body_bytes_sent() const;
     bool               is_error() const;
 
     void set_code(HttpCode);
     void set_response_string(const std::string&);
     void set_status(ResponseStatus);
     void set_fd(int);
+    void set_body_bytes_sent(size_t);
 
     std::string serialize() const;
 
@@ -38,8 +41,9 @@ private:
     std::string    _response_string;
     ResponseStatus _status;
     int            _fd;
+    size_t         _body_bytes_sent;
 };
 
-Response error_response(HttpCode code);
+Response error_response(HttpCode, bool close);
 
 #endif
