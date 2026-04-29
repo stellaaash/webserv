@@ -44,6 +44,8 @@ private:
     RequestStatus parse_body();
     RequestStatus resolve_location();
 
+    std::string extension_to_type(const std::string&);
+
     ResponseStatus process_get_request(const FilePath&);
     ResponseStatus process_post_request(const FilePath&);
     ResponseStatus process_delete_request(const FilePath&);
