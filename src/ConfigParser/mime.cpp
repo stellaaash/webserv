@@ -26,6 +26,16 @@ static std::vector<std::string> split_line(const std::string& line) {
 
     return tokens;
 }
+/**
+ * @brief For a given extension, returns an appropriate MIME type.
+ */
+std::string extension_to_type(const std::string&                        extension,
+                              const std::map<std::string, std::string>& mime_types) {
+    std::map<std::string, std::string>::const_iterator type = mime_types.find(extension);
+    if (type == mime_types.end()) return "";
+
+    return type->second;
+}
 
 /**
  * @brief This function parses a file as containing lines of MIME types mapped to extensions.

@@ -1,23 +1,13 @@
 #include <cerrno>
 #include <cstring>
-#include <map>
 #include <string>
 
 #include "Connection.hpp"
 #include "Logger.hpp"
 #include "Response.hpp"
 #include "config.hpp"
+#include "config_parser.hpp"
 #include "file_manager.hpp"
-
-/**
- * @brief For a given extension, returns an appropriate MIME type.
- */
-std::string Connection::extension_to_type(const std::string& extension) {
-    std::map<std::string, std::string>::const_iterator type = _config->mime_types.find(extension);
-    if (type == _config->mime_types.end()) return "";
-
-    return type->second;
-}
 
 ResponseStatus Connection::process_get_request(const FilePath& resource_path) {
     FilePath path = resource_path;
@@ -71,7 +61,7 @@ ResponseStatus Connection::process_get_request(const FilePath& resource_path) {
     _response.set_header("Content-Length", stream.str());
     if (_response.has_header("Content-Type") == false) {
         const std::string  extension = extract_extension(path);
-        const std::string& mime_type = extension_to_type(extension);
+        const std::string& mime_type = extension_to_type(extension, _config->mime_types);
         if (mime_type.empty())
             _response.set_header("Content-Type", "application/octet-stream");
         else
