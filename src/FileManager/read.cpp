@@ -3,7 +3,7 @@
 #include <unistd.h>
 
 #include <cassert>
-#include <cstdio>
+#include <cerrno>
 #include <cstring>
 #include <stack>
 #include <string>
@@ -35,16 +35,15 @@ bool is_regular_file(const FilePath& path) {
     struct stat path_stat;
     memset(&path_stat, 0, sizeof(path_stat));
     if (stat(path.c_str(), &path_stat) != 0) {
-        perror("[is_regular_file] - stat");
+        Logger(LOG_ERROR) << "[is_regular_file] stat: " << strerror(errno);
         return false;
     }
     if (!S_ISREG(path_stat.st_mode)) {
         return false;
     }
 
-    int access_status = access(path.c_str(), R_OK);
-    if (access_status != 0) {
-        if (access_status < 0) perror("[is_regular_file] - access");
+    if (access(path.c_str(), R_OK) != 0) {
+        Logger(LOG_ERROR) << "[is_regular_file] access: " << strerror(errno);
         return false;
     }
 
@@ -60,16 +59,15 @@ bool is_directory(const FilePath& path) {
     struct stat path_stat;
     memset(&path_stat, 0, sizeof(path_stat));
     if (stat(path.c_str(), &path_stat) != 0) {
-        perror("[is_regular_file] - stat");
+        Logger(LOG_ERROR) << "[is_directory] stat: " << strerror(errno);
         return false;
     }
     if (!S_ISDIR(path_stat.st_mode)) {
         return false;
     }
 
-    int access_status = access(path.c_str(), W_OK);
-    if (access_status != 0) {
-        if (access_status < 0) perror("[is_directory] - access");
+    if (access(path.c_str(), W_OK) != 0) {
+        Logger(LOG_ERROR) << "[is_directory] access: " << strerror(errno);
         return false;
     }
 
@@ -82,7 +80,8 @@ bool is_directory(const FilePath& path) {
 size_t file_length(const FilePath& path) {
     struct stat file_stat;
 
-    if (stat(path.c_str(), &file_stat) == -1) perror("[file_length] - stat");
+    if (stat(path.c_str(), &file_stat) == -1)
+        Logger(LOG_ERROR) << "[file_length] stat: " << strerror(errno);
 
     Logger(LOG_DEBUG) << path << " is of size " << file_stat.st_size;
     return static_cast<size_t>(file_stat.st_size);
@@ -97,7 +96,7 @@ int fetch_file(const FilePath& path) {
     int fd = open(path.c_str(), O_RDONLY);
 
     if (fd < 0) {
-        perror("[fetch_file] - open");
+        Logger(LOG_ERROR) << "[fetch_file] open: " << strerror(errno);
         return -1;
     }
 
