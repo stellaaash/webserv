@@ -3,12 +3,13 @@
 #include <cassert>
 #include <cerrno>
 #include <cstddef>
-#include <cstdio>
+#include <cstring>
 #include <exception>
 #include <map>
 #include <sstream>
 #include <utility>
 
+#include "Logger.hpp"
 #include "file_manager.hpp"
 
 /**
@@ -19,7 +20,7 @@ std::map<FilePath, PathType> get_dir_contents(const FilePath& directory) {
 
     DIR* stream = opendir(directory.c_str());
     if (stream == NULL) {
-        perror("[get_dir_contents] - opendir");
+        Logger(LOG_ERROR) << "[get_dir_contents] opendir: " << strerror(errno);
         throw std::exception();
     }
 
@@ -49,7 +50,7 @@ std::map<FilePath, PathType> get_dir_contents(const FilePath& directory) {
     }
     closedir(stream);
     if (errno != 0) {
-        perror("[get_dir_contents] - readdir");
+        Logger(LOG_ERROR) << "[get_dir_contents] readdir: " << strerror(errno);
         throw std::exception();
     }
 
