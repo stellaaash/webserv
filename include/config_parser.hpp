@@ -6,6 +6,7 @@
 
 #include "config.hpp"
 #include "config_lexer.hpp"
+#include "file_manager.hpp"
 
 class ParserError : public std::exception {
 public:
@@ -21,6 +22,9 @@ private:
 };
 
 Config parse_file(std::ifstream&);
+
+std::string extension_to_type(const std::string&, const std::map<std::string, std::string>&);
+std::map<std::string, std::string> parse_mime_types(const FilePath&);
 
 Config         parse_config(TokenIterator, TokenIterator end);
 ConfigServer   parse_server(TokenIterator*, TokenIterator end);

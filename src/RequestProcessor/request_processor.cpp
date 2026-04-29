@@ -1,10 +1,12 @@
 #include <cerrno>
 #include <cstring>
+#include <string>
 
 #include "Connection.hpp"
 #include "Logger.hpp"
 #include "Response.hpp"
 #include "config.hpp"
+#include "config_parser.hpp"
 #include "file_manager.hpp"
 
 ResponseStatus Connection::process_get_request(const FilePath& resource_path) {
@@ -16,6 +18,7 @@ ResponseStatus Connection::process_get_request(const FilePath& resource_path) {
             path = resource_path + "/" + _request.config()->index;
         } else if (_request.config()->autoindex == true) {
             _response.append_body(create_listing(path, _request.target()));
+            _response.set_header("Content-Type", "text/html");
             _response.set_code(200);
             _response.set_response_string("OK");
         } else {
@@ -56,7 +59,14 @@ ResponseStatus Connection::process_get_request(const FilePath& resource_path) {
         stream << 0;
     }
     _response.set_header("Content-Length", stream.str());
-    // TODO Set headers, MIME types??
+    if (_response.has_header("Content-Type") == false) {
+        const std::string  extension = extract_extension(path);
+        const std::string& mime_type = extension_to_type(extension, _config->mime_types);
+        if (mime_type.empty())
+            _response.set_header("Content-Type", "application/octet-stream");
+        else
+            _response.set_header("Content-Type", mime_type);
+    }
 
     return _response.status();
 }

@@ -161,10 +161,10 @@ Response error_response(HttpCode code, bool close) {
     result.append_body(result.response_string());
     result.append_body("\r\n");
 
-    result.set_header("Content-Type", "text/plain");
     std::stringstream stream;
     stream << result.body().size();
     result.set_header("Content-Length", stream.str());
+    result.set_header("Content-Type", "text/html");
     if (close == true)
         result.set_header("Connection", "close");
     else

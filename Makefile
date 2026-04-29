@@ -19,6 +19,7 @@ CFILES		=	$(SRCDIR)/main.cpp \
 				$(SRCDIR)/Logger.cpp \
 				$(SRCDIR)/ConfigParser/config_lexer.cpp \
 				$(SRCDIR)/ConfigParser/config_parser.cpp \
+				$(SRCDIR)/ConfigParser/mime.cpp \
 				$(SRCDIR)/ConnectionManager/Connection.cpp \
 				$(SRCDIR)/ConnectionManager/ConnectionHandler.cpp \
 				$(SRCDIR)/ConnectionManager/ConnectionManager.cpp \

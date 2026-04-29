@@ -13,6 +13,19 @@
 #include "file_manager.hpp"
 
 /**
+ * @brief This function extracts the file extension of a given file.
+ *
+ * @return If the returned string is empty, then the file had no extension.
+ */
+std::string extract_extension(const FilePath& path) {
+    size_t dot_index = path.find_last_of('.');
+
+    if (dot_index == path.npos) return "";
+
+    return path.substr(dot_index + 1);
+}
+
+/**
  * @brief Checks that a file path is an actual path and not a folder or some other file type.
  * Also checks for read file access.
  */
