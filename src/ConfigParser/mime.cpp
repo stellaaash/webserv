@@ -47,9 +47,9 @@ std::map<std::string, std::string> parse_mime_types(const FilePath& path) {
     std::map<std::string, std::string> types;
 
     while (stream.eof() == false) {
-        char buffer[999];
+        char buffer[1024];
 
-        stream.getline(buffer, 999);
+        stream.getline(buffer, sizeof(buffer));
         std::vector<std::string> tokens;
         if (buffer[0] != '\0') tokens = split_line(buffer);
         if (tokens.empty()) continue;
