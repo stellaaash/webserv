@@ -55,8 +55,9 @@ int main(int argc, char** argv) {
         config = parse_file(config_file);
         std::map<std::string, std::string> mime_types = parse_mime_types("mime.types");
         for (std::vector<ConfigServer>::iterator s = config.server.begin();
-             s != config.server.end(); ++s)
+             s != config.server.end(); ++s) {
             s->mime_types = mime_types;
+        }
     } catch (const ParserError& e) {
         std::cerr << "[!] - " << e.what() << std::endl;
         return 3;
