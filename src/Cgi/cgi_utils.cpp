@@ -58,7 +58,7 @@ std::string to_string_size(size_t n) {
     return oss.str();
 }
 
-std::string make_env_entry(const std::string& key, const std::string& value) {
+static std::string make_env_entry(const std::string& key, const std::string& value) {
     return key + "=" + value;
 }
 

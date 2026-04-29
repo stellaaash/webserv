@@ -38,14 +38,13 @@ typedef struct CgiRequest {
 bool init_pipes(CgiPipes& p);
 void setup_child_pipes(CgiPipes& p);
 void setup_parent_pipes(CgiPipes& p);
+void close_fd(int& fd);
+void close_pipe(int pipefd[2]);
+void close_all_pipes(CgiPipes& p);
 
 // /Cgi/cgi_utils.cpp
-void        close_fd(int& fd);
-void        close_pipe(int pipefd[2]);
-void        close_all_pipes(CgiPipes& p);
-std::string extract_query_string(const std::string& target);
-bool        write_file_to_fd(const std::string& path, int out_fd);
-
+std::string              extract_query_string(const std::string& target);
+bool                     write_file_to_fd(const std::string& path, int out_fd);
 std::string              read_all(int fd);
 bool                     write_all(int fd, const std::string& data);
 std::string              to_string_size(size_t n);
