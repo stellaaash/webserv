@@ -10,6 +10,8 @@
 #include <cstring>
 #include <fstream>
 #include <iostream>
+#include <map>
+#include <string>
 
 #include "ConnectionManager.hpp"
 #include "Listener.hpp"
@@ -41,12 +43,20 @@ int main(int argc, char** argv) {
         std::cerr << "[!] - Failed to open configuration file." << std::endl;
         return 2;
     }
+    if (!is_regular_file("mime.types")) {
+        std::cerr << "[!] - Failed to open mime.types file." << std::endl;
+        return 2;
+    }
 
     std::ifstream config_file(argv[1]);
 
     Config config;
     try {
         config = parse_file(config_file);
+        std::map<std::string, std::string> mime_types = parse_mime_types("mime.types");
+        for (std::vector<ConfigServer>::iterator s = config.server.begin();
+             s != config.server.end(); ++s)
+            s->mime_types = mime_types;
     } catch (const ParserError& e) {
         std::cerr << "[!] - " << e.what() << std::endl;
         return 3;
