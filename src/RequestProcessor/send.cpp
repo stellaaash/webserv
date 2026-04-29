@@ -1,7 +1,8 @@
 #include <unistd.h>
 
 #include <cassert>
-#include <cstdio>
+#include <cerrno>
+#include <cstring>
 
 #include "Connection.hpp"
 #include "Logger.hpp"
@@ -28,7 +29,7 @@ void Connection::queue_body_chunk() {
         char    buffer[SEND_SIZE];
         ssize_t read_bytes = read(_response.fd(), buffer, SEND_SIZE);
         if (read_bytes < 0) {
-            perror("[handle_event] - read");
+            Logger(LOG_ERROR) << "[Connection::queue_body_chunk] read: " << strerror(errno);
             _response.set_code(500);
             return;
         } else if (read_bytes < SEND_SIZE) {
