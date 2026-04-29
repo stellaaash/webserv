@@ -37,6 +37,9 @@ CFILES		=	$(SRCDIR)/main.cpp \
 				$(SRCDIR)/RequestParser/helpers.cpp \
 				$(SRCDIR)/RequestProcessor/request_processor.cpp \
 				$(SRCDIR)/RequestProcessor/send.cpp \
+				$(SRCDIR)/Cgi/cgi_launch.cpp \
+				$(SRCDIR)/Cgi/cgi_utils.cpp \
+				$(SRCDIR)/Cgi/cgi_pipes.cpp \
 				$(SRCDIR)/socket_utils.cpp \
 
 INCLDIR		=	include
