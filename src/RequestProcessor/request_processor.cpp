@@ -9,7 +9,7 @@
 #include "config_parser.hpp"
 #include "file_manager.hpp"
 
-ResponseStatus Connection::process_get_request(const FilePath& resource_path) {
+void Connection::process_get_request(const FilePath& resource_path) {
     FilePath path = resource_path;
 
     if (is_directory(path) == true) {
@@ -67,11 +67,11 @@ ResponseStatus Connection::process_get_request(const FilePath& resource_path) {
         else
             _response.set_header("Content-Type", mime_type);
     }
-
-    return _response.status();
 }
 
-ResponseStatus Connection::process_request() {
+}
+
+void Connection::process_request() {
     std::string relative_path = _request.target().substr(_request.config()->name.length());
     if (relative_path[0] == '/')  // If we still have a slash at the beginning, remove it
         relative_path.erase(0, relative_path.find_first_not_of('/'));
@@ -88,5 +88,4 @@ ResponseStatus Connection::process_request() {
     }
 
     _request.set_status(REQ_PROCESSED);
-    return _response.status();
 }
