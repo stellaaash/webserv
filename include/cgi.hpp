@@ -43,6 +43,7 @@ void close_pipe(int pipefd[2]);
 void close_all_pipes(CgiPipes& p);
 
 // /Cgi/cgi_utils.cpp
+FilePath                 extract_interpreter(const Request& req);
 std::string              extract_query_string(const std::string& target);
 bool                     write_file_to_fd(const std::string& path, int out_fd);
 std::string              read_all(int fd);

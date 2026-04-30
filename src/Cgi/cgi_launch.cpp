@@ -47,8 +47,8 @@ static std::string method_to_string(HttpMethod method) {
 CgiRequest build_mock_cgi_request(const Request& req) {
     CgiRequest cgi;
 
-    cgi.interpreter = "/usr/bin/python3";
-    cgi.script_path = "html/cgi-bin/test.py";
+    cgi.interpreter = extract_interpreter(req);
+    cgi.script_path = req.target().substr(0, req.target().find('?'));
     cgi.method = method_to_string(req.method());
     cgi.query_string = extract_query_string(req.target());
 
