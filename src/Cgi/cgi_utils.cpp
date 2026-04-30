@@ -41,6 +41,29 @@ bool write_file_to_fd(const std::string& path, int out_fd) {
 }
 
 /**
+ * @brief Extract the interpreter from target.
+ * Removes query string, checks for file extension, finds interpreter in config from extension
+ * /cgi-bin/test.py?hello=world becomes "py", function returns FilePath stored in config.
+ */
+FilePath extract_interpreter(const Request& req) {
+    const ConfigLocation* cfg = req.config();
+    if (!cfg) return FilePath();
+
+    std::string target = req.target();
+    std::string path = target.substr(0, target.find('?'));
+
+    std::string::size_type dot = path.rfind('.');
+    if (dot == std::string::npos) return FilePath();
+
+    std::string extension = path.substr(dot + 1);
+
+    CgiIterator it = cfg->cgi.find(extension);
+    if (it == cfg->cgi.end()) return FilePath();
+
+    return it->second;
+}
+
+/**
  * @brief Minimal implementation to fetch the query string from the target.
  * /over/there?name=ferret
  */
