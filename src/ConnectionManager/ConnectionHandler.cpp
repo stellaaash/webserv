@@ -9,6 +9,7 @@
 #include "Logger.hpp"
 #include "Request.hpp"
 #include "Response.hpp"
+#include "cgi.hpp"
 #include "config.hpp"
 
 /**
@@ -56,12 +57,49 @@ ConnectionHandler::ConnectionHandler(const ConfigServer* srv, int client_fd)
     : _fd(client_fd),
       _conn(srv, client_fd),
       _last_activity(std::time(NULL)),
-      _timeout(static_cast<long>(srv->timeout)) {}
+      _timeout(static_cast<long>(srv->timeout)),
+      _cgi_handler(NULL) {}
 
-ConnectionHandler::~ConnectionHandler() {}
+ConnectionHandler::~ConnectionHandler() {
+    // Cleanly abort Cgi to avoid memory corruption
+    if (_cgi_handler) {
+        _cgi_handler->detach_client();
+        _cgi_handler->abort_cgi();
+        _cgi_handler = NULL;
+    }
+}
 
 int ConnectionHandler::fd() const {
     return _fd;
+}
+
+void ConnectionHandler::finish_cgi(const std::string& output, int cgi_status, int exit_code) {
+    if (cgi_status == CGI_TIMEOUT) {
+        _conn.set_response(error_response(504, true));
+    } else if (cgi_status != CGI_OK || exit_code != 0) {
+        _conn.set_response(error_response(500, true));
+    } else {
+        // TODO: Cgi returns headers in output and must be parsed here.
+        Response response;
+
+        response.set_code(200);
+        response.set_header("Content-Type", "text/plain");
+        response.set_header("Content-Length", to_string_size(output.size()));
+        response.append_body(output);
+
+        _conn.set_response(response);
+    }
+
+    Request done = _conn.request();
+    done.set_status(REQ_PROCESSED);
+    _conn.set_request(done);
+
+    if (!_conn.has_pending_write()) {
+        _conn.queue_head();
+        _conn.queue_body_chunk();
+    }
+
+    if (_conn.has_pending_write()) _conn.send_data();
 }
 
 uint32_t ConnectionHandler::interests() const {
@@ -79,6 +117,9 @@ uint32_t ConnectionHandler::interests() const {
  * full request will result in a connection close.
  */
 bool ConnectionHandler::is_timed_out() const {
+    if (_conn.request().status() == REQ_PARSED)
+        return false;  // If parsed status, CGI can timeout but not the connection itself
+
     return (std::time(NULL) - _last_activity) > _timeout;
 }
 
@@ -92,6 +133,10 @@ void ConnectionHandler::timeout_connection() {
     _conn.queue_write(_conn.response().serialize());
     _conn.queue_write(_conn.response().body());
     _conn.send_data();
+}
+
+void ConnectionHandler::clear_cgi_handler() {
+    _cgi_handler = NULL;
 }
 
 /**
@@ -148,6 +193,7 @@ bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events
 
         _conn.set_request(Request());
         _conn.set_response(Response());
+        _cgi_handler = NULL;
         Logger(LOG_DEBUG) << "[!] - Reset request and response objects";
         if (must_close) return false;
     }

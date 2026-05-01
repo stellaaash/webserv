@@ -5,3 +5,5 @@ IHandler::~IHandler() {}
 bool IHandler::is_timed_out() const {
     return false;
 }
+
+void IHandler::timeout_connection() {}

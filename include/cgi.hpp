@@ -14,13 +14,6 @@ typedef struct CgiPipes {
     int stderr_pipe[2];
 } CgiPipes;
 
-typedef struct CgiResult {
-    int         status;
-    int         exit_code;
-    std::string output;
-    std::string error;
-} CgiResult;
-
 typedef struct CgiRequest {
     std::string                        interpreter;
     std::string                        script_path;
@@ -33,6 +26,16 @@ typedef struct CgiRequest {
     size_t                             content_length;
     std::map<std::string, std::string> headers;
 } CgiRequest;
+
+enum CgiStatus { CGI_OK = 0, CGI_ERROR = 1, CGI_TIMEOUT = 2 };
+
+typedef struct CgiProcess {
+    pid_t pid;
+    int   stdout_fd;
+    int   stderr_fd;
+} CgiProcess;
+
+CgiProcess start_cgi(const CgiRequest& req);
 
 // /Cgi/cgi_pipes.cpp
 bool init_pipes(CgiPipes& p);
@@ -51,9 +54,7 @@ bool                     write_all(int fd, const std::string& data);
 std::string              to_string_size(size_t n);
 std::vector<std::string> build_env(const CgiRequest& req);
 char**                   build_c_array(std::vector<std::string>& values);
-CgiResult                make_error_result(const std::string& message);
 
 CgiRequest build_mock_cgi_request(const Request& req);
-CgiResult  launch_cgi(const CgiRequest& req);
 
 #endif

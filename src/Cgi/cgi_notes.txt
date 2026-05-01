@@ -1,0 +1,35 @@
+/* TODOS : 
+    If no "Status: XXX" returned by cgi, set http response as 200 OK by default.
+
+    Not handle DELETE request on Cgis ? Or send to CGIs but they don't accept it.
+    Two simple CGIs that do something, one in Ruby, one in Python.
+    Have them identify if it's GET/POST/DELETE and log info.
+
+    Have CGIs return headers on stdout.
+    Webserv must parse CGI headers to build html responses.
+
+    Internal server error if the CGI script couldn't be exec (launch_cgi() fail). 500
+    405 if Method is not allowed.
+
+    Webserv-sided :
+    Detect if target is a CGI.
+    Check script/interpreter integrity, missing, not allowed.
+    Call launch_cgi with CgiRequest object.
+*/
+
+/*
+if (request.target().find("/cgi-bin/") == 0) {
+            CgiRequest cgi_req = build_mock_cgi_request(request);
+            CgiProcess proc = start_cgi(cgi_req);
+            if (proc.pid == -1) {
+                _conn.set_response(error_response(500, true));
+                _conn.set_request(Request());
+                _conn.queue_head();
+            } else {
+                CgiHandler* cgi_handler =
+                    new CgiHandler(proc.pid, proc.stdout_fd, proc.stderr_fd, _timeout, this);
+                _cgi_handler = cgi_handler;
+                manager.add(cgi_handler);
+            }
+}
+*/

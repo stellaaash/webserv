@@ -33,6 +33,7 @@ int main(int argc, char** argv) {
     if (argc != 2) return 1;
 
     signal(SIGINT, clean_exit);
+    signal(SIGPIPE, SIG_IGN);
 
     // TODO Replace forbidden getcwd with our own function
     char* cwd = getcwd(NULL, 0);
