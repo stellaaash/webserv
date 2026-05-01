@@ -212,7 +212,8 @@ bool Request::flush_memory_body_to_file() {
 
     const std::string& in_memory = body();
     if (!in_memory.empty() && append_file(_body_fd, in_memory) < 0) {
-        Logger(LOG_ERROR) << "[Request::flush_memory_body_to_file] append_file: " << strerror(errno);
+        Logger(LOG_ERROR) << "[Request::flush_memory_body_to_file] append_file: "
+                          << strerror(errno);
         return false;
     }
 
@@ -235,6 +236,7 @@ bool Request::append_body_chunk(const char* data, size_t len) {
 
     if (!_is_body_spooled && body().size() + len > _spool_threshold) {
         if (!flush_memory_body_to_file()) return false;
+        // TODO Shouldn't we remove the body's contents at this point?
     }
 
     if (_is_body_spooled) {

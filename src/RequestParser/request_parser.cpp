@@ -40,6 +40,7 @@ RequestStatus Connection::parse_request_line() {
         _request.set_status(REQ_ERROR);
         _request.set_error_status(501);  // Not implemented
         _request.set_method(UNDEFINED);
+        return _request.status();
     }
 
     _request.set_target(target);
@@ -148,6 +149,10 @@ RequestStatus Connection::parse_body() {
  * the configuration, the /images location will be choosen, even though / comes before
  * alphabetically.
  */
+// TODO This function resolves to a location when a file's name starts with that location name
+// For example, with location /upload configured, getting /upload.html resolves to /upload, but
+// shouldn't To fix this, we should base ourself on whether the full location "/upload/" with the
+// last / included is present in the request's target
 RequestStatus Connection::resolve_location() {
     assert(_request.status() == REQ_BODY);
 
