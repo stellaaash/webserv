@@ -149,17 +149,3 @@ bool write_all(int fd, const std::string& data) {
 
     return true;
 }
-
-/**
- * @brief Builds a CgiResult struct filled with an error message if pipes init or fork fails.
- */
-CgiResult make_error_result(const std::string& message) {
-    CgiResult result;
-
-    result.status = -1;
-    result.exit_code = -1;
-    result.output = "";
-    result.error = message;
-
-    return result;
-}
