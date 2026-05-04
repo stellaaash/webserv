@@ -69,6 +69,18 @@ void Connection::process_get_request(const FilePath& resource_path) {
     }
 }
 
+void Connection::process_post_request(const FilePath& resource_path) {
+    if (_request.config()->cgi.empty() == false && is_regular_file(resource_path) == true) {
+        Logger(LOG_DEBUG) << "CGI called";
+        _response = error_response(501, false);
+    } else if (_request.config()->upload_store.empty() == false) {
+        Logger(LOG_DEBUG) << "Upload called";
+        _response.set_code(200);
+        _response.set_response_string("OK");
+        _response.set_header("Content-Length", "0");
+
+        // Is the body spooled to a file already? if yes, rename, if no, push body to file
+    }
 }
 
 void Connection::process_request() {
@@ -82,6 +94,8 @@ void Connection::process_request() {
             process_get_request(resource_path);
             break;
         case POST:
+            process_post_request(resource_path);
+            break;
         case DELETE:
         default:
             _response = error_response(501, false);

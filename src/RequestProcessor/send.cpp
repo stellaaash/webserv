@@ -25,6 +25,12 @@ void Connection::queue_head() {
 void Connection::queue_body_chunk() {
     assert(_response.status() == RES_HEAD);
 
+    // If no body to send back
+    if (_response.body().empty() == true && _response.fd() < 0) {
+        _response.set_status(RES_SENT);
+        return;
+    }
+
     if (_response.fd() >= 0) {
         char    buffer[SEND_SIZE];
         ssize_t read_bytes = read(_response.fd(), buffer, SEND_SIZE);
