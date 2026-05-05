@@ -85,9 +85,23 @@ void Connection::process_post_request(const FilePath& resource_path) {
         if (_request.is_body_spooled() == true) {
             if (copy_file(_request.body_path(), resource_path) < 0) {
                 Logger(LOG_ERROR) << "[process_post_request] - copy_file: " << strerror(errno);
+                _response = error_response(500, false);
+                return;
+            }
+        } else {
+            int fd = create_file(resource_path);
+            if (fd < 0) {
+                Logger(LOG_ERROR) << "[process_post_request] - create_file: " << strerror(errno);
+                _response = error_response(500, false);
+                return;
+            }
+            if (append_file(fd, _request.body()) < 0) {
+                Logger(LOG_ERROR) << "[process_post_request] - append_file: " << strerror(errno);
+                _response = error_response(500, false);
+                return;
             }
         }
-        _response.set_code(200);
+        _response.set_code(200);  // TODO return 30x See Other response
         _response.set_response_string("OK");
         _response.set_header("Content-Length", "0");
     }

@@ -51,7 +51,7 @@ ssize_t append_file(int fd, const std::string& data) {
  * @return An fd to the newly created file, or -1 if something failed.
  */
 int copy_file(const FilePath& source, const FilePath& destination) {
-    assert(is_regular_file(source) == false && is_directory(destination) == false &&
+    assert(is_regular_file(destination) == false && is_directory(destination) == false &&
            "File doesn't already exist");
 
     int fd = create_file(destination);
@@ -60,7 +60,7 @@ int copy_file(const FilePath& source, const FilePath& destination) {
     std::ifstream source_data(source.c_str());
     while (source_data.eof() == false) {
         char buffer[1024];
-        source_data.getline(buffer, sizeof(buffer));
+        source_data.read(buffer, sizeof(buffer));
         if (append_file(fd, buffer) < 0) {
             return -1;
         };
