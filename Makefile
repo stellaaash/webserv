@@ -16,7 +16,6 @@ RMFLAGS		=	-f
 SRCDIR		=	src
 CFILES		=	$(SRCDIR)/main.cpp \
 				$(SRCDIR)/config.cpp \
-				$(SRCDIR)/Logger.cpp \
 				$(SRCDIR)/ConfigParser/config_lexer.cpp \
 				$(SRCDIR)/ConfigParser/config_parser.cpp \
 				$(SRCDIR)/ConfigParser/mime.cpp \
@@ -33,8 +32,11 @@ CFILES		=	$(SRCDIR)/main.cpp \
 				$(SRCDIR)/FileManager/read.cpp \
 				$(SRCDIR)/FileManager/resolve.cpp \
 				$(SRCDIR)/FileManager/write.cpp \
+				$(SRCDIR)/Logger.cpp \
 				$(SRCDIR)/RequestParser/request_parser.cpp \
 				$(SRCDIR)/RequestParser/helpers.cpp \
+				$(SRCDIR)/RequestProcessor/get.cpp \
+				$(SRCDIR)/RequestProcessor/post.cpp \
 				$(SRCDIR)/RequestProcessor/request_processor.cpp \
 				$(SRCDIR)/RequestProcessor/send.cpp \
 				$(SRCDIR)/socket_utils.cpp \

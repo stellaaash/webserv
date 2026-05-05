@@ -20,12 +20,12 @@ public:
     const Request&  request() const;
     const Response& response() const;
 
-    ssize_t        send_data();
-    ssize_t        receive_data();
-    RequestStatus  parse_request();
-    ResponseStatus process_request();
-    void           queue_head();
-    void           queue_body_chunk();
+    ssize_t       send_data();
+    ssize_t       receive_data();
+    RequestStatus parse_request();
+    void          process_request();
+    void          queue_head();
+    void          queue_body_chunk();
 
     void set_config(const ConfigServer* const);
     void set_request(const Request&);
@@ -44,9 +44,9 @@ private:
     RequestStatus parse_body();
     RequestStatus resolve_location();
 
-    ResponseStatus process_get_request(const FilePath&);
-    ResponseStatus process_post_request(const FilePath&);
-    ResponseStatus process_delete_request(const FilePath&);
+    void process_get_request(const FilePath&);
+    void process_post_request(const FilePath&);
+    void process_delete_request(const FilePath&);
 
     const ConfigServer* _config;
 
