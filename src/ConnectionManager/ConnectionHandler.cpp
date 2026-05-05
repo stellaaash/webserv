@@ -172,6 +172,7 @@ bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events
         log_response(response);
     } else if (request.status() == REQ_ERROR) {
         _conn.set_response(error_response(request.error_status(), true));
+        log_response(response);
     }
 
     // Send the response once it is ready

@@ -35,6 +35,9 @@ bool is_regular_file(const FilePath& path) {
     struct stat path_stat;
     memset(&path_stat, 0, sizeof(path_stat));
     if (stat(path.c_str(), &path_stat) != 0) {
+        // TODO Those errors and others in this function and is_directory should be in the
+        // higher-level code, not here Having this function fail isn't always an error, if we just
+        // want to check whether a file already exists or not, for example
         Logger(LOG_ERROR) << "[is_regular_file] stat: " << strerror(errno);
         return false;
     }

@@ -186,7 +186,7 @@ bool Request::open_temp_body_file() {
 
         const std::string path = oss.str();
 
-        int fd = create_file(path);
+        int fd = create_file(path);  // TODO This leaks an fd
 
         if (fd >= 0) {
             _body_fd = fd;
@@ -210,9 +210,10 @@ bool Request::flush_memory_body_to_file() {
     if (_is_body_spooled) return true;
     if (!open_temp_body_file()) return false;
 
-    const std::string& in_memory = body();
+    const std::string& in_memory = _body;
     if (!in_memory.empty() && append_file(_body_fd, in_memory) < 0) {
-        Logger(LOG_ERROR) << "[Request::flush_memory_body_to_file] append_file: " << strerror(errno);
+        Logger(LOG_ERROR) << "[Request::flush_memory_body_to_file] append_file: "
+                          << strerror(errno);
         return false;
     }
 
@@ -233,8 +234,9 @@ void Request::cleanup_temp_file() {
 bool Request::append_body_chunk(const char* data, size_t len) {
     if (len == 0) return true;
 
-    if (!_is_body_spooled && body().size() + len > _spool_threshold) {
+    if (!_is_body_spooled && _body.size() + len > _spool_threshold) {
         if (!flush_memory_body_to_file()) return false;
+        _body.erase();
     }
 
     if (_is_body_spooled) {

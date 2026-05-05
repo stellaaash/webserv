@@ -27,7 +27,7 @@ public:
     void set_header(const std::string&, const std::string&);
     void append_body(const std::string&);
 
-private:
+protected:
     int                                     _major_version;
     int                                     _minor_version;
     std::multimap<std::string, std::string> _headers;
