@@ -181,6 +181,10 @@ bool Request::open_temp_body_file() {
     static unsigned long counter = 0;
 
     for (int attempt = 0; attempt < 128; ++attempt) {
+        // TODO If target file doesn't exist yet, make the temporary upload file's name be the final
+        // file name the request wants to upload
+        // TODO Make the request flush its body to file whenever the uploaded file doesn't exist on
+        // disk yet
         std::ostringstream oss;
         oss << "tmp/webserv_body_" << reinterpret_cast<unsigned long>(this) << "_" << counter++;
 
@@ -236,7 +240,7 @@ bool Request::append_body_chunk(const char* data, size_t len) {
 
     if (!_is_body_spooled && _body.size() + len > _spool_threshold) {
         if (!flush_memory_body_to_file()) return false;
-        // TODO Shouldn't we remove the body's contents at this point?
+        _body.erase();
     }
 
     if (_is_body_spooled) {
