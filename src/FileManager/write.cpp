@@ -3,7 +3,9 @@
 #include <unistd.h>
 
 #include <algorithm>
+#include <cassert>
 #include <cstdio>
+#include <fstream>
 
 #include "file_manager.hpp"
 
@@ -41,6 +43,30 @@ ssize_t append_file(int fd, const std::string& data) {
     }
 
     return static_cast<ssize_t>(write_index);
+}
+
+/**
+ * @brief Creates a file at `destination` and copies `source`'s contents inside of it.
+ *
+ * @return An fd to the newly created file, or -1 if something failed.
+ */
+int copy_file(const FilePath& source, const FilePath& destination) {
+    assert(is_regular_file(source) == false && is_directory(destination) == false &&
+           "File doesn't already exist");
+
+    int fd = create_file(destination);
+    if (fd < 0) return -1;
+
+    std::ifstream source_data(source.c_str());
+    while (source_data.eof() == false) {
+        char buffer[1024];
+        source_data.getline(buffer, sizeof(buffer));
+        if (append_file(fd, buffer) < 0) {
+            return -1;
+        };
+    }
+
+    return fd;
 }
 
 /**

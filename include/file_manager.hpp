@@ -27,6 +27,7 @@ FilePath    standardize_path(const std::string&);
 
 int     create_file(const FilePath&);
 ssize_t append_file(int, const std::string&);
+int     copy_file(const FilePath& source, const FilePath& destination);
 int     remove_file(const FilePath&);
 
 std::map<FilePath, PathType> get_dir_contents(const FilePath&);

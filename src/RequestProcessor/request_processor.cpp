@@ -71,15 +71,25 @@ void Connection::process_get_request(const FilePath& resource_path) {
 
 void Connection::process_post_request(const FilePath& resource_path) {
     if (_request.config()->cgi.empty() == false && is_regular_file(resource_path) == true) {
-        Logger(LOG_DEBUG) << "CGI called";
+        Logger(LOG_DEBUG) << "[process_post_request] - CGI called";
         _response = error_response(501, false);
     } else if (_request.config()->upload_store.empty() == false) {
-        Logger(LOG_DEBUG) << "Upload called";
+        Logger(LOG_DEBUG) << "[process_post_request] - Upload called at resource_path: "
+                          << resource_path;
+
+        if (is_regular_file(resource_path) || is_directory(resource_path)) {
+            _response = error_response(409, false);
+            return;
+        }
+
+        if (_request.is_body_spooled() == true) {
+            if (copy_file(_request.body_path(), resource_path) < 0) {
+                Logger(LOG_ERROR) << "[process_post_request] - copy_file: " << strerror(errno);
+            }
+        }
         _response.set_code(200);
         _response.set_response_string("OK");
         _response.set_header("Content-Length", "0");
-
-        // Is the body spooled to a file already? if yes, rename, if no, push body to file
     }
 }
 
@@ -87,7 +97,13 @@ void Connection::process_request() {
     std::string relative_path = _request.target().substr(_request.config()->name.length());
     if (relative_path[0] == '/')  // If we still have a slash at the beginning, remove it
         relative_path.erase(0, relative_path.find_first_not_of('/'));
-    FilePath resource_path = resolve_path(relative_path, _request.config()->root);
+
+    FilePath resource_path;
+    if (_request.config()->upload_store.empty() == false) {
+        resource_path = resolve_path(relative_path, _request.config()->upload_store);
+    } else {
+        resource_path = resolve_path(relative_path, _request.config()->root);
+    }
 
     switch (_request.method()) {
         case GET:

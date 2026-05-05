@@ -181,16 +181,12 @@ bool Request::open_temp_body_file() {
     static unsigned long counter = 0;
 
     for (int attempt = 0; attempt < 128; ++attempt) {
-        // TODO If target file doesn't exist yet, make the temporary upload file's name be the final
-        // file name the request wants to upload
-        // TODO Make the request flush its body to file whenever the uploaded file doesn't exist on
-        // disk yet
         std::ostringstream oss;
         oss << "tmp/webserv_body_" << reinterpret_cast<unsigned long>(this) << "_" << counter++;
 
         const std::string path = oss.str();
 
-        int fd = create_file(path);
+        int fd = create_file(path);  // TODO This leaks an fd
 
         if (fd >= 0) {
             _body_fd = fd;
