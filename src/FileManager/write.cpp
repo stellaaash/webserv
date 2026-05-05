@@ -5,7 +5,6 @@
 #include <algorithm>
 #include <cassert>
 #include <cstdio>
-#include <fstream>
 
 #include "file_manager.hpp"
 
@@ -54,19 +53,19 @@ int copy_file(const FilePath& source, const FilePath& destination) {
     assert(is_regular_file(destination) == false && is_directory(destination) == false &&
            "File doesn't already exist");
 
-    int fd = create_file(destination);
-    if (fd < 0) return -1;
+    int destination_fd = create_file(destination);
+    if (destination_fd < 0) return -1;
 
-    std::ifstream source_data(source.c_str());
-    while (source_data.eof() == false) {
-        char buffer[1024];
-        source_data.read(buffer, sizeof(buffer));
-        if (append_file(fd, buffer) < 0) {
+    int     source_fd = fetch_file(source);
+    ssize_t read_bytes;
+    char    buffer[1024];
+    while ((read_bytes = read(source_fd, buffer, sizeof(buffer))) > 0) {
+        if (append_file(destination_fd, std::string(buffer, static_cast<size_t>(read_bytes))) < 0)
             return -1;
-        };
     }
 
-    return fd;
+    close(source_fd);
+    return destination_fd;
 }
 
 /**
