@@ -15,6 +15,7 @@
  * @brief Writes to an fd in case a body is a file (large size bodies)
  */
 bool write_file_to_fd(const std::string& path, int out_fd) {
+    // TODO Use FileMan functions
     int fd = open(path.c_str(), O_RDONLY);
     if (fd < 0) return false;
 
@@ -45,6 +46,7 @@ bool write_file_to_fd(const std::string& path, int out_fd) {
  * Removes query string, checks for file extension, finds interpreter in config from extension
  * /cgi-bin/test.py?hello=world becomes "py", function returns FilePath stored in config.
  */
+// TODO Implement this as part of the Request Processor and pass it down to the CGI module
 FilePath extract_interpreter(const Request& req) {
     const ConfigLocation* cfg = req.config();
     if (!cfg) return FilePath();
@@ -67,6 +69,7 @@ FilePath extract_interpreter(const Request& req) {
  * @brief Minimal implementation to fetch the query string from the target.
  * /over/there?name=ferret
  */
+// TODO Implement this as part of the Request Processor and pass it down to the CGI module
 std::string extract_query_string(const std::string& target) {
     size_t pos = target.find('?');
 
@@ -75,6 +78,8 @@ std::string extract_query_string(const std::string& target) {
     return target.substr(pos + 1);
 }
 
+// TODO Make this a template or some other generic object to be able to use it anywhere and with any
+// type we need
 std::string to_string_size(size_t n) {
     std::ostringstream oss;
     oss << n;
@@ -85,6 +90,11 @@ static std::string make_env_entry(const std::string& key, const std::string& val
     return key + "=" + value;
 }
 
+/**
+ * @brief Sets up meta-variables for the CGI script to execute under.
+ *
+ * @return All environment variables as a vector of strings.
+ */
 std::vector<std::string> build_env(const CgiRequest& req) {
     std::vector<std::string> env;
 
@@ -105,7 +115,7 @@ std::vector<std::string> build_env(const CgiRequest& req) {
 }
 
 /**
- * @brief Builds a C-like array with the Environment vars to feed execve()
+ * @brief Builds a C-like array with the Environment vars to feed to execve()
  */
 char** build_c_array(std::vector<std::string>& values) {
     char** array = new char*[values.size() + 1];
@@ -116,6 +126,9 @@ char** build_c_array(std::vector<std::string>& values) {
     return array;
 }
 
+/**
+ * @brief Read everything from a file descriptor into a string until it reaches the end.
+ */
 std::string read_all(int fd) {
     std::string result;
     char        buffer[4096];
@@ -135,6 +148,9 @@ std::string read_all(int fd) {
     return result;
 }
 
+/**
+ * @brief Writes an entire string to a file descriptor.
+ */
 bool write_all(int fd, const std::string& data) {
     size_t total = 0;
 
