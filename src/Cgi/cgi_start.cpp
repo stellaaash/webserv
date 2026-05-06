@@ -6,6 +6,7 @@
 
 #include "cgi.hpp"
 
+// TODO Replace with socket_utils.cpp set_nonblocking()
 static void set_non_blocking(int fd) {
     int flags = fcntl(fd, F_GETFL, 0);
     if (flags == -1) return;
@@ -32,6 +33,7 @@ static std::string method_to_string(HttpMethod method) {
 /**
  * @brief Builds a mock CgiRequest struct to test cgi execution.
  */
+// TODO Will eventually be replaced with RePro logic
 CgiRequest build_mock_cgi_request(const Request& req) {
     CgiRequest cgi;
 
@@ -70,27 +72,32 @@ CgiRequest build_mock_cgi_request(const Request& req) {
 
 /**
  * @brief Executes cgi with a given CgiRequest struct.
- * Returns a CgiProcess struct containing the process id and fds.
+ *
+ * @return A CgiProcess struct containing the process id and fds.
  */
 CgiProcess start_cgi(const CgiRequest& req) {
-    CgiPipes p;
+    CgiPipes pipes;
 
-    if (!init_pipes(p)) return make_failed_process();
+    // TODO Instead of returning a CgiProcess in a specific state to signify errors, throw an
+    // exception
+    if (!init_pipes(pipes)) return make_failed_process();
 
     pid_t pid = fork();
 
     if (pid == -1) {
-        close_all_pipes(p);
+        close_all_pipes(pipes);
         return make_failed_process();
     }
 
     if (pid == 0) {
-        setup_child_pipes(p);
+        setup_child_pipes(pipes);
 
         std::vector<std::string> env = build_env(req);
         char**                   envp = build_c_array(env);
 
         char* argv[3];
+        // FIXME If the script ever writes to these, we got undefined behavior
+        // It should copy the data instead of const_casting it
         argv[0] = const_cast<char*>(req.interpreter.c_str());
         argv[1] = const_cast<char*>(req.script_path.c_str());
         argv[2] = NULL;
@@ -99,22 +106,22 @@ CgiProcess start_cgi(const CgiRequest& req) {
         _exit(127);
     }
 
-    setup_parent_pipes(p);
+    setup_parent_pipes(pipes);
 
-    set_non_blocking(p.stdout_pipe[0]);
-    set_non_blocking(p.stderr_pipe[0]);
+    set_non_blocking(pipes.stdout_pipe[0]);
+    set_non_blocking(pipes.stderr_pipe[0]);
 
     if (req.body_is_file)
-        write_file_to_fd(req.body_path, p.stdin_pipe[1]);
+        write_file_to_fd(req.body_path, pipes.stdin_pipe[1]);
     else
-        write_all(p.stdin_pipe[1], req.body);
+        write_all(pipes.stdin_pipe[1], req.body);
 
-    close_fd(p.stdin_pipe[1]);
+    close_fd(pipes.stdin_pipe[1]);
 
     CgiProcess proc;
     proc.pid = pid;
-    proc.stdout_fd = p.stdout_pipe[0];
-    proc.stderr_fd = p.stderr_pipe[0];
+    proc.stdout_fd = pipes.stdout_pipe[0];
+    proc.stderr_fd = pipes.stderr_pipe[0];
 
     return proc;
 }
