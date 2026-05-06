@@ -5,6 +5,8 @@
 #ifndef CONFIG_HPP
 #define CONFIG_HPP
 
+#include <netinet/in.h>
+
 #include <cstddef>
 #include <map>
 #include <set>
