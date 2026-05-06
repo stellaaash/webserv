@@ -27,6 +27,7 @@ void Connection::process_post_request(const FilePath& resource_path) {
         }
 
         if (_request.is_body_spooled() == true) {
+            // TODO we have access to std::rename, no need to copy a file
             int fd = copy_file(_request.body_path(), resource_path);
             if (fd < 0) {
                 Logger(LOG_ERROR) << "[process_post_request] - copy_file: " << strerror(errno);

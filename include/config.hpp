@@ -5,8 +5,6 @@
 #ifndef CONFIG_HPP
 #define CONFIG_HPP
 
-#include <arpa/inet.h>
-
 #include <cstddef>
 #include <map>
 #include <set>

@@ -1,6 +1,4 @@
-#include <arpa/inet.h>
 #include <fcntl.h>
-#include <netinet/in.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
 
