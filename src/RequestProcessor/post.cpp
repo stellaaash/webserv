@@ -1,6 +1,7 @@
 #include <unistd.h>
 
 #include <cerrno>
+#include <cstdio>
 #include <cstring>
 
 #include "Connection.hpp"
@@ -27,14 +28,11 @@ void Connection::process_post_request(const FilePath& resource_path) {
         }
 
         if (_request.is_body_spooled() == true) {
-            // TODO we have access to std::rename, no need to copy a file
-            int fd = copy_file(_request.body_path(), resource_path);
-            if (fd < 0) {
-                Logger(LOG_ERROR) << "[process_post_request] - copy_file: " << strerror(errno);
+            if (std::rename(_request.body_path().c_str(), resource_path.c_str()) < 0) {
+                Logger(LOG_ERROR) << "[process_post_request] - rename: " << strerror(errno);
                 _response = error_response(500, false);
                 return;
             }
-            close(fd);
         } else {
             int fd = create_file(resource_path);
             if (fd < 0) {
