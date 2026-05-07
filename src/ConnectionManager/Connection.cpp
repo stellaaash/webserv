@@ -21,12 +21,15 @@ Connection::Connection(const ConfigServer* const config, int socket)
       _read_buffer(),
       _read_index(0),
       _write_buffer(),
-      _write_index(0) {
+      _write_index(0),
+      _pending_handler(NULL) {
     assert(config && "ConfigServer pointer");
     assert(socket > 2 && "Valid Socket Number");
 }
 
-Connection::~Connection() {}
+Connection::~Connection() {
+    if (_pending_handler) delete _pending_handler;
+}
 
 const Request& Connection::request() const {
     return _request;
@@ -107,6 +110,20 @@ bool Connection::handle_content_length_header(Request& request) {
         return false;
     }
     return true;
+}
+
+/**
+ * @brief This functions takes ownersihp of the _pending_handler CgiHandler pointer, and returns
+ * it. It sets the internal pointer to NULL to change ownership to the caller of this function.
+ */
+CgiHandler* Connection::grab_pending_handler() {
+    CgiHandler* handler = NULL;
+
+    if (_pending_handler) {
+        handler = _pending_handler;
+        _pending_handler = NULL;
+    }
+    return handler;
 }
 
 void Connection::shrink_read_buffer() {

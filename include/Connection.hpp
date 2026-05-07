@@ -3,6 +3,7 @@
 
 #include <sys/types.h>
 
+#include "CgiHandler.hpp"
 #include "Request.hpp"
 #include "Response.hpp"
 #include "config.hpp"
@@ -32,6 +33,7 @@ public:
     void          queue_write(const std::string& data);
     bool          has_pending_write() const;
     bool          handle_content_length_header(Request& request);
+    CgiHandler*   grab_pending_handler();
 
 private:
     Connection(const Connection&);
@@ -59,6 +61,9 @@ private:
     size_t      _read_index;
     std::string _write_buffer;
     size_t      _write_index;
+
+    // Set by post requests when a CGI is launched
+    CgiHandler* _pending_handler;
 };
 
 #endif

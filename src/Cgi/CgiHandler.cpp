@@ -12,6 +12,7 @@
 #include "Logger.hpp"
 #include "cgi.hpp"
 
+// TODO This could take a CgiProcess reference to need less arguments
 CgiHandler::CgiHandler(pid_t pid, int stdout_fd, int stderr_fd, long timeout,
                        ConnectionHandler* client)
     : _pid(pid),
@@ -32,6 +33,7 @@ CgiHandler::~CgiHandler() {
         close(_stderr_fd);
         _stderr_fd = -1;
     }
+    // TODO Kill process with kill?
     Logger(LOG_DEBUG) << "[CGI] Handler destroyed for pid " << _pid;
 }
 
@@ -149,6 +151,7 @@ bool CgiHandler::handle_event(ConnectionManager& manager, uint32_t events) {
         Logger(LOG_ERROR) << "[CGI] stderr: " << _error;
     }
 
+    // TODO Is _client even needed?
     if (_client) {
         _client->clear_cgi_handler();
         int cgi_status = (exit_code == 0 ? CGI_OK : CGI_ERROR);

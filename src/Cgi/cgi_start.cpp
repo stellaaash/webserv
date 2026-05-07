@@ -38,10 +38,10 @@ CgiRequest build_mock_cgi_request(const Request& req) {
     CgiRequest cgi;
 
     cgi.interpreter = extract_interpreter(req);  // /usr/bin/python3
-    cgi.script_path = std::string("html").append(
-        req.target().substr(0, req.target().find('?')));    // html/cgi-bin/test.py
-    cgi.method = method_to_string(req.method());            // GET
-    cgi.query_string = extract_query_string(req.target());  // hello=world
+    cgi.script_path =
+        "html/resources/" + req.target().substr(0, req.target().find('?'));  // html/cgi-bin/test.py
+    cgi.method = method_to_string(req.method());                             // GET
+    cgi.query_string = extract_query_string(req.target());                   // hello=world
 
     if (req.has_header("Content-Type"))
         cgi.content_type = req.header("Content-Type")->second;

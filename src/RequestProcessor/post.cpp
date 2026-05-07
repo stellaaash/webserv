@@ -4,15 +4,24 @@
 #include <cstdio>
 #include <cstring>
 
+#include "CgiHandler.hpp"
 #include "Connection.hpp"
 #include "Logger.hpp"
 #include "Response.hpp"
+#include "cgi.hpp"
 #include "file_manager.hpp"
 
 void Connection::process_post_request(const FilePath& resource_path) {
     if (_request.config()->cgi.empty() == false && is_regular_file(resource_path) == true) {
         Logger(LOG_DEBUG) << "[process_post_request] - CGI called";
-        _response = error_response(501, false);
+        CgiProcess process = start_cgi(build_mock_cgi_request(_request));
+        if (process.pid == -1) {
+            _response = error_response(500, false);
+            return;
+        }
+        _pending_handler = new CgiHandler(process.pid, process.stdout_fd, process.stderr_fd,
+                                          static_cast<long>(_config->timeout), NULL);
+        // _response = error_response(501, false);
     } else if (_request.config()->upload_store.empty() == false) {
         Logger(LOG_DEBUG) << "[process_post_request] - Upload called at resource_path: "
                           << resource_path;

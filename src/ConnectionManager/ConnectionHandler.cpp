@@ -6,6 +6,7 @@
 
 #include "ConnectionManager.hpp"
 #include "HttpMessage.hpp"
+#include "IHandler.hpp"
 #include "Logger.hpp"
 #include "Request.hpp"
 #include "Response.hpp"
@@ -147,7 +148,6 @@ void ConnectionHandler::clear_cgi_handler() {
  * connection by returning `false`. Returning `true` keeps the connection alive upstream.
  */
 bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events) {
-    (void)manager;
     const Request&  request = _conn.request();
     const Response& response = _conn.response();
     Logger(LOG_DEBUG) << "[!] - Response status: " << response.status();
@@ -169,6 +169,10 @@ bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events
     // If request has been fully parsed, process it
     if (request.status() == REQ_PARSED) {
         _conn.process_request();
+        if (CgiHandler* pending = _conn.grab_pending_handler()) {
+            manager.add(pending);
+            _cgi_handler = pending;
+        }
         log_response(response);
     } else if (request.status() == REQ_ERROR) {
         _conn.set_response(error_response(request.error_status(), true));
@@ -176,7 +180,7 @@ bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events
     }
 
     // Send the response once it is ready
-    if (!_conn.has_pending_write()) {
+    if (!_conn.has_pending_write() && _cgi_handler == NULL) {
         if (request.status() == REQ_PROCESSED || request.status() == REQ_ERROR) {
             if (response.status() == RES_EMPTY) _conn.queue_head();
             if (response.status() == RES_HEAD) _conn.queue_body_chunk();
