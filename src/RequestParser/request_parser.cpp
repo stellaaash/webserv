@@ -174,7 +174,14 @@ RequestStatus Connection::resolve_location() {
         _request.set_error_status(404);
         _request.set_status(REQ_ERROR);
     } else {
-        _request.set_status(REQ_PARSED);
+        // TODO This check should go before the body arrives
+        if (_request.config()->allowed_methods.find(_request.method()) ==
+            _request.config()->allowed_methods.end()) {
+            _request.set_error_status(405);
+            _request.set_status(REQ_ERROR);
+        } else {
+            _request.set_status(REQ_PARSED);
+        }
     }
     return _request.status();
 }
