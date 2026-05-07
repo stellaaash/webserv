@@ -118,8 +118,10 @@ uint32_t ConnectionHandler::interests() const {
  * full request will result in a connection close.
  */
 bool ConnectionHandler::is_timed_out() const {
+    if (_cgi_handler != NULL) return false;
     if (_conn.request().status() == REQ_PARSED)
-        return false;  // If parsed status, CGI can timeout but not the connection itself
+        return false;  // If parsed status, CGI can timeout but not
+                       // the connection itself
 
     return (std::time(NULL) - _last_activity) > _timeout;
 }
@@ -170,8 +172,7 @@ bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events
     if (request.status() == REQ_PARSED) {
         _conn.process_request();
         if (_conn.has_pending_cgi()) {
-            CgiProcess process = _conn.grab_pending_cgi();
-
+            CgiProcess  process = _conn.grab_pending_cgi();
             CgiHandler* handler = new CgiHandler(process.pid, process.stdout_fd, process.stderr_fd,
                                                  static_cast<long>(_conn.config()->timeout), this);
 
