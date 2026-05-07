@@ -29,6 +29,8 @@ void Connection::process_request() {
             process_post_request(resource_path);
             break;
         case DELETE:
+            process_delete_request(resource_path);
+            break;
         default:
             _response = error_response(501, false);
     }

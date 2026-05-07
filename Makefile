@@ -35,6 +35,7 @@ CFILES		=	$(SRCDIR)/main.cpp \
 				$(SRCDIR)/Logger.cpp \
 				$(SRCDIR)/RequestParser/request_parser.cpp \
 				$(SRCDIR)/RequestParser/helpers.cpp \
+				$(SRCDIR)/RequestProcessor/delete.cpp \
 				$(SRCDIR)/RequestProcessor/get.cpp \
 				$(SRCDIR)/RequestProcessor/post.cpp \
 				$(SRCDIR)/RequestProcessor/request_processor.cpp \
