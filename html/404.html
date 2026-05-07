@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>404 Not Found :3</title>
+
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: white;
+      color: black;
+      font-family: "Comic Sans MS", cursive;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 2em;
+      margin-bottom: 10px;
+    }
+
+    p {
+      margin-bottom: 20px;
+    }
+
+    .teto {
+      width: 150px;
+      transition: transform 0.6s ease;
+      transform-style: preserve-3d;
+    }
+
+    /* crazy flipping */
+    .teto-div:hover .teto {
+      transform: rotateY(360deg);
+    }
+  </style>
+</head>
+<body>
+
+  <div>
+    <h1>404 Not Found :3</h1>
+    <p>The requested resource was not found on this server.</p>
+
+    <div class="teto-div">
+      <img src="resources/images/error/404.png" class="teto" alt="teto">
+    </div>
+  </div>
+
+</body>
+</html>
