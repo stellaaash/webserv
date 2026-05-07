@@ -146,7 +146,6 @@ bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events
         HttpMessage::HeaderIterator connection = response.header("Connection");
         if (connection != response.headers_end() && connection->second == "close")
             must_close = true;  // If "Connection: close", close connection after sending
-
         _conn.set_request(Request());
         _conn.set_response(Response());
         Logger(LOG_DEBUG) << "[!] - Reset request and response objects";

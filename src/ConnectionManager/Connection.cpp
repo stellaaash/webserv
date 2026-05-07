@@ -11,6 +11,7 @@
 #include "Request.hpp"
 #include "Response.hpp"
 #include "config.hpp"
+#include "request_parser.hpp"
 
 Connection::Connection(const ConfigServer* const config, int socket)
     : _config(config),
@@ -23,7 +24,6 @@ Connection::Connection(const ConfigServer* const config, int socket)
       _write_index(0) {
     assert(config && "ConfigServer pointer");
     assert(socket > 2 && "Valid Socket Number");
-    _request.set_client_max_body_size(_config->client_max_body_size);
 }
 
 Connection::~Connection() {}
@@ -85,6 +85,28 @@ ssize_t Connection::receive_data() {
     }
 
     return total;
+}
+
+bool Connection::handle_content_length_header(Request& request) {
+    size_t content_length = 0;
+
+    if (request.has_header("Content-Length") &&
+        !parse_content_length_value(request.header("Content-Length")->second, content_length)) {
+        request.set_error_status(400);
+        request.set_status(REQ_ERROR);
+        return false;
+    }
+    request.set_content_length(content_length);
+    if (content_length > _config->client_max_body_size) {
+        request.set_error_status(413);
+        request.set_status(REQ_ERROR);
+        return false;
+    }
+    if (content_length > 0) {
+        request.set_status(REQ_HEADERS);
+        return false;
+    }
+    return true;
 }
 
 void Connection::shrink_read_buffer() {
