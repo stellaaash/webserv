@@ -45,6 +45,9 @@ uint32_t CgiHandler::interests() const {
     return EPOLLIN | EPOLLHUP | EPOLLERR;
 }
 
+/**
+ * @brief If the CgiHandler is currently holding a process, this function kills and reaps it.
+ */
 void CgiHandler::abort_cgi() {
     Logger(LOG_ERROR) << "[CGI] abort";
 
@@ -63,6 +66,11 @@ bool CgiHandler::is_timed_out() const {
     return (std::time(NULL) - _start) > _timeout;
 }
 
+/**
+ * @brief When a connection is due to time out, this member function will clean up the cgi process
+ * and remove the handler from the parent ConnectionHandler.
+ * It does this through the _client pointer.
+ */
 void CgiHandler::timeout_connection() {
     abort_cgi();
 

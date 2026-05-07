@@ -1,10 +1,9 @@
 import os
 import sys
-
-# import time
+import time
 
 body = sys.stdin.read()
-# time.sleep(110)
+time.sleep(10)
 print("Content-Type: text/plain")
 print()
 print("Hello from CGI")

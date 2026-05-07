@@ -5,13 +5,7 @@
 #include <vector>
 
 #include "cgi.hpp"
-
-// TODO Replace with socket_utils.cpp set_nonblocking()
-static void set_non_blocking(int fd) {
-    int flags = fcntl(fd, F_GETFL, 0);
-    if (flags == -1) return;
-    fcntl(fd, F_SETFL, flags | O_NONBLOCK);
-}
+#include "socket_utils.hpp"
 
 static CgiProcess make_failed_process() {
     CgiProcess proc;
@@ -108,8 +102,8 @@ CgiProcess start_cgi(const CgiRequest& req) {
 
     setup_parent_pipes(pipes);
 
-    set_non_blocking(pipes.stdout_pipe[0]);
-    set_non_blocking(pipes.stderr_pipe[0]);
+    set_nonblocking(pipes.stdout_pipe[0]);
+    set_nonblocking(pipes.stderr_pipe[0]);
 
     if (req.body_is_file)
         write_file_to_fd(req.body_path, pipes.stdin_pipe[1]);
