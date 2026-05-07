@@ -26,12 +26,12 @@ public:
     void          process_request();
     void          queue_head();
     void          queue_body_chunk();
-
-    void set_config(const ConfigServer* const);
-    void set_request(const Request&);
-    void set_response(const Response&);
-    void queue_write(const std::string& data);
-    bool has_pending_write() const;
+    void          set_config(const ConfigServer* const);
+    void          set_request(const Request&);
+    void          set_response(const Response&);
+    void          queue_write(const std::string& data);
+    bool          has_pending_write() const;
+    bool          handle_content_length_header(Request& request);
 
 private:
     Connection(const Connection&);

@@ -21,7 +21,6 @@ Request::Request()
     : _config(NULL),
       _target(""),
       _content_length(0),
-      _client_max_body_size(0),
       _body_received(0),
       _method(UNDEFINED),
       _status(REQ_EMPTY),
@@ -35,7 +34,6 @@ Request::Request(const ConfigLocation* const config, HttpMethod method)
     : _config(config),
       _target(""),
       _content_length(0),
-      _client_max_body_size(0),
       _body_received(0),
       _method(method),
       _status(REQ_EMPTY),
@@ -52,7 +50,6 @@ Request::Request(const Request& other)
       _config(other._config),
       _target(other._target),
       _content_length(other._content_length),
-      _client_max_body_size(other._client_max_body_size),
       _body_received(other._body_received),
       _method(other._method),
       _status(other._status),
@@ -70,7 +67,6 @@ const Request& Request::operator=(const Request& other) {
     _config = other._config;
     _target = other._target;
     _content_length = other._content_length;
-    _client_max_body_size = other._client_max_body_size;
     _body_received = other._body_received;
     _method = other._method;
     _status = other._status;
@@ -107,14 +103,6 @@ const std::string& Request::target() const {
 
 size_t Request::content_length() const {
     return _content_length;
-}
-
-size_t Request::client_max_body_size() const {
-    return _client_max_body_size;
-}
-
-void Request::set_client_max_body_size(size_t client_max_body_size) {
-    _client_max_body_size = client_max_body_size;
 }
 
 size_t Request::body_received() const {
