@@ -4,7 +4,6 @@
 #include <cstdio>
 #include <cstring>
 
-#include "CgiHandler.hpp"
 #include "Connection.hpp"
 #include "Logger.hpp"
 #include "Response.hpp"
@@ -19,9 +18,9 @@ void Connection::process_post_request(const FilePath& resource_path) {
             _response = error_response(500, false);
             return;
         }
-        _pending_handler = new CgiHandler(process.pid, process.stdout_fd, process.stderr_fd,
-                                          static_cast<long>(_config->timeout), NULL);
-        // _response = error_response(501, false);
+        _pending_cgi_process = process;
+        _has_pending_cgi = true;
+        return;
     } else if (_request.config()->upload_store.empty() == false) {
         Logger(LOG_DEBUG) << "[process_post_request] - Upload called at resource_path: "
                           << resource_path;

@@ -169,9 +169,14 @@ bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events
     // If request has been fully parsed, process it
     if (request.status() == REQ_PARSED) {
         _conn.process_request();
-        if (CgiHandler* pending = _conn.grab_pending_handler()) {
-            manager.add(pending);
-            _cgi_handler = pending;
+        if (_conn.has_pending_cgi()) {
+            CgiProcess process = _conn.grab_pending_cgi();
+
+            CgiHandler* handler = new CgiHandler(process.pid, process.stdout_fd, process.stderr_fd,
+                                                 static_cast<long>(_conn.config()->timeout), this);
+
+            manager.add(handler);
+            _cgi_handler = handler;
         }
         log_response(response);
     } else if (request.status() == REQ_ERROR) {
