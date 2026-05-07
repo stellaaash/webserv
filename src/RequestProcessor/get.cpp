@@ -7,6 +7,17 @@
 #include "file_manager.hpp"
 
 void Connection::process_get_request(const FilePath& resource_path) {
+    if (_request.config()->cgi.empty() == false && is_regular_file(resource_path) == true) {
+        Logger(LOG_DEBUG) << "[process_post_request] - CGI called";
+        CgiProcess process = start_cgi(build_mock_cgi_request(_request));
+        if (process.pid == -1) {
+            _response = error_response(500, false);
+            return;
+        }
+        _pending_cgi_process = process;
+        _has_pending_cgi = true;
+        return;
+    }
     FilePath path = resource_path;
 
     if (is_directory(path) == true) {
