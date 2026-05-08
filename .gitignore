@@ -5,3 +5,4 @@ valgrind.log
 .zed/debug.json
 error.log
 tmp
+.direnv
