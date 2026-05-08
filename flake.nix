@@ -13,13 +13,17 @@
       pkgs = import nixpkgs { inherit system; };
     in pkgs.mkShell {
       packages = with pkgs; [
-	gnumake
-	clang
-	valgrind
+        gnumake
+        # clangd must come from a wrapped clang-tools, with libcxx disabled
+        (lib.hiPrio clang-tools)
+        # The actual clang for compilation, wrapped against libstdc++
+        llvmPackages_21.libstdcxxClang
+        valgrind
+        python3
       ];
 
       shellHook = ''
-	echo "Time to web and serv."
+        echo "Time to web and serv."
       '';
     };
   };
