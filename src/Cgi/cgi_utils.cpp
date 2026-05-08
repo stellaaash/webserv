@@ -10,13 +10,13 @@
 #include <vector>
 
 #include "cgi.hpp"
+#include "file_manager.hpp"
 
 /**
  * @brief Writes to an fd in case a body is a file (large size bodies)
  */
 bool write_file_to_fd(const std::string& path, int out_fd) {
-    // TODO Use FileMan functions
-    int fd = open(path.c_str(), O_RDONLY);
+    int fd = fetch_file(path);
     if (fd < 0) return false;
 
     char buffer[4096];
@@ -46,7 +46,6 @@ bool write_file_to_fd(const std::string& path, int out_fd) {
  * Removes query string, checks for file extension, finds interpreter in config from extension
  * /cgi-bin/test.py?hello=world becomes "py", function returns FilePath stored in config.
  */
-// TODO Implement this as part of the Request Processor and pass it down to the CGI module
 FilePath extract_interpreter(const Request& req) {
     const ConfigLocation* cfg = req.config();
     if (!cfg) return FilePath();
@@ -54,10 +53,8 @@ FilePath extract_interpreter(const Request& req) {
     std::string target = req.target();
     std::string path = target.substr(0, target.find('?'));
 
-    std::string::size_type dot = path.rfind('.');
-    if (dot == std::string::npos) return FilePath();
-
-    std::string extension = path.substr(dot + 1);
+    std::string extension = extract_extension(path);
+    if (extension.empty() == true) return "";
 
     CgiIterator it = cfg->cgi.find(extension);
     if (it == cfg->cgi.end()) return FilePath();
@@ -69,7 +66,6 @@ FilePath extract_interpreter(const Request& req) {
  * @brief Minimal implementation to fetch the query string from the target.
  * /over/there?name=ferret
  */
-// TODO Implement this as part of the Request Processor and pass it down to the CGI module
 std::string extract_query_string(const std::string& target) {
     size_t pos = target.find('?');
 
@@ -101,7 +97,7 @@ std::vector<std::string> build_env(const CgiRequest& req) {
     env.push_back(make_env_entry("GATEWAY_INTERFACE", "CGI/1.1"));
     env.push_back(make_env_entry("SERVER_PROTOCOL", "HTTP/1.1"));
     env.push_back(make_env_entry("REQUEST_METHOD", req.method));
-    env.push_back(make_env_entry("SCRIPT_FILENAME", req.script_path));
+    // FIXME SCRIPT_NAME should be the uri like /cgi/script.py, not this relative path
     env.push_back(make_env_entry("SCRIPT_NAME", req.script_path));
     env.push_back(make_env_entry("QUERY_STRING", req.query_string));
     env.push_back(make_env_entry("CONTENT_LENGTH", to_string_size(req.content_length)));

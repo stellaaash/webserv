@@ -159,7 +159,6 @@ bool CgiHandler::handle_event(ConnectionManager& manager, uint32_t events) {
         Logger(LOG_ERROR) << "[CGI] stderr: " << _error;
     }
 
-    // TODO Is _client even needed?
     if (_client) {
         _client->clear_cgi_handler();
         int cgi_status = (exit_code == 0 ? CGI_OK : CGI_ERROR);

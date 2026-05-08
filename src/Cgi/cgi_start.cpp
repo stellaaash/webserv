@@ -25,33 +25,34 @@ static std::string method_to_string(HttpMethod method) {
 }
 
 /**
- * @brief Builds a mock CgiRequest struct to test cgi execution.
+ * @brief Builds a CgiRequest struct from a HTTP Request instance.
+ * This CgiRequest will then be used to launch a CGI process.
  */
-// TODO Will eventually be replaced with RePro logic
-CgiRequest build_mock_cgi_request(const Request& req) {
+CgiRequest build_cgi_request(const Request& request) {
     CgiRequest cgi;
 
-    cgi.interpreter = extract_interpreter(req);  // /usr/bin/python3
+    cgi.interpreter = extract_interpreter(request);  // /usr/bin/python3
     cgi.script_path =
-        "html/resources/" + req.target().substr(0, req.target().find('?'));  // html/cgi-bin/test.py
-    cgi.method = method_to_string(req.method());                             // GET
-    cgi.query_string = extract_query_string(req.target());                   // hello=world
+        "html/resources/" +
+        request.target().substr(0, request.target().find('?'));  // html/cgi-bin/test.py
+    cgi.method = method_to_string(request.method());             // GET
+    cgi.query_string = extract_query_string(request.target());   // hello=world
 
-    if (req.has_header("Content-Type"))
-        cgi.content_type = req.header("Content-Type")->second;
+    if (request.has_header("Content-Type"))
+        cgi.content_type = request.header("Content-Type")->second;
     else
         cgi.content_type = "";
 
-    if (req.method() == POST) {
-        cgi.content_length = req.content_length();
+    if (request.method() == POST) {
+        cgi.content_length = request.content_length();
 
-        if (req.is_body_spooled()) {
+        if (request.is_body_spooled()) {
             cgi.body_is_file = true;
-            cgi.body_path = req.body_path();
+            cgi.body_path = request.body_path();
             cgi.body = "";
         } else {
             cgi.body_is_file = false;
-            cgi.body = req.body();
+            cgi.body = request.body();
             cgi.body_path = "";
         }
     } else {

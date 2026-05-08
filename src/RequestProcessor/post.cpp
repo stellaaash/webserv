@@ -14,7 +14,7 @@ void Connection::process_post_request(const FilePath& resource_path) {
     if (_request.config()->cgi.empty() == false && is_regular_file(resource_path) == true) {
         // TODO Handle query strings in the URI
         Logger(LOG_DEBUG) << "[process_post_request] - CGI called";
-        CgiProcess process = start_cgi(build_mock_cgi_request(_request));
+        CgiProcess process = start_cgi(build_cgi_request(_request));
         if (process.pid == -1) {
             _response = error_response(500, false);
             return;

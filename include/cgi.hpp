@@ -55,6 +55,6 @@ std::string              to_string_size(size_t n);
 std::vector<std::string> build_env(const CgiRequest& req);
 char**                   build_c_array(std::vector<std::string>& values);
 
-CgiRequest build_mock_cgi_request(const Request& req);
+CgiRequest build_cgi_request(const Request& request);
 
 #endif
