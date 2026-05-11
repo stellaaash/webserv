@@ -3,6 +3,7 @@
 #include <sys/epoll.h>
 
 #include <cstdio>
+#include <ctime>
 
 #include "ConnectionManager.hpp"
 #include "HttpMessage.hpp"
@@ -85,6 +86,7 @@ void ConnectionHandler::finish_cgi(const std::string& output, int cgi_status, in
 
         response.set_code(200);
         response.set_header("Content-Type", "text/plain");
+        response.set_header("Connection", "close");
         response.set_header("Content-Length", to_string_size(output.size()));
         response.append_body(output);
 
@@ -164,6 +166,7 @@ bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events
         ssize_t n = _conn.receive_data();
         if (n <= 0) return false;
 
+        _last_activity = std::time(NULL);
         _conn.parse_request();
         if (request.status() == REQ_PARSED || request.status() == REQ_ERROR) log_request(request);
     }
@@ -193,8 +196,10 @@ bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events
         }
     }
 
-    if (_conn.has_pending_write()) _conn.send_data();
-
+    if (_conn.has_pending_write()) {
+        _last_activity = std::time(NULL);
+        _conn.send_data();
+    }
     // Reset request and response objects once everything was sent
     if (response.status() == RES_SENT && _conn.has_pending_write() == false) {
         bool                        must_close = false;
