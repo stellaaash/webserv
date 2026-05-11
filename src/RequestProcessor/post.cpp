@@ -51,5 +51,7 @@ void Connection::process_post_request(const FilePath& resource_path) {
         _response.set_code(200);  // TODO return 30x See Other response
         _response.set_response_string("OK");
         _response.set_header("Content-Length", "0");
+    } else {
+        _response = error_response(404, true);
     }
 }
