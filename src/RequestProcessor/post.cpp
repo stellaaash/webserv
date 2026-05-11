@@ -10,23 +10,32 @@
 #include "cgi.hpp"
 #include "file_manager.hpp"
 
-void Connection::process_post_request(const FilePath& resource_path) {
-    if (_request.config()->cgi.empty() == false && is_regular_file(resource_path) == true) {
-        // TODO Handle query strings in the URI
-        Logger(LOG_DEBUG) << "[process_post_request] - CGI called";
-        CgiProcess process = start_cgi(build_cgi_request(_request));
-        if (process.pid == -1) {
-            _response = error_response(500, false);
+void Connection::process_post_request(const FilePath& relative_path) {
+    if (_request.config()->cgi.empty() == false) {
+        FilePath cgi_path = resolve_path(relative_path, _request.config()->root);
+
+        if (is_regular_file(cgi_path) == true) {
+            // TODO Handle query strings in the URI
+            Logger(LOG_DEBUG) << "[process_post_request] - CGI called : " << cgi_path;
+
+            CgiProcess process = start_cgi(build_cgi_request(_request));
+            if (process.pid == -1) {
+                _response = error_response(500, false);
+                return;
+            }
+
+            _pending_cgi_process = process;
+            _has_pending_cgi = true;
             return;
         }
-        _pending_cgi_process = process;
-        _has_pending_cgi = true;
-        return;
-    } else if (_request.config()->upload_store.empty() == false) {
-        Logger(LOG_DEBUG) << "[process_post_request] - Upload called at resource_path: "
-                          << resource_path;
+    }
 
-        if (is_regular_file(resource_path) || is_directory(resource_path)) {
+    if (_request.config()->upload_store.empty() == false) {
+        FilePath upload_path = resolve_path(relative_path, _request.config()->upload_store);
+
+        Logger(LOG_DEBUG) << "[process_post_request] - Upload called : " << upload_path;
+
+        if (is_regular_file(upload_path) || is_directory(upload_path)) {
             // TODO Don't know if we'll do that one: 409 conflict is only returned after the client
             // already sent all of its file and the requesst was parsed, which is a waste of network
             // resources
@@ -37,28 +46,34 @@ void Connection::process_post_request(const FilePath& resource_path) {
         }
 
         if (_request.is_body_spooled() == true) {
-            if (std::rename(_request.body_path().c_str(), resource_path.c_str()) < 0) {
+            if (std::rename(_request.body_path().c_str(), upload_path.c_str()) < 0) {
                 Logger(LOG_ERROR) << "[process_post_request] - rename: " << strerror(errno);
                 _response = error_response(500, false);
                 return;
             }
         } else {
-            int fd = create_file(resource_path);
+            int fd = create_file(upload_path);
             if (fd < 0) {
                 Logger(LOG_ERROR) << "[process_post_request] - create_file: " << strerror(errno);
                 _response = error_response(500, false);
                 return;
             }
+
             if (append_file(fd, _request.body()) < 0) {
                 Logger(LOG_ERROR) << "[process_post_request] - append_file: " << strerror(errno);
                 _response = error_response(500, false);
                 close(fd);
                 return;
             }
+
             close(fd);
         }
+
         _response.set_code(200);  // TODO return 30x See Other response
         _response.set_response_string("OK");
         _response.set_header("Content-Length", "0");
+        return;
     }
+
+    _response = error_response(404, true);
 }
