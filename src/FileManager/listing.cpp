@@ -8,6 +8,8 @@
 #include <map>
 #include <sstream>
 #include <utility>
+#include <unistd.h>
+#include <sys/stat.h>
 
 #include "file_manager.hpp"
 
@@ -67,6 +69,7 @@ std::string create_listing(const FilePath& directory, const std::string& target)
     for (std::map<FilePath, PathType>::const_iterator e = entries.begin(); e != entries.end();
          ++e) {
         std::string path = e->first;
+        if (access((directory + "/" + path).c_str(), R_OK) != 0) continue;
         if (e->second == DIR_PATH) path.append("/");
 
         if (e->first == ".")
