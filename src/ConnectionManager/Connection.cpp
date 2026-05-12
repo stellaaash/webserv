@@ -21,7 +21,8 @@ Connection::Connection(const ConfigServer* const config, int socket)
       _read_buffer(),
       _read_index(0),
       _write_buffer(),
-      _write_index(0) {
+      _write_index(0),
+      _has_pending_cgi(false) {
     assert(config && "ConfigServer pointer");
     assert(socket > 2 && "Valid Socket Number");
 }
@@ -109,6 +110,19 @@ bool Connection::handle_content_length_header(Request& request) {
     return true;
 }
 
+bool Connection::has_pending_cgi() const {
+    return _has_pending_cgi;
+}
+
+CgiProcess Connection::grab_pending_cgi() {
+    CgiProcess process = _pending_cgi_process;
+    _pending_cgi_process.pid = -1;
+    _pending_cgi_process.stdout_fd = -1;
+    _pending_cgi_process.stderr_fd = -1;
+    _has_pending_cgi = false;
+    return process;
+}
+
 void Connection::shrink_read_buffer() {
     if (_read_index == 0) return;
 
@@ -122,6 +136,10 @@ void Connection::shrink_read_buffer() {
         _read_buffer.erase(0, _read_index);
         _read_index = 0;
     }
+}
+
+const ConfigServer* Connection::config() const {
+    return _config;
 }
 
 void Connection::set_config(const ConfigServer* const config) {

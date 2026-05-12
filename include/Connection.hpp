@@ -5,6 +5,7 @@
 
 #include "Request.hpp"
 #include "Response.hpp"
+#include "cgi.hpp"
 #include "config.hpp"
 
 // How much data we should receive from a socket at a time
@@ -20,18 +21,21 @@ public:
     const Request&  request() const;
     const Response& response() const;
 
-    ssize_t       send_data();
-    ssize_t       receive_data();
-    RequestStatus parse_request();
-    void          process_request();
-    void          queue_head();
-    void          queue_body_chunk();
-    void          set_config(const ConfigServer* const);
-    void          set_request(const Request&);
-    void          set_response(const Response&);
-    void          queue_write(const std::string& data);
-    bool          has_pending_write() const;
-    bool          handle_content_length_header(Request& request);
+    ssize_t             send_data();
+    ssize_t             receive_data();
+    RequestStatus       parse_request();
+    void                process_request();
+    void                queue_head();
+    void                queue_body_chunk();
+    void                set_config(const ConfigServer* const);
+    void                set_request(const Request&);
+    void                set_response(const Response&);
+    void                queue_write(const std::string& data);
+    bool                has_pending_write() const;
+    bool                handle_content_length_header(Request& request);
+    bool                has_pending_cgi() const;
+    CgiProcess          grab_pending_cgi();
+    const ConfigServer* config() const;
 
 private:
     Connection(const Connection&);
@@ -44,9 +48,9 @@ private:
     RequestStatus parse_body();
     RequestStatus resolve_location();
 
-    void process_get_request(const FilePath&);
-    void process_post_request(const FilePath&);
-    void process_delete_request(const FilePath&);
+    void process_get_request(const std::string& relative_path);
+    void process_post_request(const std::string& relative_path);
+    void process_delete_request(const std::string& relative_path);
 
     const ConfigServer* _config;
 
@@ -59,6 +63,10 @@ private:
     size_t      _read_index;
     std::string _write_buffer;
     size_t      _write_index;
+
+    // Set by post requests when a CGI is launched
+    CgiProcess _pending_cgi_process;
+    bool       _has_pending_cgi;
 };
 
 #endif

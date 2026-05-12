@@ -5,7 +5,8 @@
 #include "Response.hpp"
 #include "file_manager.hpp"
 
-void Connection::process_delete_request(const FilePath& resource_path) {
+void Connection::process_delete_request(const FilePath& relative_path) {
+    const FilePath resource_path = resolve_path(relative_path, _request.config()->root);
     if (std::remove(resource_path.c_str()) < 0) {
         if (errno == ENOENT) {
             _response = error_response(404, false);

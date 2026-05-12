@@ -6,7 +6,19 @@
 #include "config_parser.hpp"
 #include "file_manager.hpp"
 
-void Connection::process_get_request(const FilePath& resource_path) {
+void Connection::process_get_request(const std::string& relative_path) {
+    const FilePath resource_path = resolve_path(relative_path, _request.config()->root);
+    if (_request.config()->cgi.empty() == false && is_regular_file(resource_path) == true) {
+        Logger(LOG_DEBUG) << "[process_post_request] - CGI called";
+        CgiProcess process = start_cgi(build_cgi_request(relative_path, _request));
+        if (process.pid == -1) {
+            _response = error_response(500, false);
+            return;
+        }
+        _pending_cgi_process = process;
+        _has_pending_cgi = true;
+        return;
+    }
     FilePath path = resource_path;
 
     if (is_directory(path) == true) {
