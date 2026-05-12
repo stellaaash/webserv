@@ -74,8 +74,6 @@ std::string extract_query_string(const std::string& target) {
     return target.substr(pos + 1);
 }
 
-// TODO Make this a template or some other generic object to be able to use it anywhere and with any
-// type we need
 std::string to_string_size(size_t n) {
     std::ostringstream oss;
     oss << n;
