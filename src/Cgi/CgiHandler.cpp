@@ -12,12 +12,10 @@
 #include "Logger.hpp"
 #include "cgi.hpp"
 
-// TODO This could take a CgiProcess reference to need less arguments
-CgiHandler::CgiHandler(pid_t pid, int stdout_fd, int stderr_fd, long timeout,
-                       ConnectionHandler* client)
-    : _pid(pid),
-      _stdout_fd(stdout_fd),
-      _stderr_fd(stderr_fd),
+CgiHandler::CgiHandler(const CgiProcess& process, long timeout, ConnectionHandler* client)
+    : _pid(process.pid),
+      _stdout_fd(process.stdout_fd),
+      _stderr_fd(process.stderr_fd),
       _timeout(timeout),
       _start(std::time(NULL)),
       _client(client),

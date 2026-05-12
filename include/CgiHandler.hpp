@@ -7,13 +7,14 @@
 #include <string>
 
 #include "IHandler.hpp"
+#include "cgi.hpp"
 
 class ConnectionHandler;
 class ConnectionManager;
 
 class CgiHandler : public IHandler {
 public:
-    CgiHandler(pid_t pid, int stdout_fd, int stderr_fd, long timeout, ConnectionHandler* client);
+    CgiHandler(const CgiProcess&, long timeout, ConnectionHandler* client);
 
     virtual ~CgiHandler();
 

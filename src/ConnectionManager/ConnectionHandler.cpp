@@ -176,8 +176,8 @@ bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events
         _conn.process_request();
         if (_conn.has_pending_cgi()) {
             CgiProcess  process = _conn.grab_pending_cgi();
-            CgiHandler* handler = new CgiHandler(process.pid, process.stdout_fd, process.stderr_fd,
-                                                 static_cast<long>(_conn.config()->timeout), this);
+            CgiHandler* handler =
+                new CgiHandler(process, static_cast<long>(_conn.config()->timeout), this);
 
             manager.add(handler);
             _cgi_handler = handler;
