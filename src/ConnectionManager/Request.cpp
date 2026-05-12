@@ -105,6 +105,10 @@ const std::string& Request::target() const {
     return _target;
 }
 
+const std::string& Request::query_string() const {
+    return _query_string;
+}
+
 size_t Request::content_length() const {
     return _content_length;
 }
@@ -131,6 +135,18 @@ void Request::set_config(const ConfigLocation* const config) {
     _config = config;
 }
 
+void Request::set_target(const std::string& target) {
+    _target = target;
+}
+
+void Request::set_query_string(const std::string& query_string) {
+    _query_string = query_string;
+}
+
+void Request::set_content_length(size_t content_length) {
+    _content_length = content_length;
+}
+
 void Request::set_method(HttpMethod method) {
     _method = method;
 }
@@ -142,14 +158,6 @@ void Request::set_status(RequestStatus status) {
     }
     assert(status >= _status && "Walking back status");
     _status = status;
-}
-
-void Request::set_target(const std::string& target) {
-    _target = target;
-}
-
-void Request::set_content_length(size_t content_length) {
-    _content_length = content_length;
 }
 
 void Request::set_error_status(HttpCode code) {
