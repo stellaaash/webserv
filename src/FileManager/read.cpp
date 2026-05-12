@@ -62,14 +62,13 @@ bool is_directory(const FilePath& path) {
 /**
  * @brief Returns the length of a file on disk.
  */
-size_t file_length(const FilePath& path) {
+ssize_t file_length(const FilePath& path) {
     struct stat file_stat;
 
-    if (stat(path.c_str(), &file_stat) == -1)
-        Logger(LOG_ERROR) << "[file_length] stat: " << strerror(errno);
+    if (stat(path.c_str(), &file_stat) == -1) return -1;
 
     Logger(LOG_DEBUG) << path << " is of size " << file_stat.st_size;
-    return static_cast<size_t>(file_stat.st_size);
+    return file_stat.st_size;
 }
 
 /**
