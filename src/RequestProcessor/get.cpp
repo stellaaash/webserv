@@ -33,8 +33,6 @@ void Connection::process_get_request(const std::string& relative_path) {
         } else {
             _response = error_response(404, false);
         }
-    } else if (!is_regular_file(path)) {  // We don't serve anything other than files or directories
-        _response = error_response(404, false);
     }
 
     // Fetch file on disk
