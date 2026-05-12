@@ -80,10 +80,7 @@ size_t file_length(const FilePath& path) {
 int fetch_file(const FilePath& path) {
     int fd = open(path.c_str(), O_RDONLY);
 
-    if (fd < 0) {
-        Logger(LOG_ERROR) << "[fetch_file] open: " << strerror(errno);
-        return -1;
-    }
+    if (fd < 0) return -1;
 
     return fd;
 }

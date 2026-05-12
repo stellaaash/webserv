@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 
+#include "Logger.hpp"
 #include "cgi.hpp"
 #include "file_manager.hpp"
 
@@ -17,7 +18,10 @@
  */
 bool write_file_to_fd(const std::string& path, int out_fd) {
     int fd = fetch_file(path);
-    if (fd < 0) return false;
+    if (fd < 0) {
+        Logger(LOG_ERROR) << "[process_request] - fetch_file" << strerror(errno);
+        return false;
+    }
 
     char buffer[4096];
 
