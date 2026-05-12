@@ -9,7 +9,6 @@
 #include <string>
 #include <vector>
 
-#include "Logger.hpp"
 #include "file_manager.hpp"
 
 /**
@@ -34,21 +33,10 @@ bool is_regular_file(const FilePath& path) {
 
     struct stat path_stat;
     memset(&path_stat, 0, sizeof(path_stat));
-    if (stat(path.c_str(), &path_stat) != 0) {
-        // TODO Those errors and others in this function and is_directory should be in the
-        // higher-level code, not here Having this function fail isn't always an error, if we just
-        // want to check whether a file already exists or not, for example
-        Logger(LOG_ERROR) << "[is_regular_file] stat: " << strerror(errno);
-        return false;
-    }
-    if (!S_ISREG(path_stat.st_mode)) {
-        return false;
-    }
+    if (stat(path.c_str(), &path_stat) != 0) return false;
+    if (!S_ISREG(path_stat.st_mode)) return false;
 
-    if (access(path.c_str(), R_OK) != 0) {
-        Logger(LOG_ERROR) << "[is_regular_file] access: " << strerror(errno);
-        return false;
-    }
+    if (access(path.c_str(), R_OK) != 0) return false;
 
     return true;
 }
@@ -61,18 +49,11 @@ bool is_directory(const FilePath& path) {
 
     struct stat path_stat;
     memset(&path_stat, 0, sizeof(path_stat));
-    if (stat(path.c_str(), &path_stat) != 0) {
-        Logger(LOG_ERROR) << "[is_directory] stat: " << strerror(errno);
-        return false;
-    }
-    if (!S_ISDIR(path_stat.st_mode)) {
-        return false;
-    }
+    if (stat(path.c_str(), &path_stat) != 0) return false;
 
-    if (access(path.c_str(), W_OK) != 0) {
-        Logger(LOG_ERROR) << "[is_directory] access: " << strerror(errno);
-        return false;
-    }
+    if (!S_ISDIR(path_stat.st_mode)) return false;
+
+    if (access(path.c_str(), W_OK) != 0) return false;
 
     return true;
 }
@@ -80,14 +61,12 @@ bool is_directory(const FilePath& path) {
 /**
  * @brief Returns the length of a file on disk.
  */
-size_t file_length(const FilePath& path) {
+ssize_t file_length(const FilePath& path) {
     struct stat file_stat;
 
-    if (stat(path.c_str(), &file_stat) == -1)
-        Logger(LOG_ERROR) << "[file_length] stat: " << strerror(errno);
+    if (stat(path.c_str(), &file_stat) == -1) return -1;
 
-    Logger(LOG_DEBUG) << path << " is of size " << file_stat.st_size;
-    return static_cast<size_t>(file_stat.st_size);
+    return file_stat.st_size;
 }
 
 /**
@@ -98,10 +77,7 @@ size_t file_length(const FilePath& path) {
 int fetch_file(const FilePath& path) {
     int fd = open(path.c_str(), O_RDONLY);
 
-    if (fd < 0) {
-        Logger(LOG_ERROR) << "[fetch_file] open: " << strerror(errno);
-        return -1;
-    }
+    if (fd < 0) return -1;
 
     return fd;
 }

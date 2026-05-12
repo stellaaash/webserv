@@ -9,7 +9,6 @@
 #include <sstream>
 #include <utility>
 
-#include "Logger.hpp"
 #include "file_manager.hpp"
 
 /**
@@ -19,10 +18,7 @@ std::map<FilePath, PathType> get_dir_contents(const FilePath& directory) {
     assert(is_directory(directory) && "File path is a directory");
 
     DIR* stream = opendir(directory.c_str());
-    if (stream == NULL) {
-        Logger(LOG_ERROR) << "[get_dir_contents] opendir: " << strerror(errno);
-        throw std::exception();
-    }
+    if (stream == NULL) throw std::exception();
 
     struct dirent*               result;
     std::map<FilePath, PathType> entries;
@@ -49,10 +45,7 @@ std::map<FilePath, PathType> get_dir_contents(const FilePath& directory) {
         result = readdir(stream);
     }
     closedir(stream);
-    if (errno != 0) {
-        Logger(LOG_ERROR) << "[get_dir_contents] readdir: " << strerror(errno);
-        throw std::exception();
-    }
+    if (errno != 0) throw std::exception();
 
     return entries;
 }
