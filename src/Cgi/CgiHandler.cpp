@@ -49,9 +49,8 @@ uint32_t CgiHandler::interests() const {
  * @brief If the CgiHandler is currently holding a process, this function kills and reaps it.
  */
 void CgiHandler::abort_cgi() {
-    Logger(LOG_ERROR) << "[CGI] abort";
-
     if (_pid > 0) {
+        Logger(LOG_ERROR) << "[CGI] abort";
         kill(_pid, SIGKILL);
         waitpid(_pid, NULL, 0);
         _pid = -1;
