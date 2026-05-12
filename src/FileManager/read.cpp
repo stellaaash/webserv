@@ -9,7 +9,6 @@
 #include <string>
 #include <vector>
 
-#include "Logger.hpp"
 #include "file_manager.hpp"
 
 /**
@@ -67,7 +66,6 @@ ssize_t file_length(const FilePath& path) {
 
     if (stat(path.c_str(), &file_stat) == -1) return -1;
 
-    Logger(LOG_DEBUG) << path << " is of size " << file_stat.st_size;
     return file_stat.st_size;
 }
 
