@@ -33,7 +33,7 @@ CgiHandler::~CgiHandler() {
         close(_stderr_fd);
         _stderr_fd = -1;
     }
-    // TODO Kill process with kill?
+    abort_cgi();
     Logger(LOG_DEBUG) << "[CGI] Handler destroyed for pid " << _pid;
 }
 
