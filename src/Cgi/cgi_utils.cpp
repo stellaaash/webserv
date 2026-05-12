@@ -66,18 +66,6 @@ FilePath extract_interpreter(const Request& req) {
     return it->second;
 }
 
-/**
- * @brief Minimal implementation to fetch the query string from the target.
- * /over/there?name=ferret
- */
-std::string extract_query_string(const std::string& target) {
-    size_t pos = target.find('?');
-
-    if (pos == std::string::npos) return "";
-
-    return target.substr(pos + 1);
-}
-
 std::string to_string_size(size_t n) {
     std::ostringstream oss;
     oss << n;

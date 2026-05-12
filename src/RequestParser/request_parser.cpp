@@ -20,7 +20,7 @@ RequestStatus Connection::parse_request_line() {
     // String to stream for easy parse
     std::istringstream stream(line);
     std::string        method;
-    std::string        target;
+    std::string        target;  // TODO Set the query string and remove it from target
     std::string        version;
     std::string        extra;
 
