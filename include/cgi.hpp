@@ -17,6 +17,7 @@ typedef struct CgiPipes {
 typedef struct CgiRequest {
     std::string                        interpreter;
     std::string                        script_path;
+    std::string                        script_name;
     std::string                        method;
     std::string                        query_string;
     std::string                        content_type;
@@ -55,6 +56,6 @@ std::string              to_string_size(size_t n);
 std::vector<std::string> build_env(const CgiRequest& req);
 char**                   build_c_array(std::vector<std::string>& values);
 
-CgiRequest build_cgi_request(const Request& request);
+CgiRequest build_cgi_request(const std::string& relative_path, const Request&);
 
 #endif

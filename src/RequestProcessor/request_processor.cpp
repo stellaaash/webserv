@@ -7,7 +7,6 @@
 #include "Connection.hpp"
 #include "Response.hpp"
 #include "config.hpp"
-#include "file_manager.hpp"
 
 void Connection::process_request() {
     std::string relative_path = _request.target().substr(_request.config()->name.length());
@@ -15,16 +14,13 @@ void Connection::process_request() {
         relative_path[0] == '/')
         relative_path.erase(0, relative_path.find_first_not_of('/'));
 
-    FilePath resource_path;
     switch (_request.method()) {
         case GET:
-            resource_path = resolve_path(relative_path, _request.config()->root);
-            process_get_request(resource_path);
+            process_get_request(relative_path);
             break;
 
         case DELETE:
-            resource_path = resolve_path(relative_path, _request.config()->root);
-            process_delete_request(resource_path);
+            process_delete_request(relative_path);
             break;
 
         case POST:

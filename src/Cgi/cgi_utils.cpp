@@ -97,8 +97,8 @@ std::vector<std::string> build_env(const CgiRequest& req) {
     env.push_back(make_env_entry("GATEWAY_INTERFACE", "CGI/1.1"));
     env.push_back(make_env_entry("SERVER_PROTOCOL", "HTTP/1.1"));
     env.push_back(make_env_entry("REQUEST_METHOD", req.method));
-    // FIXME SCRIPT_NAME should be the uri like /cgi/script.py, not this relative path
-    env.push_back(make_env_entry("SCRIPT_NAME", req.script_path));
+    env.push_back(make_env_entry("SCRIPT_NAME", req.script_name));
+    env.push_back(make_env_entry("SCRIPT_FILENAME", req.script_path));
     env.push_back(make_env_entry("QUERY_STRING", req.query_string));
     env.push_back(make_env_entry("CONTENT_LENGTH", to_string_size(req.content_length)));
     env.push_back(make_env_entry("CONTENT_TYPE", req.content_type));

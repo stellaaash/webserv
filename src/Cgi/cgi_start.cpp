@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "cgi.hpp"
+#include "file_manager.hpp"
 #include "socket_utils.hpp"
 
 static CgiProcess make_failed_process() {
@@ -28,15 +29,14 @@ static std::string method_to_string(HttpMethod method) {
  * @brief Builds a CgiRequest struct from a HTTP Request instance.
  * This CgiRequest will then be used to launch a CGI process.
  */
-CgiRequest build_cgi_request(const Request& request) {
+CgiRequest build_cgi_request(const std::string& relative_path, const Request& request) {
     CgiRequest cgi;
 
-    cgi.interpreter = extract_interpreter(request);  // /usr/bin/python3
-    cgi.script_path =
-        "html/resources/" +
-        request.target().substr(0, request.target().find('?'));  // html/cgi-bin/test.py
-    cgi.method = method_to_string(request.method());             // GET
-    cgi.query_string = extract_query_string(request.target());   // hello=world
+    cgi.interpreter = extract_interpreter(request);                            // /usr/bin/python3
+    cgi.script_path = resolve_path(relative_path, request.config()->root);     // Full path
+    cgi.script_name = request.target().substr(0, request.target().find('?'));  // /cgi-bin/test.py
+    cgi.method = method_to_string(request.method());                           // GET
+    cgi.query_string = extract_query_string(request.target());                 // hello=world
 
     if (request.has_header("Content-Type"))
         cgi.content_type = request.header("Content-Type")->second;
@@ -91,8 +91,6 @@ CgiProcess start_cgi(const CgiRequest& req) {
         char**                   envp = build_c_array(env);
 
         char* argv[3];
-        // FIXME If the script ever writes to these, we got undefined behavior
-        // It should copy the data instead of const_casting it
         argv[0] = const_cast<char*>(req.interpreter.c_str());
         argv[1] = const_cast<char*>(req.script_path.c_str());
         argv[2] = NULL;

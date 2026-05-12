@@ -48,9 +48,9 @@ private:
     RequestStatus parse_body();
     RequestStatus resolve_location();
 
-    void process_get_request(const FilePath&);
-    void process_post_request(const FilePath&);
-    void process_delete_request(const FilePath&);
+    void process_get_request(const std::string& relative_path);
+    void process_post_request(const std::string& relative_path);
+    void process_delete_request(const std::string& relative_path);
 
     const ConfigServer* _config;
 
