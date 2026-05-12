@@ -29,21 +29,25 @@ public:
     ~Request();
 
     const ConfigLocation* config() const;
-    HttpMethod            method() const;
-    RequestStatus         status() const;
-    const std::string&    target() const;
-    size_t                content_length() const;
-    size_t                body_received() const;
-    HttpCode              error_status() const;
+
+    const std::string& target() const;
+    const std::string& query_string() const;
+    size_t             content_length() const;
+    size_t             body_received() const;
+    HttpMethod         method() const;
+    RequestStatus      status() const;
+    HttpCode           error_status() const;
 
     bool               is_body_spooled() const;
     const std::string& body_path() const;
 
     void set_config(const ConfigLocation* const);
+
+    void set_target(const std::string&);
+    void set_query_string(const std::string&);
+    void set_content_length(size_t);
     void set_method(HttpMethod);
     void set_status(RequestStatus);
-    void set_target(const std::string&);
-    void set_content_length(size_t);
     void set_error_status(HttpCode);
 
     bool append_body_chunk(const char* data, size_t len);
@@ -56,6 +60,7 @@ private:
     const ConfigLocation* _config;
 
     std::string   _target;
+    std::string   _query_string;
     size_t        _content_length;
     size_t        _body_received;
     HttpMethod    _method;

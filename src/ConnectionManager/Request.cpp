@@ -20,6 +20,7 @@
 Request::Request()
     : _config(NULL),
       _target(""),
+      _query_string(""),
       _content_length(0),
       _body_received(0),
       _method(UNDEFINED),
@@ -33,6 +34,7 @@ Request::Request()
 Request::Request(const ConfigLocation* const config, HttpMethod method)
     : _config(config),
       _target(""),
+      _query_string(""),
       _content_length(0),
       _body_received(0),
       _method(method),
@@ -49,6 +51,7 @@ Request::Request(const Request& other)
     : HttpMessage(other),
       _config(other._config),
       _target(other._target),
+      _query_string(other._query_string),
       _content_length(other._content_length),
       _body_received(other._body_received),
       _method(other._method),
@@ -66,6 +69,7 @@ const Request& Request::operator=(const Request& other) {
 
     _config = other._config;
     _target = other._target;
+    _query_string = other._query_string;
     _content_length = other._content_length;
     _body_received = other._body_received;
     _method = other._method;
