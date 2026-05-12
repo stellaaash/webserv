@@ -73,8 +73,6 @@ CgiRequest build_cgi_request(const std::string& relative_path, const Request& re
 CgiProcess start_cgi(const CgiRequest& req) {
     CgiPipes pipes;
 
-    // TODO Instead of returning a CgiProcess in a specific state to signify errors, throw an
-    // exception
     if (!init_pipes(pipes)) return make_failed_process();
 
     pid_t pid = fork();
