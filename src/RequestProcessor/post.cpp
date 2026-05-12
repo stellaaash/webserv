@@ -15,7 +15,6 @@ void Connection::process_post_request(const FilePath& relative_path) {
         FilePath cgi_path = resolve_path(relative_path, _request.config()->root);
 
         if (is_regular_file(cgi_path) == true) {
-            // TODO Handle query strings in the URI
             Logger(LOG_DEBUG) << "[process_post_request] - CGI called : " << cgi_path;
 
             CgiProcess process = start_cgi(build_cgi_request(relative_path, _request));
