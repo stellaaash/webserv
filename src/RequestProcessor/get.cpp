@@ -26,10 +26,15 @@ void Connection::process_get_request(const std::string& relative_path) {
             // Resource to fetch becomes the index file, not the folder itself
             path = resource_path + "/" + _request.config()->index;
         } else if (_request.config()->autoindex == true) {
-            _response.append_body(create_listing(path, _request.target()));
-            _response.set_header("Content-Type", "text/html");
-            _response.set_code(200);
-            _response.set_response_string("OK");
+            try {
+                // create_listing might throw in case of unexpected errors
+                _response.append_body(create_listing(path, _request.target()));
+                _response.set_header("Content-Type", "text/html");
+                _response.set_code(200);
+                _response.set_response_string("OK");
+            } catch (...) {
+                _response = error_response(500, false);
+            }
         } else {
             _response = error_response(404, false);
         }

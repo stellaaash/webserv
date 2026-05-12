@@ -12,12 +12,10 @@
 #include "Logger.hpp"
 #include "cgi.hpp"
 
-// TODO This could take a CgiProcess reference to need less arguments
-CgiHandler::CgiHandler(pid_t pid, int stdout_fd, int stderr_fd, long timeout,
-                       ConnectionHandler* client)
-    : _pid(pid),
-      _stdout_fd(stdout_fd),
-      _stderr_fd(stderr_fd),
+CgiHandler::CgiHandler(const CgiProcess& process, long timeout, ConnectionHandler* client)
+    : _pid(process.pid),
+      _stdout_fd(process.stdout_fd),
+      _stderr_fd(process.stderr_fd),
       _timeout(timeout),
       _start(std::time(NULL)),
       _client(client),
@@ -33,7 +31,7 @@ CgiHandler::~CgiHandler() {
         close(_stderr_fd);
         _stderr_fd = -1;
     }
-    // TODO Kill process with kill?
+    abort_cgi();
     Logger(LOG_DEBUG) << "[CGI] Handler destroyed for pid " << _pid;
 }
 
@@ -49,9 +47,8 @@ uint32_t CgiHandler::interests() const {
  * @brief If the CgiHandler is currently holding a process, this function kills and reaps it.
  */
 void CgiHandler::abort_cgi() {
-    Logger(LOG_ERROR) << "[CGI] abort";
-
     if (_pid > 0) {
+        Logger(LOG_ERROR) << "[CGI] abort";
         kill(_pid, SIGKILL);
         waitpid(_pid, NULL, 0);
         _pid = -1;

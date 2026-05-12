@@ -31,6 +31,5 @@ void Connection::process_request() {
             _response = error_response(501, false);
             break;
     }
-    if (_has_pending_cgi == true) return;
     _request.set_status(REQ_PROCESSED);
 }
