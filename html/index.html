@@ -1,1 +1,620 @@
-Hello!! :3
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>webserv tester</title>
+
+  <style>
+    :root {
+      --bg: #ffffff;
+      --fg: #000000;
+      --muted: #666666;
+      --line: #dcdcdc;
+      --soft: #f7f7f7;
+      --ok: #0a7f28;
+      --bad: #b00020;
+      --warn: #9a6b00;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: "Comic Sans MS", cursive;
+      display: flex;
+      justify-content: center;
+      padding: 48px 20px;
+    }
+
+    main {
+      width: min(980px, 100%);
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+
+    h1 {
+      font-size: 2.2em;
+      margin: 0 0 10px;
+      font-weight: normal;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      margin: 0;
+    }
+
+    .logo-scene {
+      perspective: 600px;
+      display: inline-block;
+      margin-top: 22px;
+    }
+
+    .logo-miku {
+      width: 150px;
+      transform: rotateY(180deg);
+      transition: transform 0.6s ease;
+      transform-style: preserve-3d;
+    }
+
+    .logo-miku:hover {
+      transform: rotateY(-180deg);
+      border-radius: 18px;
+    }
+
+    .logo-teto {
+      width: 150px;
+      transition: transform 0.6s ease;
+      transform-style: preserve-3d;
+    }
+
+    .logo-teto:hover {
+      transform: rotateY(360deg);
+      border-radius: 18px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: 22px;
+    }
+
+    @media (max-width: 780px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    section {
+      border: 1px solid var(--line);
+      background: white;
+      padding: 22px;
+    }
+
+    h2 {
+      margin: 0 0 16px;
+      font-size: 1.2em;
+      font-weight: normal;
+    }
+
+    .test-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .test {
+      border: 1px solid var(--line);
+      padding: 14px;
+      background: var(--soft);
+    }
+
+    .test-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .method {
+      font-size: 0.85em;
+      border: 1px solid var(--fg);
+      padding: 3px 7px;
+      background: white;
+    }
+
+    .method.get {
+      color: var(--ok);
+      border-color: var(--ok);
+    }
+
+    .method.post {
+      color: var(--warn);
+      border-color: var(--warn);
+    }
+
+    .method.delete {
+      color: var(--bad);
+      border-color: var(--bad);
+    }
+
+    .method.cgi {
+      color: black;
+      border-color: black;
+    }
+
+    label {
+      display: block;
+      font-size: 0.9em;
+      color: var(--muted);
+      margin: 10px 0 5px;
+    }
+
+    input, textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: white;
+      color: black;
+      font-family: "Comic Sans MS", cursive;
+      padding: 9px 10px;
+      outline: none;
+    }
+
+    input[type="file"]::file-selector-button {
+      padding: 8px;
+      background: white;
+      border: 1px solid black;
+      font-family: "Comic Sans MS", cursive;
+    }
+
+    input[type="file"]::file-selector-button:hover {
+      background: black;
+      color: white;
+      transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
+    }
+
+    textarea {
+      min-height: 72px;
+      font-family: "Comic Sans MS", cursive;
+      resize: vertical;
+      font-size: 0.9em;
+    }
+
+    input:focus,
+    textarea:focus {
+      border-color: black;
+    }
+
+    button {
+      margin-top: 12px;
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid black;
+      background: white;
+      font-family: "Comic Sans MS", cursive;
+      color: black;
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
+    }
+
+    button:hover {
+      background: black;
+      color: white;
+      transform: translateY(-1px);
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    .file-preview {
+      margin-top: 10px;
+      padding: 10px;
+      border: 1px dashed var(--line);
+      background: white;
+      color: var(--muted);
+      font-size: 0.9em;
+      line-height: 1.45;
+    }
+
+    .response-box {
+      min-height: 520px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .response-meta {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .meta-card {
+      border: 1px solid var(--line);
+      padding: 10px;
+      background: var(--soft);
+    }
+
+    .meta-label {
+      display: block;
+      color: var(--muted);
+      font-size: 0.8em;
+      margin-bottom: 4px;
+    }
+
+    .meta-value {
+      font-size: 0.95em;
+      word-break: break-word;
+    }
+
+    .ok-text {
+      color: var(--ok);
+    }
+
+    .bad-text {
+      color: var(--bad);
+    }
+
+    pre {
+      flex: 1;
+      margin: 0;
+      border: 1px solid var(--line);
+      background: #fafafa;
+      padding: 14px;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: "Comic Sans MS", cursive;
+      font-size: 0.9em;
+      line-height: 1.45;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 0.9em;
+      margin-top: 12px;
+      line-height: 1.45;
+    }
+
+    .small-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .small-actions button {
+      margin-top: 0;
+    }
+
+  </style>
+</head>
+
+<body>
+  <main>
+    <header>
+      <h1>Catastrophic level of yapping</h1>
+      <p class="subtitle">GET · POST · DELETE · CGI</p>
+
+      <div class="logo-scene">
+        <a href="https://classic.minecraft.net/">
+        <img src="resources/images/error/50x.png" class="logo-miku" alt="miku"></a>
+        <a href="https://fauux.neocities.org/login">
+        <img src="resources/images/error/404.png" class="logo-teto" alt="teto"></a>
+      </div>
+    </header>
+
+    <div class="layout">
+      <section>
+        <h2>Requests</h2>
+
+        <div class="test-grid">
+          <div class="test">
+            <div class="test-title">
+              <strong>Fetch a static page</strong>
+              <span class="method get">GET</span>
+            </div>
+
+            <label for="getPath">Path</label>
+            <input id="getPath" value="/" />
+
+            <button onclick="sendGet()">Send GET</button>
+          </div>
+
+          <div class="test">
+            <div class="test-title">
+              <strong>Upload a file</strong>
+              <span class="method post">POST</span>
+            </div>
+
+            <label for="uploadBasePath">Upload location</label>
+            <input id="uploadBasePath" value="/upload" />
+
+            <label for="uploadFile">File</label>
+            <input id="uploadFile" type="file" onchange="showSelectedFile()" />
+
+            <div id="filePreview" class="file-preview">
+              No file selected.
+            </div>
+
+            <button onclick="uploadFile()">Upload file</button>
+          </div>
+
+          <div class="test">
+            <div class="test-title">
+              <strong>Upload with custom target name</strong>
+              <span class="method post">POST</span>
+            </div>
+
+            <label for="customUploadPath">Full destination path</label>
+            <input id="customUploadPath" value="/upload/custom-name.txt" />
+
+            <label for="customUploadFile">File</label>
+            <input id="customUploadFile" type="file" />
+
+            <button onclick="uploadFileToCustomPath()">Upload to custom path</button>
+          </div>
+
+          <div class="test">
+            <div class="test-title">
+              <strong>Delete a resource</strong>
+              <span class="method delete">DELETE</span>
+            </div>
+
+            <label for="deletePath">Path</label>
+            <input id="deletePath" value="/upload/custom-name.txt" />
+
+            <button onclick="sendDelete()">Send DELETE</button>
+          </div>
+
+          <div class="test">
+            <div class="test-title">
+              <strong>Execute CGI</strong>
+              <span class="method cgi">CGI</span>
+            </div>
+
+            <label for="cgiPath">CGI path</label>
+            <input id="cgiPath" value="/cgi-bin/script.py" />
+
+            <button onclick="sendCgiGet()">Run CGI with GET</button>
+
+            <label for="cgiBody">CGI POST body</label>
+            <textarea id="cgiBody">name=webserv&from=browser</textarea>
+
+            <button onclick="sendCgiPost()">Run CGI with POST</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="response-box">
+        <h2>Server response</h2>
+
+        <div class="response-meta">
+          <div class="meta-card">
+            <span class="meta-label">Status</span>
+            <span id="status" class="meta-value">-</span>
+          </div>
+
+          <div class="meta-card">
+            <span class="meta-label">Method</span>
+            <span id="method" class="meta-value">-</span>
+          </div>
+
+          <div class="meta-card">
+            <span class="meta-label">Time</span>
+            <span id="time" class="meta-value">-</span>
+          </div>
+        </div>
+
+        <pre id="response">Click a button to send a request.</pre>
+
+        <div class="small-actions">
+          <button onclick="clearResponse()">Clear</button>
+          <button onclick="copyResponse()">Copy response</button>
+        </div>
+
+        <p class="hint">
+          Important: this tester uploads the raw file body. It does not send multipart/form-data.
+          The final URL must usually include the destination filename, for example /upload/picture.png.
+        </p>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+
+    function joinPath(base, filename) {
+      if (!base.startsWith("/")) {
+        base = "/" + base;
+      }
+
+      if (base.endsWith("/")) {
+        return base + encodeURIComponent(filename);
+      }
+
+      return base + "/" + encodeURIComponent(filename);
+    }
+
+    function setLoading(method, path) {
+      $("status").textContent = "pending";
+      $("status").className = "meta-value";
+      $("method").textContent = method;
+      $("time").textContent = "-";
+      $("response").textContent = "Sending " + method + " " + path + " ...";
+    }
+
+    function formatHeaders(headers) {
+      let out = "";
+
+      for (const pair of headers.entries()) {
+        out += pair[0] + ": " + pair[1] + "\n";
+      }
+
+      return out || "(no exposed headers)";
+    }
+
+    async function sendRequest(method, path, body, headers) {
+      const started = performance.now();
+
+      setLoading(method, path);
+
+      try {
+        const options = {
+          method: method,
+          headers: headers || {}
+        };
+
+        if (body !== undefined && body !== null) {
+          options.body = body;
+        }
+
+        const res = await fetch(path, options);
+        const elapsed = Math.round(performance.now() - started);
+        const text = await res.text();
+
+        $("status").textContent = res.status + " " + res.statusText;
+        $("status").className = "meta-value " + (res.ok ? "ok-text" : "bad-text");
+        $("method").textContent = method;
+        $("time").textContent = elapsed + " ms";
+
+        $("response").textContent =
+          "URL: " + res.url + "\n" +
+          "Status: " + res.status + " " + res.statusText + "\n\n" +
+          "Headers:\n" +
+          formatHeaders(res.headers) +
+          "\n\nBody:\n" +
+          (text || "(empty body)");
+      } catch (err) {
+        $("status").textContent = "request failed";
+        $("status").className = "meta-value bad-text";
+        $("method").textContent = method;
+        $("time").textContent = "-";
+        $("response").textContent =
+          "Fetch error:\n" +
+          err.message + "\n\n" +
+          "Possible causes:\n" +
+          "- server is not running\n" +
+          "- path does not exist\n" +
+          "- method is not allowed in config\n" +
+          "- file already exists and server returned 409\n" +
+          "- body is larger than client_max_body_size\n" +
+          "- malformed CGI response\n" +
+          "- browser blocked the request";
+      }
+    }
+
+    function sendGet() {
+      sendRequest("GET", $("getPath").value);
+    }
+
+    function showSelectedFile() {
+      const input = $("uploadFile");
+      const preview = $("filePreview");
+
+      if (!input.files || input.files.length === 0) {
+        preview.textContent = "No file selected.";
+        return;
+      }
+
+      const file = input.files[0];
+
+      preview.textContent =
+        "Name: " + file.name + "\n" +
+        "Size: " + file.size + " bytes\n" +
+        "Type: " + (file.type || "unknown") + "\n" +
+        "Target: " + joinPath($("uploadBasePath").value, file.name);
+    }
+
+    function uploadFile() {
+      const input = $("uploadFile");
+
+      if (!input.files || input.files.length === 0) {
+        $("response").textContent = "Select a file first.";
+        $("status").textContent = "-";
+        $("method").textContent = "POST";
+        $("time").textContent = "-";
+        return;
+      }
+
+      const file = input.files[0];
+      const path = joinPath($("uploadBasePath").value, file.name);
+
+      sendRequest(
+        "POST",
+        path,
+        file,
+        {
+          "Content-Type": file.type || "application/octet-stream"
+        }
+      );
+    }
+
+    function uploadFileToCustomPath() {
+      const input = $("customUploadFile");
+
+      if (!input.files || input.files.length === 0) {
+        $("response").textContent = "Select a file first.";
+        $("status").textContent = "-";
+        $("method").textContent = "POST";
+        $("time").textContent = "-";
+        return;
+      }
+
+      const file = input.files[0];
+      const path = $("customUploadPath").value;
+
+      sendRequest(
+        "POST",
+        path,
+        file,
+        {
+          "Content-Type": file.type || "application/octet-stream"
+        }
+      );
+    }
+
+    function sendDelete() {
+      sendRequest("DELETE", $("deletePath").value);
+    }
+
+    function sendCgiGet() {
+      sendRequest("GET", $("cgiPath").value);
+    }
+
+    function sendCgiPost() {
+      sendRequest(
+        "POST",
+        $("cgiPath").value,
+        $("cgiBody").value,
+        {
+          "Content-Type": "application/x-www-form-urlencoded"
+        }
+      );
+    }
+
+    function clearResponse() {
+      $("status").textContent = "-";
+      $("status").className = "meta-value";
+      $("method").textContent = "-";
+      $("time").textContent = "-";
+      $("response").textContent = "Click a button to send a request.";
+    }
+
+    async function copyResponse() {
+      try {
+        await navigator.clipboard.writeText($("response").textContent);
+      } catch (err) {
+        $("response").textContent += "\n\nCould not copy response: " + err.message;
+      }
+    }
+  </script>
+</body>
+</html>
