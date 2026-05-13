@@ -28,10 +28,10 @@ typedef struct ConfigLocation {
     bool                            autoindex;
     std::map<std::string, FilePath> cgi;  // Bind an extension to an interpreter
     // File to serve when requesting a directory (relative from the requested file)
-    std::string                     index;
-    std::map<HttpCode, std::string> redirect;  // Redirect to a URL using a specific HTTP code
-    FilePath                        root;
-    FilePath                        upload_store;
+    std::string                      index;
+    std::pair<HttpCode, std::string> redirect;  // Redirect to a URL using a specific HTTP code
+    FilePath                         root;
+    FilePath                         upload_store;
 } ConfigLocation;
 
 typedef struct ConfigServer {

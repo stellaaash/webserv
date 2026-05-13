@@ -106,12 +106,10 @@ static void check_config(const Config& config) {
             for (CgiIterator j = l->second.cgi.begin(); j != l->second.cgi.end(); ++j) {
                 if (is_regular_file(j->second) == false) throw ParserError("Invalid cgi directive");
             }
-            for (ErrorPageIterator r = l->second.redirect.begin(); r != l->second.redirect.end();
-                 ++r) {
-                // Redirection have to use a 3XX code
-                if (r->first < 300 || r->first > 399)
-                    throw ParserError("Invalid redirect directive");
-            }
+            // Redirection have to use a 3XX code
+            if (l->second.redirect.first != 0 &&
+                (l->second.redirect.first < 300 || l->second.redirect.first > 399))
+                throw ParserError("Invalid redirect directive");
             if (l->second.root.empty() == false && is_directory(l->second.root) == false)
                 throw ParserError("Invalid root directive");
             if (l->second.upload_store.empty() == false &&
@@ -140,7 +138,7 @@ Config parse_file(std::ifstream& file) {
             throw ParserError("Missing location directive in server context");
         } else {
             for (LocationIterator i = s->location.begin(); i != s->location.end(); ++i) {
-                if (i->second.root.empty() && i->second.redirect.empty()) {
+                if (i->second.root.empty() && i->second.redirect.first == 0) {
                     throw ParserError("Missing root directive in location context");
                 }
             }
@@ -368,7 +366,7 @@ ConfigLocation parse_location(TokenIterator* t, TokenIterator end) {
                 if (check_string(tokens[1].word, "1234567890") == false)
                     throw ParserError(tokens[1], "Wrong redirection code syntax");
                 HttpCode code = static_cast<HttpCode>(std::atol(tokens[1].word.c_str()));
-                config.redirect.insert(std::pair<HttpCode, std::string>(code, tokens[2].word));
+                config.redirect = std::pair<HttpCode, std::string>(code, tokens[2].word);
             } else if (directive == "root") {
                 if (tokens.size() != 3)
                     throw ParserError(tokens[0], "Wrong number of tokens in root directive");
