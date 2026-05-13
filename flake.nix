@@ -22,6 +22,7 @@
         python3
         siege
         massif-visualizer
+        lldb
       ];
 
       shellHook = ''
