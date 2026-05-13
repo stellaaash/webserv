@@ -43,7 +43,6 @@ private:
     void shrink_read_buffer();
 
     RequestStatus parse_request_line();
-    bool          handle_content_length_header(Request& request);
     RequestStatus parse_headers();
     RequestStatus parse_body();
     RequestStatus resolve_location();

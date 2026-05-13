@@ -67,7 +67,7 @@ RequestStatus Connection::parse_request_line() {
     return _request.status();
 }
 
-bool Connection::handle_content_length_header(Request& request) {
+static bool handle_content_length_header(Request& request, const size_t client_max_body_size) {
     size_t content_length = 0;
 
     if (request.has_header("Content-Length") &&
@@ -77,7 +77,7 @@ bool Connection::handle_content_length_header(Request& request) {
         return false;
     }
     request.set_content_length(content_length);
-    if (content_length > _config->client_max_body_size) {
+    if (content_length > client_max_body_size) {
         request.set_error_status(413);
         request.set_status(REQ_ERROR);
         return false;
@@ -136,7 +136,8 @@ RequestStatus Connection::parse_headers() {
         return _request.status();
     }
 
-    if (!handle_content_length_header(_request)) return _request.status();
+    if (!handle_content_length_header(_request, _config->client_max_body_size))
+        return _request.status();
     _request.set_status(REQ_BODY);
     return _request.status();
 }
