@@ -67,6 +67,28 @@ RequestStatus Connection::parse_request_line() {
     return _request.status();
 }
 
+bool Connection::handle_content_length_header(Request& request) {
+    size_t content_length = 0;
+
+    if (request.has_header("Content-Length") &&
+        !parse_content_length_value(request.header("Content-Length")->second, content_length)) {
+        request.set_error_status(400);
+        request.set_status(REQ_ERROR);
+        return false;
+    }
+    request.set_content_length(content_length);
+    if (content_length > _config->client_max_body_size) {
+        request.set_error_status(413);
+        request.set_status(REQ_ERROR);
+        return false;
+    }
+    if (content_length > 0) {
+        request.set_status(REQ_HEADERS);
+        return false;
+    }
+    return true;
+}
+
 RequestStatus Connection::parse_headers() {
     assert(_request.status() == REQ_REQUEST_LINE);
 
