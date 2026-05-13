@@ -67,11 +67,19 @@ RequestStatus Connection::parse_request_line() {
     return _request.status();
 }
 
+/**
+ * @brief This function extracts the Content-Length value from a Request's headers and puts inside
+ * of the appropriate value in the same Request.
+ *
+ * @return true if a Content-Length was successfully extracted, false if an error occured or no
+ * Content-Length header exists.
+ */
 static bool handle_content_length_header(Request& request, const size_t client_max_body_size) {
+    assert(request.has_header("Content-Length"));
     size_t content_length = 0;
 
-    if (request.has_header("Content-Length") &&
-        !parse_content_length_value(request.header("Content-Length")->second, content_length)) {
+    if (parse_content_length_value(request.header("Content-Length")->second, content_length) ==
+        false) {
         request.set_error_status(400);
         request.set_status(REQ_ERROR);
         return false;
@@ -136,8 +144,11 @@ RequestStatus Connection::parse_headers() {
         return _request.status();
     }
 
-    if (!handle_content_length_header(_request, _config->client_max_body_size))
-        return _request.status();
+    if (_request.has_header("Content-Length") &&
+        handle_content_length_header(_request, _config->client_max_body_size) == false) {
+        return _request.status();  // Either an error occured, or no Content-Length was found
+    }
+
     _request.set_status(REQ_BODY);
     return _request.status();
 }
