@@ -49,8 +49,7 @@ typedef struct ConfigServer {
 typedef struct Config {
     Config();
 
-    // An empty error_log path means everything is logged to stderr
-    FilePath                  error_log;
+    FilePath                  log_directory;
     std::vector<ConfigServer> server;
 } Config;
 

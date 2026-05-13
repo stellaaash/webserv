@@ -63,7 +63,7 @@ int main(int argc, char** argv) {
     }
     config_file.close();
 
-    logger_init(config.error_log);
+    logger_init(config.log_directory);
 
     ConnectionManager manager;
     for (ServerIterator s = config.server.begin(); s != config.server.end(); ++s) {
