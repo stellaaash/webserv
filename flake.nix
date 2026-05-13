@@ -21,6 +21,7 @@
         valgrind
         python3
         siege
+        massif-visualizer
       ];
 
       shellHook = ''
