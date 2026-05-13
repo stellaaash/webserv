@@ -30,6 +30,7 @@ RequestStatus Connection::parse_request_line() {
         _request.set_error_status(400);  // Bad request 400, too many/too few elements
         return _request.status();
     }
+
     if (method == "GET")
         _request.set_method(GET);
     else if (method == "POST")
@@ -44,7 +45,14 @@ RequestStatus Connection::parse_request_line() {
     }
 
     _request.set_query_string(extract_query_string(target));
-    _request.set_target(target.substr(0, target.find('?')));
+    target = target.substr(0, target.find('?'));
+
+    // Remove trailing slashes
+    if (target != "/") {
+        size_t target_end = target.find_last_not_of('/');
+        target.erase(target_end + 1);
+    }
+    _request.set_target(target);
 
     if (version != "HTTP/1.1") {
         _request.set_status(REQ_ERROR);
