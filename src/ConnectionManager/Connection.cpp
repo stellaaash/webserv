@@ -91,8 +91,8 @@ ssize_t Connection::receive_data() {
 bool Connection::handle_content_length_header(Request& request) {
     size_t content_length = 0;
 
-    if (request.has_header("Content-Length") &&
-        !parse_content_length_value(request.header("Content-Length")->second, content_length)) {
+    if (request.has_header("content-length") &&
+        !parse_content_length_value(request.header("content-length")->second, content_length)) {
         request.set_error_status(400);
         request.set_status(REQ_ERROR);
         return false;
