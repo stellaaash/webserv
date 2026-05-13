@@ -20,6 +20,7 @@
         llvmPackages_21.libstdcxxClang
         valgrind
         python3
+        siege
       ];
 
       shellHook = ''
