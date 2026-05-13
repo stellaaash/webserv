@@ -8,6 +8,7 @@
 
 // helpers.cpp
 
+std::string              to_lowercase(const std::string&);
 std::string              extract_query_string(const std::string& target);
 std::string              trim(const std::string&);
 std::vector<std::string> split_header_values(const std::string&);
