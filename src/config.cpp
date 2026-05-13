@@ -10,4 +10,4 @@ ConfigLocation::ConfigLocation()
 ConfigServer::ConfigServer()
     : client_max_body_size(0), error_page(), listen(), location(), timeout(10) {}
 
-Config::Config() : error_log(), server() {}
+Config::Config() : log_directory(), server() {}

@@ -86,9 +86,9 @@ static int check_listen(const Config& config) {
 }
 
 static void check_config(const Config& config) {
-    if (config.error_log.empty() == false) {
-        if (is_directory(config.error_log) == false)
-            throw ParserError("Invalid error_log directive, not a directory");
+    if (config.log_directory.empty() == false) {
+        if (is_directory(config.log_directory) == false)
+            throw ParserError("Invalid log_directory directive: not a directory");
     }
 
     if (check_listen(config) != 0) throw ParserError("Duplicate listen directive");
@@ -192,10 +192,11 @@ Config parse_config(TokenIterator t, TokenIterator end) {
 
         if (tokens[0].type == WORD) {
             const std::string& directive = tokens[0].word;
-            if (directive == "error_log") {
+            if (directive == "log_directory") {
                 if (tokens.size() != 3)
-                    throw ParserError(tokens[0], "Wrong number of tokens in error_log directive");
-                config.error_log = standardize_path(tokens[1].word);
+                    throw ParserError(tokens[0],
+                                      "Wrong number of tokens in log_directory directive");
+                config.log_directory = standardize_path(tokens[1].word);
             } else if (directive == "server") {
                 if (tokens.size() != 2)
                     throw ParserError(tokens[0], "Wrong number of tokens in server directive");
