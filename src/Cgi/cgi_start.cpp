@@ -36,7 +36,7 @@ CgiRequest build_cgi_request(const std::string& relative_path, const Request& re
     cgi.script_path = resolve_path(relative_path, request.config()->root);     // Full path
     cgi.script_name = request.target().substr(0, request.target().find('?'));  // /cgi-bin/test.py
     cgi.method = method_to_string(request.method());                           // GET
-    cgi.query_string = extract_query_string(request.target());                 // hello=world
+    cgi.query_string = request.query_string();                                 // hello=world
 
     if (request.has_header("Content-Type"))
         cgi.content_type = request.header("Content-Type")->second;

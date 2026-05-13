@@ -43,7 +43,8 @@ RequestStatus Connection::parse_request_line() {
         return _request.status();
     }
 
-    _request.set_target(target);
+    _request.set_query_string(extract_query_string(target));
+    _request.set_target(target.substr(0, target.find('?')));
 
     if (version != "HTTP/1.1") {
         _request.set_status(REQ_ERROR);
