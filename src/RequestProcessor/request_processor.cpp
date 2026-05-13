@@ -9,6 +9,17 @@
 #include "config.hpp"
 
 void Connection::process_request() {
+    // TODO Redirection checking should probably happen before the body arrives
+    if (_request.config()->redirect.first >= 300 && _request.config()->redirect.first <= 399) {
+        _response.set_code(301);
+        _response.set_response_string("Moved Permanently");
+        _response.set_header("Content-Type", "text/html");
+        _response.set_header("Content-Length", "0");
+        _request.set_status(REQ_PROCESSED);
+        // TODO Add Location header pointing to the right resource
+        return;
+    }
+
     std::string relative_path = _request.target().substr(_request.config()->name.length());
     if (!relative_path.empty() &&  // If we still have a slash at the beginning, remove it
         relative_path[0] == '/')
