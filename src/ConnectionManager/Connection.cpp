@@ -22,6 +22,9 @@ Connection::Connection(const ConfigServer* const config, int socket)
       _read_index(0),
       _write_buffer(),
       _write_index(0),
+      _is_chunked(false),
+      _chunk_size(0),
+      _chunk_received(0),
       _has_pending_cgi(false) {
     assert(config && "ConfigServer pointer");
     assert(socket > 2 && "Valid Socket Number");
@@ -86,6 +89,45 @@ ssize_t Connection::receive_data() {
     }
 
     return total;
+}
+
+bool Connection::handle_chunked_encoding_header(Request& request) {
+    _is_chunked = false;
+    _chunk_size = 0;
+    _chunk_received = 0;
+
+    bool has_transfer_encoding = false;
+    bool has_chunked = false;
+
+    for (HttpMessage::HeaderIterator it = request.headers_begin(); it != request.headers_end();
+         ++it) {
+        if (it->first != "Transfer-Encoding") continue;
+
+        has_transfer_encoding = true;
+
+        if (trim(it->second) == "chunked") has_chunked = true;
+    }
+
+    if (!has_transfer_encoding) return true;
+
+    if (!has_chunked) {
+        request.set_error_status(400);
+        request.set_status(REQ_ERROR);
+        return false;
+    }
+
+    if (request.has_header("Content-Length")) {
+        request.set_error_status(400);
+        request.set_status(REQ_ERROR);
+        return false;
+    }
+
+    _is_chunked = true;
+    _chunk_size = 0;
+    _chunk_received = 0;
+
+    request.set_status(REQ_HEADERS);
+    return false;
 }
 
 bool Connection::handle_content_length_header(Request& request) {

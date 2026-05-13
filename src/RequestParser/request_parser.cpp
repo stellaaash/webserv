@@ -1,6 +1,7 @@
 #include "request_parser.hpp"
 
 #include <cassert>
+#include <cstddef>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -106,13 +107,87 @@ RequestStatus Connection::parse_headers() {
         return _request.status();
     }
 
+    if (!handle_chunked_encoding_header(_request)) return _request.status();
     if (!handle_content_length_header(_request)) return _request.status();
+
     _request.set_status(REQ_BODY);
+    return _request.status();
+}
+
+RequestStatus Connection::parse_chunked_body() {
+    while (_read_index < _read_buffer.size()) {
+        if (_chunk_size == 0 && _chunk_received == 0) {
+            size_t line_end = _read_buffer.find("\r\n", _read_index);  // get line from read buffer
+            if (line_end == std::string::npos) return _request.status();
+
+            std::string line =
+                _read_buffer.substr(_read_index, line_end - _read_index);  // Extract size line
+
+            size_t semi = line.find(';');
+            if (semi != std::string::npos) line = line.substr(0, semi);  // cut chunk extension
+
+            if (!parse_chunk_size(trim(line), _chunk_size)) {  // trim spaces
+                _request.set_error_status(400);
+                _request.set_status(REQ_ERROR);
+                return _request.status();
+            }
+
+            _read_index = line_end + 2;  // jump past \r\n
+
+            if (_chunk_size == 0) {  // End of chunked request
+                if (_read_buffer.size() - _read_index < 2)
+                    return _request.status();  // in case read buffer doesn't reach the end
+
+                if (_read_buffer[_read_index] != '\r' || _read_buffer[_read_index + 1] != '\n') {
+                    _request.set_error_status(400);
+                    _request.set_status(REQ_ERROR);
+                    return _request.status();
+                }
+
+                _read_index += 2;
+                _request.set_content_length(_request.body_received());
+                _request.set_status(REQ_BODY);  // Chunked request parsed
+                return _request.status();
+            }
+        }
+
+        size_t remaining = _chunk_size - _chunk_received;
+        size_t available = _read_buffer.size() - _read_index;
+        size_t chunk = std::min(remaining, available);
+
+        if (chunk == 0) return _request.status();
+
+        if (!_request.append_body_chunk(_read_buffer.data() + _read_index, chunk)) {
+            _request.set_error_status(500);
+            _request.set_status(REQ_ERROR);
+            return _request.status();
+        }
+
+        _read_index += chunk;
+        _chunk_received += chunk;
+
+        if (_chunk_received == _chunk_size) {
+            if (_read_buffer.size() - _read_index < 2) return _request.status();
+
+            if (_read_buffer[_read_index] != '\r' || _read_buffer[_read_index + 1] != '\n') {
+                _request.set_error_status(400);
+                _request.set_status(REQ_ERROR);
+                return _request.status();
+            }
+
+            _read_index += 2;
+            _chunk_size = 0;
+            _chunk_received = 0;
+        }
+    }
+
     return _request.status();
 }
 
 RequestStatus Connection::parse_body() {
     assert(_request.status() == REQ_HEADERS);
+
+    if (_is_chunked) return parse_chunked_body();
 
     size_t expected = _request.content_length();
     size_t received = _request.body_received();

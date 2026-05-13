@@ -60,6 +60,30 @@ std::vector<std::string> split_header_values(const std::string& value) {
     return result;
 }
 
+bool parse_chunk_size(const std::string& str, size_t& out) {
+    if (str.empty()) return false;
+
+    size_t value = 0;
+
+    for (size_t i = 0; i < str.size(); ++i) {
+        int digit;
+
+        if (str[i] >= '0' && str[i] <= '9')
+            digit = str[i] - '0';
+        else if (str[i] >= 'a' && str[i] <= 'f')
+            digit = str[i] - 'a' + 10;
+        else if (str[i] >= 'A' && str[i] <= 'F')
+            digit = str[i] - 'A' + 10;
+        else
+            return false;
+
+        value = value * 16 + static_cast<size_t>(digit);
+    }
+
+    out = value;
+    return true;
+}
+
 bool parse_content_length_value(const std::string& value, size_t& out) {
     if (value.empty()) return false;
 
