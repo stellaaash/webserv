@@ -1,13 +1,29 @@
+#include <cctype>
 #include <limits>
 #include <sstream>
 #include <string>
 #include <vector>
 
 #include "Request.hpp"
+#include "request_parser.hpp"
+
+/**
+ * @brief Returns a new string with every character put to lowercase.
+ */
+std::string to_lowercase(const std::string& string) {
+    std::string lowercased = string;
+
+    for (size_t i = 0; i < lowercased.size(); ++i) {
+        if (std::isupper(lowercased[i])) {
+            lowercased[i] = static_cast<char>(std::tolower(lowercased[i]));
+        }
+    }
+
+    return lowercased;
+}
 
 /**
  * @brief Minimal implementation to fetch the query string from the target.
- * /over/there?name=ferret
  */
 std::string extract_query_string(const std::string& target) {
     size_t pos = target.find('?');

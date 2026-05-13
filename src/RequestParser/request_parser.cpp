@@ -79,10 +79,10 @@ RequestStatus Connection::parse_headers() {
         }
 
         std::vector<std::string> parsed_values;
-        std::string              key = trim(line.substr(0, colon));
+        std::string              key = to_lowercase(trim(line.substr(0, colon)));
         std::string              value = trim(line.substr(colon + 1));
         // Not all headers must be split
-        if (key == "Set-Cookie")
+        if (key == "set-cookie")
             parsed_values.push_back(value);
         else
             parsed_values = split_header_values(value);
@@ -100,7 +100,7 @@ RequestStatus Connection::parse_headers() {
     _read_index += 2;
 
     // Check for mandatory Host header, and if it is unique.
-    if (!_request.has_header("Host") || !is_header_unique(_request, "Host")) {
+    if (!_request.has_header("host") || !is_header_unique(_request, "host")) {
         _request.set_error_status(400);
         _request.set_status(REQ_ERROR);
         return _request.status();

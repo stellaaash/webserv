@@ -38,8 +38,8 @@ CgiRequest build_cgi_request(const std::string& relative_path, const Request& re
     cgi.method = method_to_string(request.method());                           // GET
     cgi.query_string = request.query_string();                                 // hello=world
 
-    if (request.has_header("Content-Type"))
-        cgi.content_type = request.header("Content-Type")->second;
+    if (request.has_header("content-type"))
+        cgi.content_type = request.header("content-type")->second;
     else
         cgi.content_type = "";
 
