@@ -19,7 +19,7 @@
 bool write_file_to_fd(const std::string& path, int out_fd) {
     int fd = fetch_file(path);
     if (fd < 0) {
-        Logger(LOG_ERROR) << "[process_request] - fetch_file" << strerror(errno);
+        Logger(LOG_ERROR) << "[process_request] - fetch_file" << std::strerror(errno);
         return false;
     }
 

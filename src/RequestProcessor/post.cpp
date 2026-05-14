@@ -46,20 +46,22 @@ void Connection::process_post_request(const FilePath& relative_path) {
 
         if (_request.is_body_spooled() == true) {
             if (std::rename(_request.body_path().c_str(), upload_path.c_str()) < 0) {
-                Logger(LOG_ERROR) << "[process_post_request] - rename: " << strerror(errno);
+                Logger(LOG_ERROR) << "[process_post_request] - rename: " << std::strerror(errno);
                 _response = error_response(500, false);
                 return;
             }
         } else {
             int fd = create_file(upload_path);
             if (fd < 0) {
-                Logger(LOG_ERROR) << "[process_post_request] - create_file: " << strerror(errno);
+                Logger(LOG_ERROR) << "[process_post_request] - create_file: "
+                                  << std::strerror(errno);
                 _response = error_response(500, false);
                 return;
             }
 
             if (append_file(fd, _request.body()) < 0) {
-                Logger(LOG_ERROR) << "[process_post_request] - append_file: " << strerror(errno);
+                Logger(LOG_ERROR) << "[process_post_request] - append_file: "
+                                  << std::strerror(errno);
                 _response = error_response(500, false);
                 close(fd);
                 return;

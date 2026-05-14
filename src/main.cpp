@@ -36,7 +36,7 @@ int main(int argc, char** argv) {
     // TODO Replace forbidden getcwd with our own function
     char* cwd = getcwd(NULL, 0);
     working_directory = cwd;
-    free(cwd);
+    std::free(cwd);
 
     if (!is_regular_file(argv[1])) {
         std::cerr << "[!] - Failed to open configuration file." << std::endl;

@@ -1,6 +1,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#include <cstdlib>
 #include <string>
 #include <vector>
 
@@ -94,7 +95,7 @@ CgiProcess start_cgi(const CgiRequest& req) {
         argv[2] = NULL;
 
         execve(req.interpreter.c_str(), argv, envp);
-        _exit(127);
+        std::exit(127);
     }
 
     setup_parent_pipes(pipes);

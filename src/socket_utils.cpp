@@ -18,7 +18,7 @@ int set_nonblocking(int fd) {
     int flags = fcntl(fd, F_GETFL, 0);
     if (flags < 0) return -1;
     if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) < 0) {
-        Logger(LOG_ERROR) << "[set_nonblocking] fcntl: " << strerror(errno);
+        Logger(LOG_ERROR) << "[set_nonblocking] fcntl: " << std::strerror(errno);
         return -1;
     }
     return 0;
@@ -39,13 +39,13 @@ std::vector<int> make_listen_sockets(const ConfigServer& config) {
         setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
 
         if (bind(fd, reinterpret_cast<const struct sockaddr*>(&address), sizeof(address)) < 0) {
-            Logger(LOG_ERROR) << "[make_listen_sockets] bind: " << strerror(errno);
+            Logger(LOG_ERROR) << "[make_listen_sockets] bind: " << std::strerror(errno);
             close(fd);
             for (size_t i = 0; i < fds.size(); ++i) close(fds[i]);
             throw std::exception();
         }
         if (listen(fd, 128) < 0) {
-            Logger(LOG_ERROR) << "[make_listen_sockets] listen: " << strerror(errno);
+            Logger(LOG_ERROR) << "[make_listen_sockets] listen: " << std::strerror(errno);
             close(fd);
             for (size_t i = 0; i < fds.size(); ++i) close(fds[i]);
             throw std::exception();

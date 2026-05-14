@@ -49,7 +49,7 @@ ssize_t Connection::send_data() {
     if (n == 0)
         return 0;
     else if (n < 0) {
-        Logger(LOG_ERROR) << "[Connection::send_data] send: " << strerror(errno);
+        Logger(LOG_ERROR) << "[Connection::send_data] send: " << std::strerror(errno);
         return -1;
     }
 
