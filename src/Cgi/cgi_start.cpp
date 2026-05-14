@@ -7,7 +7,7 @@
 
 #include "cgi.hpp"
 #include "file_manager.hpp"
-#include "socket_utils.hpp"
+#include "helpers_socket.hpp"
 
 static CgiProcess make_failed_process() {
     CgiProcess proc;

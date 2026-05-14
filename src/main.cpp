@@ -17,7 +17,8 @@
 #include "config.hpp"
 #include "config_parser.hpp"
 #include "file_manager.hpp"
-#include "socket_utils.hpp"
+#include "helpers_getcwd.hpp"
+#include "helpers_socket.hpp"
 
 volatile sig_atomic_t g_stop = 0;
 
@@ -33,10 +34,7 @@ int main(int argc, char** argv) {
     signal(SIGINT, clean_exit);
     signal(SIGPIPE, SIG_IGN);
 
-    // TODO Replace forbidden getcwd with our own function
-    char* cwd = getcwd(NULL, 0);
-    working_directory = cwd;
-    std::free(cwd);
+    ft_getcwd();
 
     if (!is_regular_file(argv[1])) {
         std::cerr << "[!] - Failed to open configuration file." << std::endl;

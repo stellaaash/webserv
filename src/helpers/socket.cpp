@@ -1,5 +1,3 @@
-#include "socket_utils.hpp"
-
 #include <fcntl.h>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -12,6 +10,7 @@
 
 #include "Logger.hpp"
 #include "config.hpp"
+#include "helpers_socket.hpp"
 
 int set_nonblocking(int fd) {
     int flags = fcntl(fd, F_GETFL, 0);
