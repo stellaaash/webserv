@@ -34,15 +34,20 @@ int main(int argc, char** argv) {
     signal(SIGINT, clean_exit);
     signal(SIGPIPE, SIG_IGN);
 
-    ft_getcwd();
+    try {
+        ft_getcwd();
+    } catch (...) {
+        std::cerr << "[!] - Failed to get working directory of webserv." << std::endl;
+        return 2;
+    }
 
     if (!is_regular_file(argv[1])) {
         std::cerr << "[!] - Failed to open configuration file." << std::endl;
-        return 2;
+        return 3;
     }
     if (!is_regular_file("mime.types")) {
         std::cerr << "[!] - Failed to open mime.types file." << std::endl;
-        return 2;
+        return 4;
     }
 
     std::ifstream config_file(argv[1]);
@@ -57,7 +62,7 @@ int main(int argc, char** argv) {
         }
     } catch (const ParserError& e) {
         std::cerr << "[!] - " << e.what() << std::endl;
-        return 3;
+        return 5;
     }
     config_file.close();
 
@@ -70,7 +75,7 @@ int main(int argc, char** argv) {
         try {
             listen_fds = make_listen_sockets(server_config);
         } catch (...) {
-            return 4;
+            return 6;
         }
         for (size_t i = 0; i < listen_fds.size(); ++i) {
             manager.add(new Listener(&server_config, listen_fds[i]));
