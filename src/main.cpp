@@ -35,7 +35,7 @@ int main(int argc, char** argv) {
     signal(SIGPIPE, SIG_IGN);
 
     try {
-        ft_getcwd();
+        working_directory = ft_getcwd();
     } catch (...) {
         std::cerr << "[!] - Failed to get working directory of webserv." << std::endl;
         return 2;
