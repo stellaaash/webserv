@@ -68,9 +68,11 @@ void Connection::process_post_request(const FilePath& relative_path) {
             close(fd);
         }
 
-        _response.set_code(200);  // TODO return 30x See Other response
-        _response.set_response_string("OK");
+        const std::string uploaded_resource = _request.config()->name + "/" + relative_path;
+        _response.set_code(303);
+        _response.set_response_string("See Other");
         _response.set_header("Content-Length", "0");
+        _response.set_header("Location", uploaded_resource);
         return;
     }
 
