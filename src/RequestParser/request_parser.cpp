@@ -68,13 +68,11 @@ RequestStatus Connection::parse_request_line() {
 }
 
 /**
- * @brief This function extracts the Content-Length value from a Request's headers and puts inside
- * of the appropriate value in the same Request.
- *
- * @return true if a Content-Length was successfully extracted, false if an error occured or no
- * Content-Length header exists.
+ * @brief This function extracts the Content-Length value from a Request's headers and puts it
+ * inside of the appropriate value in the same Request.
+ * It also sets the Request status approperiately, either to signify an error, or to indicate that a
  */
-static bool handle_content_length_header(Request& request, const size_t client_max_body_size) {
+static void handle_content_length_header(Request& request, const size_t client_max_body_size) {
     assert(request.has_header("Content-Length"));
     size_t content_length = 0;
 
@@ -82,19 +80,17 @@ static bool handle_content_length_header(Request& request, const size_t client_m
         false) {
         request.set_error_status(400);
         request.set_status(REQ_ERROR);
-        return false;
+        return;
     }
     request.set_content_length(content_length);
     if (content_length > client_max_body_size) {
         request.set_error_status(413);
         request.set_status(REQ_ERROR);
-        return false;
+        return;
     }
     if (content_length > 0) {
         request.set_status(REQ_HEADERS);
-        return false;
     }
-    return true;
 }
 
 RequestStatus Connection::parse_headers() {
@@ -144,11 +140,13 @@ RequestStatus Connection::parse_headers() {
         return _request.status();
     }
 
-    if (_request.has_header("Content-Length") &&
-        handle_content_length_header(_request, _config->client_max_body_size) == false) {
-        return _request.status();  // Either an error occured, or no Content-Length was found
+    if (_request.has_header("Content-Length")) {
+        handle_content_length_header(_request, _config->client_max_body_size);
+        if (_request.status() == REQ_ERROR || _request.status() == REQ_HEADERS)
+            return _request.status();  // An error or a valid Content-Length
     }
 
+    // No Content-Length, so no body to be parsed
     _request.set_status(REQ_BODY);
     return _request.status();
 }
