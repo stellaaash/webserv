@@ -151,6 +151,50 @@ RequestStatus Connection::parse_headers() {
     return _request.status();
 }
 
+/**
+ * @brief Resolves which location config should be assigned to the given request, based on its
+ * target.
+ * It resolves in order, but the most precise location found will be set.
+ * For example, if the target of the request is /images, but there are / and /images locations in
+ * the configuration, the /images location will be choosen, even though / comes before
+ * alphabetically.
+ */
+// TODO This function resolves to a location when a file's name starts with that location name
+// For example, with location /upload configured, getting /upload.html resolves to /upload, but
+// shouldn't To fix this, we should base ourself on whether the full location "/upload/" with the
+// last / included is present in the request's target
+RequestStatus Connection::resolve_location() {
+    assert(_request.status() == REQ_HEADERS || _request.status() == REQ_BODY);
+
+    const std::string& request_target = _request.target();
+    bool               matched = false;
+
+    for (LocationIterator l = _config->location.begin(); l != _config->location.end(); ++l) {
+        const std::string& location_name = l->first;
+        const size_t       location_length = location_name.length();
+
+        // If the target matches a location, even just as a prefix, then it's the right location
+        if (request_target.substr(0, location_length) == location_name) {
+            _request.set_config(&l->second);
+            matched = true;
+        }
+    }
+
+    if (!matched) {
+        _request.set_error_status(404);
+        _request.set_status(REQ_ERROR);
+    } else {
+        if (_request.config()->allowed_methods.find(_request.method()) ==
+            _request.config()->allowed_methods.end()) {
+            _request.set_error_status(405);
+            _request.set_status(REQ_ERROR);
+        } else {
+            _request.set_status(REQ_PARSED);
+        }
+    }
+    return _request.status();
+}
+
 RequestStatus Connection::parse_body() {
     assert(_request.status() == REQ_HEADERS);
 
@@ -182,59 +226,14 @@ RequestStatus Connection::parse_body() {
     return _request.status();
 }
 
-/**
- * @brief Resolves which location config should be assigned to the given request, based on its
- * target.
- * It resolves in order, but the most precise location found will be set.
- * For example, if the target of the request is /images, but there are / and /images locations in
- * the configuration, the /images location will be choosen, even though / comes before
- * alphabetically.
- */
-// TODO This function resolves to a location when a file's name starts with that location name
-// For example, with location /upload configured, getting /upload.html resolves to /upload, but
-// shouldn't To fix this, we should base ourself on whether the full location "/upload/" with the
-// last / included is present in the request's target
-RequestStatus Connection::resolve_location() {
-    assert(_request.status() == REQ_BODY);
-
-    const std::string& request_target = _request.target();
-    bool               matched = false;
-
-    for (LocationIterator l = _config->location.begin(); l != _config->location.end(); ++l) {
-        const std::string& location_name = l->first;
-        const size_t       location_length = location_name.length();
-
-        // If the target matches a location, even just as a prefix, then it's the right location
-        if (request_target.substr(0, location_length) == location_name) {
-            _request.set_config(&l->second);
-            matched = true;
-        }
-    }
-
-    if (!matched) {
-        _request.set_error_status(404);
-        _request.set_status(REQ_ERROR);
-    } else {
-        // TODO This check should go before the body arrives
-        if (_request.config()->allowed_methods.find(_request.method()) ==
-            _request.config()->allowed_methods.end()) {
-            _request.set_error_status(405);
-            _request.set_status(REQ_ERROR);
-        } else {
-            _request.set_status(REQ_PARSED);
-        }
-    }
-    return _request.status();
-}
-
 RequestStatus Connection::parse_request() {
     if (_request.status() == REQ_EMPTY) parse_request_line();
 
     if (_request.status() == REQ_REQUEST_LINE) parse_headers();
 
-    if (_request.status() == REQ_HEADERS) parse_body();
+    if (_request.status() == REQ_HEADERS || _request.status() == REQ_BODY) resolve_location();
 
-    if (_request.status() == REQ_BODY) resolve_location();
+    if (_request.status() == REQ_HEADERS) parse_body();
 
     shrink_read_buffer();
     return _request.status();
