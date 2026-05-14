@@ -1,6 +1,5 @@
 #include "socket_utils.hpp"
 
-#include <arpa/inet.h>
 #include <fcntl.h>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -56,11 +55,8 @@ std::vector<int> make_listen_sockets(const ConfigServer& config) {
             throw std::exception();
         }
 
-        char ip_buffer[INET_ADDRSTRLEN];
-        inet_ntop(AF_INET, &address.sin_addr, ip_buffer,
-                  INET_ADDRSTRLEN);  // FIXME Forbidden function!1!!1
-        std::clog << "[make_listen_sockets] - Created fd " << fd << " to listen at " << ip_buffer
-                  << " on port " << ntohs(address.sin_port) << std::endl;
+        std::clog << "[make_listen_sockets] - Created fd " << fd << " to listen on port "
+                  << ntohs(address.sin_port) << std::endl;
 
         fds.push_back(fd);
     }
