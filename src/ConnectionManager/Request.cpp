@@ -195,7 +195,8 @@ bool Request::open_temp_body_file() {
         }
 
         if (errno != EEXIST) {
-            Logger(LOG_ERROR) << "[Request::open_temp_body_file] create_file: " << strerror(errno);
+            Logger(LOG_ERROR) << "[Request::open_temp_body_file] create_file: "
+                              << std::strerror(errno);
             return false;
         }
     }
@@ -213,7 +214,7 @@ bool Request::flush_memory_body_to_file() {
     const std::string& in_memory = _body;
     if (!in_memory.empty() && append_file(_body_fd, in_memory) < 0) {
         Logger(LOG_ERROR) << "[Request::flush_memory_body_to_file] append_file: "
-                          << strerror(errno);
+                          << std::strerror(errno);
         return false;
     }
 
@@ -242,7 +243,8 @@ bool Request::append_body_chunk(const char* data, size_t len) {
     if (_is_body_spooled) {
         // Use the length explicitly in case the data is binary and contains null bytes
         if (append_file(_body_fd, std::string(data, len)) < 0) {
-            Logger(LOG_ERROR) << "[Request::append_body_chunk] append_file: " << strerror(errno);
+            Logger(LOG_ERROR) << "[Request::append_body_chunk] append_file: "
+                              << std::strerror(errno);
             return false;
         }
     } else {

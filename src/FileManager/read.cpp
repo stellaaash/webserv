@@ -32,7 +32,7 @@ bool is_regular_file(const FilePath& path) {
     assert(path.empty() == false && "String contains an actual path");
 
     struct stat path_stat;
-    memset(&path_stat, 0, sizeof(path_stat));
+    std::memset(&path_stat, 0, sizeof(path_stat));
     if (stat(path.c_str(), &path_stat) != 0) return false;
     if (!S_ISREG(path_stat.st_mode)) return false;
 
@@ -48,7 +48,7 @@ bool is_directory(const FilePath& path) {
     assert(path.empty() == false && "String contains an actual path");
 
     struct stat path_stat;
-    memset(&path_stat, 0, sizeof(path_stat));
+    std::memset(&path_stat, 0, sizeof(path_stat));
     if (stat(path.c_str(), &path_stat) != 0) return false;
 
     if (!S_ISDIR(path_stat.st_mode)) return false;

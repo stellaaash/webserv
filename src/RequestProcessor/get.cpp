@@ -44,7 +44,7 @@ void Connection::process_get_request(const std::string& relative_path) {
     if (_response.is_error() == false && _response.body().empty() == true) {
         int fd = fetch_file(path);
         if (fd < 0) {
-            Logger(LOG_ERROR) << "[process_request] - fetch_file" << strerror(errno);
+            Logger(LOG_ERROR) << "[process_request] - fetch_file" << std::strerror(errno);
             if (errno == EACCES)
                 _response = error_response(403, false);
             else if (errno == ENOENT)

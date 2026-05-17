@@ -1,12 +1,13 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#include <cstdlib>
 #include <string>
 #include <vector>
 
 #include "cgi.hpp"
 #include "file_manager.hpp"
-#include "socket_utils.hpp"
+#include "helpers_socket.hpp"
 
 static CgiProcess make_failed_process() {
     CgiProcess proc;
@@ -94,7 +95,7 @@ CgiProcess start_cgi(const CgiRequest& req) {
         argv[2] = NULL;
 
         execve(req.interpreter.c_str(), argv, envp);
-        _exit(127);
+        std::exit(127);
     }
 
     setup_parent_pipes(pipes);

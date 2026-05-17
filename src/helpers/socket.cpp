@@ -1,6 +1,3 @@
-#include "socket_utils.hpp"
-
-#include <arpa/inet.h>
 #include <fcntl.h>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -13,12 +10,13 @@
 
 #include "Logger.hpp"
 #include "config.hpp"
+#include "helpers_socket.hpp"
 
 int set_nonblocking(int fd) {
     int flags = fcntl(fd, F_GETFL, 0);
     if (flags < 0) return -1;
     if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) < 0) {
-        Logger(LOG_ERROR) << "[set_nonblocking] fcntl: " << strerror(errno);
+        Logger(LOG_ERROR) << "[set_nonblocking] fcntl: " << std::strerror(errno);
         return -1;
     }
     return 0;
@@ -39,13 +37,13 @@ std::vector<int> make_listen_sockets(const ConfigServer& config) {
         setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
 
         if (bind(fd, reinterpret_cast<const struct sockaddr*>(&address), sizeof(address)) < 0) {
-            Logger(LOG_ERROR) << "[make_listen_sockets] bind: " << strerror(errno);
+            Logger(LOG_ERROR) << "[make_listen_sockets] bind: " << std::strerror(errno);
             close(fd);
             for (size_t i = 0; i < fds.size(); ++i) close(fds[i]);
             throw std::exception();
         }
         if (listen(fd, 128) < 0) {
-            Logger(LOG_ERROR) << "[make_listen_sockets] listen: " << strerror(errno);
+            Logger(LOG_ERROR) << "[make_listen_sockets] listen: " << std::strerror(errno);
             close(fd);
             for (size_t i = 0; i < fds.size(); ++i) close(fds[i]);
             throw std::exception();
@@ -56,11 +54,8 @@ std::vector<int> make_listen_sockets(const ConfigServer& config) {
             throw std::exception();
         }
 
-        char ip_buffer[INET_ADDRSTRLEN];
-        inet_ntop(AF_INET, &address.sin_addr, ip_buffer,
-                  INET_ADDRSTRLEN);  // FIXME Forbidden function!1!!1
-        std::clog << "[make_listen_sockets] - Created fd " << fd << " to listen at " << ip_buffer
-                  << " on port " << ntohs(address.sin_port) << std::endl;
+        std::clog << "[make_listen_sockets] - Created fd " << fd << " to listen on port "
+                  << ntohs(address.sin_port) << std::endl;
 
         fds.push_back(fd);
     }

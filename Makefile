@@ -15,6 +15,10 @@ RMFLAGS		=	-f
 
 SRCDIR		=	src
 CFILES		=	$(SRCDIR)/main.cpp \
+				$(SRCDIR)/Cgi/cgi_pipes.cpp \
+				$(SRCDIR)/Cgi/cgi_start.cpp \
+				$(SRCDIR)/Cgi/CgiHandler.cpp \
+				$(SRCDIR)/Cgi/helpers.cpp \
 				$(SRCDIR)/config.cpp \
 				$(SRCDIR)/ConfigParser/config_lexer.cpp \
 				$(SRCDIR)/ConfigParser/config_parser.cpp \
@@ -27,6 +31,8 @@ CFILES		=	$(SRCDIR)/main.cpp \
 				$(SRCDIR)/ConnectionManager/Listener.cpp \
 				$(SRCDIR)/ConnectionManager/Request.cpp \
 				$(SRCDIR)/ConnectionManager/Response.cpp \
+				$(SRCDIR)/helpers/socket.cpp \
+				$(SRCDIR)/helpers/getcwd.cpp \
 				$(SRCDIR)/FileManager/helpers.cpp \
 				$(SRCDIR)/FileManager/listing.cpp \
 				$(SRCDIR)/FileManager/read.cpp \
@@ -40,11 +46,6 @@ CFILES		=	$(SRCDIR)/main.cpp \
 				$(SRCDIR)/RequestProcessor/post.cpp \
 				$(SRCDIR)/RequestProcessor/request_processor.cpp \
 				$(SRCDIR)/RequestProcessor/send.cpp \
-				$(SRCDIR)/Cgi/cgi_utils.cpp \
-				$(SRCDIR)/Cgi/cgi_pipes.cpp \
-				$(SRCDIR)/Cgi/cgi_start.cpp \
-				$(SRCDIR)/Cgi/CgiHandler.cpp \
-				$(SRCDIR)/socket_utils.cpp \
 
 INCLDIR		=	include
 BUILDDIR	=	build
