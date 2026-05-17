@@ -67,6 +67,32 @@ RequestStatus Connection::parse_request_line() {
     return _request.status();
 }
 
+/**
+ * @brief This function extracts the Content-Length value from a Request's headers and puts it
+ * inside of the appropriate value in the same Request.
+ * It also sets the Request status approperiately, either to signify an error, or to indicate that a
+ */
+static void handle_content_length_header(Request& request, const size_t client_max_body_size) {
+    assert(request.has_header("Content-Length"));
+    size_t content_length = 0;
+
+    if (parse_content_length_value(request.header("Content-Length")->second, content_length) ==
+        false) {
+        request.set_error_status(400);
+        request.set_status(REQ_ERROR);
+        return;
+    }
+    request.set_content_length(content_length);
+    if (content_length > client_max_body_size) {
+        request.set_error_status(413);
+        request.set_status(REQ_ERROR);
+        return;
+    }
+    if (content_length > 0) {
+        request.set_status(REQ_HEADERS);
+    }
+}
+
 RequestStatus Connection::parse_headers() {
     assert(_request.status() == REQ_REQUEST_LINE);
 
@@ -114,8 +140,58 @@ RequestStatus Connection::parse_headers() {
         return _request.status();
     }
 
-    if (!handle_content_length_header(_request)) return _request.status();
+    if (_request.has_header("Content-Length")) {
+        handle_content_length_header(_request, _config->client_max_body_size);
+        if (_request.status() == REQ_ERROR || _request.status() == REQ_HEADERS)
+            return _request.status();  // An error or a valid Content-Length
+    }
+
+    // No Content-Length, so no body to be parsed
     _request.set_status(REQ_BODY);
+    return _request.status();
+}
+
+/**
+ * @brief Resolves which location config should be assigned to the given request, based on its
+ * target.
+ * It resolves in order, but the most precise location found will be set.
+ * For example, if the target of the request is /images, but there are / and /images locations in
+ * the configuration, the /images location will be choosen, even though / comes before
+ * alphabetically.
+ */
+// TODO This function resolves to a location when a file's name starts with that location name
+// For example, with location /upload configured, getting /upload.html resolves to /upload, but
+// shouldn't To fix this, we should base ourself on whether the full location "/upload/" with the
+// last / included is present in the request's target
+RequestStatus Connection::resolve_location() {
+    assert(_request.status() == REQ_HEADERS || _request.status() == REQ_BODY);
+
+    const std::string& request_target = _request.target();
+    bool               matched = false;
+
+    for (LocationIterator l = _config->location.begin(); l != _config->location.end(); ++l) {
+        const std::string& location_name = l->first;
+        const size_t       location_length = location_name.length();
+
+        // If the target matches a location, even just as a prefix, then it's the right location
+        if (request_target.substr(0, location_length) == location_name) {
+            _request.set_config(&l->second);
+            matched = true;
+        }
+    }
+
+    if (!matched) {
+        _request.set_error_status(404);
+        _request.set_status(REQ_ERROR);
+    } else {
+        if (_request.config()->allowed_methods.find(_request.method()) ==
+            _request.config()->allowed_methods.end()) {
+            _request.set_error_status(405);
+            _request.set_status(REQ_ERROR);
+        } else {
+            _request.set_status(REQ_PARSED);
+        }
+    }
     return _request.status();
 }
 
@@ -150,59 +226,14 @@ RequestStatus Connection::parse_body() {
     return _request.status();
 }
 
-/**
- * @brief Resolves which location config should be assigned to the given request, based on its
- * target.
- * It resolves in order, but the most precise location found will be set.
- * For example, if the target of the request is /images, but there are / and /images locations in
- * the configuration, the /images location will be choosen, even though / comes before
- * alphabetically.
- */
-// TODO This function resolves to a location when a file's name starts with that location name
-// For example, with location /upload configured, getting /upload.html resolves to /upload, but
-// shouldn't To fix this, we should base ourself on whether the full location "/upload/" with the
-// last / included is present in the request's target
-RequestStatus Connection::resolve_location() {
-    assert(_request.status() == REQ_BODY);
-
-    const std::string& request_target = _request.target();
-    bool               matched = false;
-
-    for (LocationIterator l = _config->location.begin(); l != _config->location.end(); ++l) {
-        const std::string& location_name = l->first;
-        const size_t       location_length = location_name.length();
-
-        // If the target matches a location, even just as a prefix, then it's the right location
-        if (request_target.substr(0, location_length) == location_name) {
-            _request.set_config(&l->second);
-            matched = true;
-        }
-    }
-
-    if (!matched) {
-        _request.set_error_status(404);
-        _request.set_status(REQ_ERROR);
-    } else {
-        // TODO This check should go before the body arrives
-        if (_request.config()->allowed_methods.find(_request.method()) ==
-            _request.config()->allowed_methods.end()) {
-            _request.set_error_status(405);
-            _request.set_status(REQ_ERROR);
-        } else {
-            _request.set_status(REQ_PARSED);
-        }
-    }
-    return _request.status();
-}
-
 RequestStatus Connection::parse_request() {
     if (_request.status() == REQ_EMPTY) parse_request_line();
 
     if (_request.status() == REQ_REQUEST_LINE) parse_headers();
 
-    if (_request.status() == REQ_HEADERS) parse_body();
+    if (_request.status() == REQ_HEADERS || _request.status() == REQ_BODY) resolve_location();
 
-    if (_request.status() == REQ_BODY) resolve_location();
+    if (_request.status() == REQ_HEADERS) parse_body();
 
     shrink_read_buffer();
     return _request.status();

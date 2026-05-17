@@ -32,7 +32,6 @@ public:
     void                set_response(const Response&);
     void                queue_write(const std::string& data);
     bool                has_pending_write() const;
-    bool                handle_content_length_header(Request& request);
     bool                has_pending_cgi() const;
     CgiProcess          grab_pending_cgi();
     const ConfigServer* config() const;
