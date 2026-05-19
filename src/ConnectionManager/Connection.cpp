@@ -21,6 +21,9 @@ Connection::Connection(const ConfigServer* const config, int socket)
       _read_index(0),
       _write_buffer(),
       _write_index(0),
+      _is_chunked(false),
+      _chunk_size(0),
+      _chunk_received(0),
       _has_pending_cgi(false) {
     assert(config && "ConfigServer pointer");
     assert(socket > 2 && "Valid Socket Number");

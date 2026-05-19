@@ -137,6 +137,7 @@ RequestStatus Connection::parse_headers() {
         return _request.status();
     }
 
+    if (!handle_chunked_encoding_header(_request)) return _request.status();
     if (_request.has_header("content-length"))
         handle_content_length_header(_request, _config->client_max_body_size);
 
@@ -190,6 +191,8 @@ RequestStatus Connection::resolve_location() {
 
 RequestStatus Connection::parse_body() {
     assert(_request.status() == REQ_HEADERS);
+
+    if (_is_chunked) return parse_chunked_body();
 
     if (_request.content_length() <= 0) {
         _request.set_status(REQ_PARSED);

@@ -31,6 +31,7 @@ public:
     void                set_request(const Request&);
     void                set_response(const Response&);
     void                queue_write(const std::string& data);
+    bool                handle_chunked_encoding_header(Request& request);
     bool                has_pending_write() const;
     bool                has_pending_cgi() const;
     CgiProcess          grab_pending_cgi();
@@ -45,6 +46,7 @@ private:
     RequestStatus parse_request_line();
     RequestStatus parse_headers();
     RequestStatus parse_body();
+    RequestStatus parse_chunked_body();
     RequestStatus resolve_location();
 
     void process_get_request(const std::string& relative_path);
@@ -58,10 +60,16 @@ private:
 
     int _socket;
 
+    // Parse via Content-Length
     std::string _read_buffer;
     size_t      _read_index;
     std::string _write_buffer;
     size_t      _write_index;
+
+    // Parse via Chunked Encoding
+    bool   _is_chunked;
+    size_t _chunk_size;
+    size_t _chunk_received;
 
     // Set by post requests when a CGI is launched
     CgiProcess _pending_cgi_process;

@@ -31,6 +31,7 @@ CFILES		=	$(SRCDIR)/main.cpp \
 				$(SRCDIR)/ConnectionManager/Listener.cpp \
 				$(SRCDIR)/ConnectionManager/Request.cpp \
 				$(SRCDIR)/ConnectionManager/Response.cpp \
+				$(SRCDIR)/ConnectionManager/ChunkedEncoding.cpp \
 				$(SRCDIR)/helpers/socket.cpp \
 				$(SRCDIR)/helpers/getcwd.cpp \
 				$(SRCDIR)/FileManager/helpers.cpp \
