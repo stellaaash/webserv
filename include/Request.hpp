@@ -11,7 +11,6 @@ enum RequestStatus {
     REQ_EMPTY,         // Nothing received yet
     REQ_REQUEST_LINE,  // Received request line
     REQ_HEADERS,       // Received headers
-    REQ_BODY,          // Received the full body
     REQ_PARSED,        // Ready to be processed
     REQ_PROCESSED,     // Fully processed, Response created
     REQ_ERROR          // Error during parsing
