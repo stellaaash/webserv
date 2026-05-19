@@ -1,14 +1,13 @@
-#include "Connection.hpp"
-
 #include <sys/socket.h>
 #include <sys/types.h>
 
 #include <cassert>
 #include <cerrno>
 #include <cstring>
-
-#include "Request.hpp"
 #include <request_parser.hpp>
+
+#include "Connection.hpp"
+#include "Request.hpp"
 
 bool parse_chunk_size(const std::string& str, size_t& out) {
     if (str.empty()) return false;
