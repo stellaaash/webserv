@@ -70,27 +70,24 @@ RequestStatus Connection::parse_request_line() {
 /**
  * @brief This function extracts the Content-Length value from a Request's headers and puts it
  * inside of the appropriate value in the same Request.
- * It also sets the Request status approperiately, either to signify an error, or to indicate that a
+ * It sets the status to REQ_ERROR on errors.
  */
 static void handle_content_length_header(Request& request, const size_t client_max_body_size) {
-    assert(request.has_header("Content-Length"));
+    assert(request.has_header("content-length"));
     size_t content_length = 0;
 
-    if (parse_content_length_value(request.header("Content-Length")->second, content_length) ==
+    if (parse_content_length_value(request.header("content-length")->second, content_length) ==
         false) {
         request.set_error_status(400);
         request.set_status(REQ_ERROR);
         return;
     }
-    request.set_content_length(content_length);
     if (content_length > client_max_body_size) {
         request.set_error_status(413);
         request.set_status(REQ_ERROR);
         return;
     }
-    if (content_length > 0) {
-        request.set_status(REQ_HEADERS);
-    }
+    request.set_content_length(content_length);
 }
 
 RequestStatus Connection::parse_headers() {
@@ -140,14 +137,10 @@ RequestStatus Connection::parse_headers() {
         return _request.status();
     }
 
-    if (_request.has_header("Content-Length")) {
+    if (_request.has_header("content-length"))
         handle_content_length_header(_request, _config->client_max_body_size);
-        if (_request.status() == REQ_ERROR || _request.status() == REQ_HEADERS)
-            return _request.status();  // An error or a valid Content-Length
-    }
 
-    // No Content-Length, so no body to be parsed
-    _request.set_status(REQ_BODY);
+    if (_request.status() != REQ_ERROR) _request.set_status(REQ_HEADERS);
     return _request.status();
 }
 
@@ -164,7 +157,7 @@ RequestStatus Connection::parse_headers() {
 // shouldn't To fix this, we should base ourself on whether the full location "/upload/" with the
 // last / included is present in the request's target
 RequestStatus Connection::resolve_location() {
-    assert(_request.status() == REQ_HEADERS || _request.status() == REQ_BODY);
+    assert(_request.status() == REQ_HEADERS);
 
     const std::string& request_target = _request.target();
     bool               matched = false;
@@ -183,20 +176,25 @@ RequestStatus Connection::resolve_location() {
     if (!matched) {
         _request.set_error_status(404);
         _request.set_status(REQ_ERROR);
-    } else {
-        if (_request.config()->allowed_methods.find(_request.method()) ==
-            _request.config()->allowed_methods.end()) {
-            _request.set_error_status(405);
-            _request.set_status(REQ_ERROR);
-        } else {
-            _request.set_status(REQ_PARSED);
-        }
+        return _request.status();
     }
+    if (_request.config()->allowed_methods.find(_request.method()) ==
+        _request.config()->allowed_methods.end()) {
+        _request.set_error_status(405);
+        _request.set_status(REQ_ERROR);
+        return _request.status();
+    }
+
     return _request.status();
 }
 
 RequestStatus Connection::parse_body() {
     assert(_request.status() == REQ_HEADERS);
+
+    if (_request.content_length() <= 0) {
+        _request.set_status(REQ_PARSED);
+        return _request.status();
+    }
 
     size_t expected = _request.content_length();
     size_t received = _request.body_received();
@@ -221,7 +219,7 @@ RequestStatus Connection::parse_body() {
 
     _read_index += chunk;
 
-    if (_request.body_received() == expected) _request.set_status(REQ_BODY);
+    if (_request.body_received() == expected) _request.set_status(REQ_PARSED);
 
     return _request.status();
 }
@@ -231,7 +229,7 @@ RequestStatus Connection::parse_request() {
 
     if (_request.status() == REQ_REQUEST_LINE) parse_headers();
 
-    if (_request.status() == REQ_HEADERS || _request.status() == REQ_BODY) resolve_location();
+    if (_request.status() == REQ_HEADERS) resolve_location();
 
     if (_request.status() == REQ_HEADERS) parse_body();
 
