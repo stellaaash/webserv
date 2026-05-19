@@ -14,7 +14,7 @@
 #include "file_manager.hpp"
 
 /**
- * @brief Gets the content of a directory, and returns them as a multimap of path to file type.
+ * @brief Gets the content of a directory, and returns them as a map of path to file type.
  */
 std::map<FilePath, PathType> get_dir_contents(const FilePath& directory) {
     assert(is_directory(directory) && "File path is a directory");

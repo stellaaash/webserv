@@ -6,7 +6,7 @@
 enum LogLevel { LOG_DEBUG, LOG_GENERAL, LOG_ERROR };
 
 /**
- * Usage: Logger(DEBUG_LOG) << "string " << num << " string"
+ * Usage: Logger(LOG_DEBUG) << "string " << num << " string"
  */
 class Logger {
 public:

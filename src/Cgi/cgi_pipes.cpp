@@ -41,7 +41,7 @@ bool init_pipes(CgiPipes& p) {
 }
 
 /**
- * @brief xclose gem alarm
+ * @brief Closes a file descriptor if it is open, and resets it to -1.
  */
 void close_fd(int& fd) {
     if (fd >= 0) {

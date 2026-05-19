@@ -83,9 +83,11 @@ int fetch_file(const FilePath& path) {
 }
 
 /**
- * @brief Standardizes a file path.
+ * @brief Standardizes a file path into a canonical, absolute form.
  *
- * @description Removes a potential trailing slash.
+ * @description Collapses redundant slashes, resolves `.` and `..` segments, and removes any
+ * trailing slash. If the input path is relative (does not start with a slash), it is made
+ * absolute by prepending the server's working directory.
  */
 FilePath standardize_path(const std::string& path) {
     assert(path.empty() == false && "Empty path");

@@ -150,7 +150,7 @@ Config parse_file(std::ifstream& file) {
     return config;
 }
 
-/*
+/**
  * @brief Checks that a string contains only the characters held within the allowed_set.
  *
  * @return false if the string contains erroneous characters, true if it doesn't.
