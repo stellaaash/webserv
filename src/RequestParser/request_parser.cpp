@@ -82,12 +82,12 @@ static void handle_content_length_header(Request& request, const size_t client_m
         request.set_status(REQ_ERROR);
         return;
     }
-    request.set_content_length(content_length);
     if (content_length > client_max_body_size) {
         request.set_error_status(413);
         request.set_status(REQ_ERROR);
         return;
     }
+    request.set_content_length(content_length);
 }
 
 RequestStatus Connection::parse_headers() {
@@ -176,20 +176,25 @@ RequestStatus Connection::resolve_location() {
     if (!matched) {
         _request.set_error_status(404);
         _request.set_status(REQ_ERROR);
-    } else {
-        if (_request.config()->allowed_methods.find(_request.method()) ==
-            _request.config()->allowed_methods.end()) {
-            _request.set_error_status(405);
-            _request.set_status(REQ_ERROR);
-        } else {
-            _request.set_status(REQ_PARSED);
-        }
+        return _request.status();
     }
+    if (_request.config()->allowed_methods.find(_request.method()) ==
+        _request.config()->allowed_methods.end()) {
+        _request.set_error_status(405);
+        _request.set_status(REQ_ERROR);
+        return _request.status();
+    }
+
     return _request.status();
 }
 
 RequestStatus Connection::parse_body() {
     assert(_request.status() == REQ_HEADERS);
+
+    if (_request.content_length() <= 0) {
+        _request.set_status(REQ_PARSED);
+        return _request.status();
+    }
 
     size_t expected = _request.content_length();
     size_t received = _request.body_received();
