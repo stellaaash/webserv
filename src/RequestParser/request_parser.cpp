@@ -146,10 +146,6 @@ RequestStatus Connection::parse_headers() {
  * the configuration, the /images location will be choosen, even though / comes before
  * alphabetically.
  */
-// TODO This function resolves to a location when a file's name starts with that location name
-// For example, with location /upload configured, getting /upload.html resolves to /upload, but
-// shouldn't To fix this, we should base ourself on whether the full location "/upload/" with the
-// last / included is present in the request's target
 RequestStatus Connection::resolve_location() {
     assert(_request.status() == REQ_HEADERS);
 
