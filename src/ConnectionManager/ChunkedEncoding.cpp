@@ -41,13 +41,11 @@ bool Connection::handle_chunked_encoding_header(Request& request) {
     bool has_transfer_encoding = false;
     bool has_chunked = false;
 
-    for (HttpMessage::HeaderIterator it = request.headers_begin(); it != request.headers_end();
-         ++it) {
-        if (it->first != "transfer-encoding") continue;
-
+    if (request.has_header("transfer-encoding"))
+    {
         has_transfer_encoding = true;
-
-        if (trim(it->second) == "chunked") has_chunked = true;
+        if (trim(request.header("transfer-encoding")->second) == "chunked")
+            has_chunked = true;
     }
 
     if (!has_transfer_encoding) return true;
