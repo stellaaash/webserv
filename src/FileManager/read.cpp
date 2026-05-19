@@ -117,5 +117,8 @@ FilePath standardize_path(const std::string& path) {
     }
 
     if (path[0] != '/') standardized.insert(0, working_directory);
+
+    if (is_directory(standardized)) standardized.append("/");
+
     return standardized;
 }

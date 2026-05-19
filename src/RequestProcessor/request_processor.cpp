@@ -9,10 +9,8 @@
 #include "config.hpp"
 
 void Connection::process_request() {
+    // FIXME GETting /imagescard_normal.png still works
     std::string relative_path = _request.target().substr(_request.config()->name.length());
-    if (!relative_path.empty() &&  // If we still have a slash at the beginning, remove it
-        relative_path[0] == '/')
-        relative_path.erase(0, relative_path.find_first_not_of('/'));
 
     // TODO Redirection checking should probably happen before the body arrives
     if (_request.config()->redirect.first >= 300 && _request.config()->redirect.first <= 399) {
