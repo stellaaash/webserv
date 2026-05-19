@@ -73,10 +73,10 @@ RequestStatus Connection::parse_request_line() {
  * It sets the status to REQ_ERROR on errors.
  */
 static void handle_content_length_header(Request& request, const size_t client_max_body_size) {
-    assert(request.has_header("Content-Length"));
+    assert(request.has_header("content-length"));
     size_t content_length = 0;
 
-    if (parse_content_length_value(request.header("Content-Length")->second, content_length) ==
+    if (parse_content_length_value(request.header("content-length")->second, content_length) ==
         false) {
         request.set_error_status(400);
         request.set_status(REQ_ERROR);
@@ -137,7 +137,7 @@ RequestStatus Connection::parse_headers() {
         return _request.status();
     }
 
-    if (_request.has_header("Content-Length"))
+    if (_request.has_header("content-length"))
         handle_content_length_header(_request, _config->client_max_body_size);
 
     if (_request.status() != REQ_ERROR) _request.set_status(REQ_HEADERS);
