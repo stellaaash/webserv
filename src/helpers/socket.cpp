@@ -31,7 +31,7 @@ std::vector<int> make_listen_sockets(const ConfigServer& config) {
     for (ListenIterator l = config.listen.begin(); l != config.listen.end(); ++l) {
         const struct sockaddr_in& address = *l;
         int                       fd = socket(AF_INET, SOCK_STREAM, 0);
-        if (fd < 0) throw;
+        if (fd < 0) throw std::exception();
 
         int yes = 1;
         setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
