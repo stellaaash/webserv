@@ -80,8 +80,6 @@ std::string ft_getcwd() {
         path.append(*element);
     }
 
-    std::cerr << path << std::endl;
-
     if (chdir(path.c_str()) == -1) throw std::exception();
     return path;
 }
