@@ -155,7 +155,6 @@ void ConnectionHandler::clear_cgi_handler() {
 bool ConnectionHandler::handle_event(ConnectionManager& manager, uint32_t events) {
     const Request&  request = _conn.request();
     const Response& response = _conn.response();
-    Logger(LOG_DEBUG) << "[!] - Response status: " << response.status();
 
     if (events & (EPOLLERR | EPOLLHUP)) {
         Logger(LOG_ERROR) << "[CONN " << _fd << "] Error: Wrong epoll event";

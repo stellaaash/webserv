@@ -1,6 +1,5 @@
 #include "CgiHandler.hpp"
 
-#include <errno.h>
 #include <signal.h>
 #include <string.h>
 #include <sys/epoll.h>
@@ -90,7 +89,6 @@ void CgiHandler::read_stdout() {
             _stdout_eof = true;
             break;
         } else {
-            if (errno == EINTR) continue;
             break;
         }
     }
@@ -110,7 +108,6 @@ void CgiHandler::read_stderr() {
             _stderr_eof = true;
             break;
         } else {
-            if (errno == EINTR) continue;
             break;
         }
     }

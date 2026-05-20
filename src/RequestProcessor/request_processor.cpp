@@ -1,6 +1,5 @@
 #include <unistd.h>
 
-#include <cerrno>
 #include <cstring>
 #include <string>
 
