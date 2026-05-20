@@ -65,7 +65,7 @@ std::string ft_getcwd() {
             directory_entry = readdir(directory_stream);
             if (stat(directory_entry->d_name, &stat_results) == -1) throw std::exception();
         }
-        if (errno != 0) {
+        if (directory_entry == NULL || errno != 0) {  // Looked at all entries without a match
             closedir(directory_stream);
             throw std::exception();
         }
