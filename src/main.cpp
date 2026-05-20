@@ -38,6 +38,7 @@ int main(int argc, char** argv) {
         working_directory = ft_getcwd();
     } catch (...) {
         std::cerr << "[!] - Failed to get working directory of webserv." << std::endl;
+        std::cerr << "[!] - Reason: " << strerror(errno) << std::endl;
         return 2;
     }
 

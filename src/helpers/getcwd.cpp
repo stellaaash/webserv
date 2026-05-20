@@ -52,15 +52,20 @@ std::string ft_getcwd() {
         if (!directory_stream) throw std::exception();
         errno = 0;  // Set to 0 to distinguish readdir errors from end of stream
         struct dirent* directory_entry = readdir(directory_stream);
+
+        struct stat stat_results;
+        if (stat(directory_entry->d_name, &stat_results) == -1) throw std::exception();
         while (directory_entry != NULL) {
-            if (directory_entry->d_ino == current_id.second) {
+            if (stat_results.st_ino == current_id.second &&
+                stat_results.st_dev == current_id.first) {
                 // If the inode is the same, we found the last directory we were in
                 path_elements.push_back(directory_entry->d_name);
                 break;
             }
             directory_entry = readdir(directory_stream);
+            if (stat(directory_entry->d_name, &stat_results) == -1) throw std::exception();
         }
-        if (errno != 0) {
+        if (directory_entry == NULL || errno != 0) {  // Looked at all entries without a match
             closedir(directory_stream);
             throw std::exception();
         }
