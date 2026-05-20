@@ -10,7 +10,6 @@ CXXFLAGS	=	-Wall \
 				-MP \
 				-std=c++98 \
 				-g \
-				-fstandalone-debug \
 				-O0
 RM			=	rm
 RMFLAGS		=	-f
