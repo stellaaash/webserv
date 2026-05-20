@@ -70,21 +70,16 @@ ssize_t Connection::receive_data() {
     char    buffer[RECV_SIZE];
     ssize_t total = 0;
 
-    while (true) {
-        ssize_t n = recv(_socket, buffer, sizeof(buffer), 0);
-        if (n > 0) {
-            _read_buffer.append(buffer, static_cast<size_t>(n));
-            total += n;
-        } else if (n == 0) {
-            // closing client
-            Logger(LOG_GENERAL) << "[CONN " << _socket << "] client closed recv0";
-            return 0;
-        } else {
-            // FIXME checking errno after a read/write is forbidden
-            if (errno == EAGAIN || errno == EWOULDBLOCK) break;  // nothing to read
-            Logger(LOG_ERROR) << "[Connection::receive_data] recv: " << std::strerror(errno);
-            return -1;
-        }
+    ssize_t n = recv(_socket, buffer, sizeof(buffer), 0);
+    if (n > 0) {
+        _read_buffer.append(buffer, static_cast<size_t>(n));
+        total += n;
+    } else if (n == 0) {
+        // closing client
+        Logger(LOG_GENERAL) << "[CONN " << _socket << "] client closed recv0";
+        return 0;
+    } else {
+        return -1;
     }
 
     return total;
