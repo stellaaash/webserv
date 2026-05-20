@@ -54,7 +54,7 @@ std::string ft_getcwd() {
         struct dirent* directory_entry = readdir(directory_stream);
 
         struct stat stat_results;
-        stat(directory_entry->d_name, &stat_results);
+        if (stat(directory_entry->d_name, &stat_results) == -1) throw std::exception();
         while (directory_entry != NULL) {
             if (stat_results.st_ino == current_id.second &&
                 stat_results.st_dev == current_id.first) {
@@ -63,6 +63,7 @@ std::string ft_getcwd() {
                 break;
             }
             directory_entry = readdir(directory_stream);
+            if (stat(directory_entry->d_name, &stat_results) == -1) throw std::exception();
         }
         if (errno != 0) {
             closedir(directory_stream);
